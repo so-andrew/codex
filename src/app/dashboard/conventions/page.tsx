@@ -1,6 +1,8 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { eq } from 'drizzle-orm'
+import ConventionTable from '~/app/_components/ConventionTable'
 import CreateConvention from '~/app/_components/CreateConvention'
+import { columns } from '~/app/dashboard/conventions/columns'
 import { db } from '~/server/db'
 import { conventions } from '~/server/db/schema'
 
@@ -15,6 +17,9 @@ export default async function Conventions() {
             <section className="flex flex-row justify-between border-b pb-8">
                 <h1 className="text-2xl font-semibold">Conventions</h1>
                 <CreateConvention />
+            </section>
+            <section>
+                <ConventionTable columns={columns} data={userConventions} />
             </section>
         </section>
     )

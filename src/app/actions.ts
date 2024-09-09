@@ -6,7 +6,12 @@ import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { z, type ZodError } from 'zod'
 import { db } from '~/server/db'
-import { conventions, type Product, products } from '~/server/db/schema'
+import {
+    type Convention,
+    conventions,
+    type Product,
+    products,
+} from '~/server/db/schema'
 
 export async function test() {
     'use server'
@@ -75,43 +80,46 @@ export async function deleteProduct(product: Product) {
 }
 
 const conventionScheme = z.object({
-    name: z.string().min(2).max(256),
-    location: z.string().min(2),
+    name: z.string().min(2).max(100),
+    location: z.string().min(2).max(100),
     dateRange: z.object({
-        from: z.string(),
-        to: z.string(),
+        from: z.date(),
+        to: z.date(),
     }),
 })
 
-export async function createConvention(formData: FormData) {
+export async function createConvention(data: z.infer<typeof conventionScheme>) {
     const user = await currentUser()
-    console.log(formData)
 
     if (user) {
         try {
             const parse = conventionScheme.parse({
-                name: formData.get('name'),
-                location: formData.get('location'),
-                dateRange: formData.get('dateRange'),
+                name: data.name,
+                location: data.location,
+                dateRange: data.dateRange,
             })
-            console.log(parse)
 
-            const con = await db
-                .insert(conventions)
-                .values({
-                    name: parse.name,
-                    location: parse.location,
-                    startDate: parse.dateRange.from,
-                    endDate: parse.dateRange.to,
-                    creatorId: user.id,
-                })
-                .returning()
-
-            console.log(con)
+            await db.insert(conventions).values({
+                name: parse.name,
+                location: parse.location,
+                startDate: parse.dateRange.from.toISOString(),
+                endDate: parse.dateRange.to.toISOString(),
+                creatorId: user.id,
+            })
         } catch (e) {
             const error = e as ZodError
-            if (!error.isEmpty) return error.format()
+            if (!error.isEmpty) {
+                return error.format()
+            }
         }
         return revalidatePath('/dashboard/conventions')
     }
+}
+
+export async function deleteConvention(convention: Convention) {
+    const user = await currentUser()
+    if (user && user.id === convention.creatorId) {
+        await db.delete(conventions).where(eq(conventions.id, convention.id))
+    }
+    revalidatePath('/dashboard/conventions')
 }

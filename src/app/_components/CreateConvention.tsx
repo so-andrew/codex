@@ -71,6 +71,12 @@ export default function CreateConvention() {
         },
     })
 
+    async function onSubmit(data: z.infer<typeof formSchema>) {
+        console.log(data)
+        await createConvention(data)
+        setIsOpen(false)
+    }
+
     return (
         <div className="flex flex-row gap-6">
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -88,15 +94,7 @@ export default function CreateConvention() {
                     </DialogHeader>
                     <Form {...form}>
                         <form
-                            //onSubmit={form.handleSubmit(onSubmit)}
-                            action={async (formData) => {
-                                for (const pair of formData.entries()) {
-                                    console.log(pair[0], pair[1])
-                                }
-                                console.log(formData.get('dateRange'))
-                                await createConvention(formData)
-                                setIsOpen(false)
-                            }}
+                            onSubmit={form.handleSubmit(onSubmit)}
                             className="space-y-8"
                         >
                             <FormField
@@ -192,10 +190,7 @@ export default function CreateConvention() {
                                                     defaultMonth={
                                                         field.value?.from
                                                     }
-                                                    selected={{
-                                                        from: field.value.from!,
-                                                        to: field.value.to,
-                                                    }}
+                                                    selected={field.value}
                                                     onSelect={field.onChange}
                                                     numberOfMonths={2}
                                                 />
