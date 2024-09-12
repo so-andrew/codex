@@ -70,6 +70,7 @@ export const productVariations = createTable('productVariations', {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
     name: varchar('name', { length: 256 }).notNull(),
     baseProductName: varchar('baseProductName', { length: 256 }).notNull(),
+    sku: varchar('name', { length: 25 }).unique(),
     productId: integer('productId')
         .references(() => products.id, { onDelete: 'cascade' })
         .notNull(),

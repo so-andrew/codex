@@ -1,51 +1,51 @@
-'use client'
-
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type Dispatch, type SetStateAction } from 'react'
+import { Dispatch, SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { deleteVariation } from '~/app/actions'
+import { bulkDeleteProduct } from '~/app/actions'
 import { Button } from '~/components/ui/button'
 import { Form } from '~/components/ui/form'
 import { useToast } from '~/hooks/use-toast'
+import { ProductData } from '~/server/db/schema'
 
 const formSchema = z.object({
-    id: z.number(),
-    productId: z.number(),
-    creatorId: z.string(),
+    data: z.array(
+        z.object({
+            id: z.number(),
+            creatorId: z.string(),
+        }),
+    ),
 })
 
-export default function DeleteVariationForm({
-    id,
-    productId,
-    creatorId,
+export default function BulkDeleteProductForm({
+    data,
     setIsOpen,
+    toggleAllRowsSelected,
 }: {
-    id: number
-    productId: number
-    creatorId: string
+    data: ProductData[]
     setIsOpen: Dispatch<SetStateAction<boolean>>
+    toggleAllRowsSelected: (arg: boolean) => void
 }) {
-    const { toast } = useToast()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            id: id,
-            productId: productId,
-            creatorId: creatorId,
+            data: data,
         },
     })
 
-    const { reset } = form
-    const isLoading = form.formState.isSubmitting
+    const { toast } = useToast()
+    const { formState, reset } = form
+    const { isSubmitting } = formState
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
-            await deleteVariation(data)
+            await bulkDeleteProduct(data)
             reset({}, { keepValues: true })
+            setIsOpen(false)
+            toggleAllRowsSelected(false)
             toast({
                 title: 'Success',
-                description: 'Successfully deleted variation.',
+                description: 'Successfully deleted products.',
             })
         } catch (e) {
             const error = e as Error
@@ -54,7 +54,6 @@ export default function DeleteVariationForm({
                 description: error.message,
             })
         }
-        setIsOpen(false)
     }
 
     return (
@@ -64,7 +63,7 @@ export default function DeleteVariationForm({
                     <Button
                         variant="outline"
                         type="button"
-                        disabled={isLoading}
+                        disabled={isSubmitting}
                         onClick={() => setIsOpen(false)}
                     >
                         Cancel
@@ -72,7 +71,7 @@ export default function DeleteVariationForm({
                     <Button
                         type="submit"
                         className="bg-red-500 hover:bg-red-600"
-                        disabled={isLoading}
+                        disabled={isSubmitting}
                     >
                         Delete
                     </Button>

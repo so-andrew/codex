@@ -75,8 +75,8 @@ export async function createProduct(data: z.infer<typeof productScheme>) {
                 variations: data.variations,
             })
 
-            console.log(parse)
-            console.log(parse.variations && parse.variations.length > 0)
+            // console.log(parse)
+            // console.log(parse.variations && parse.variations.length > 0)
 
             // If the user specified variations to be created
             if (parse.variations && parse.variations.length > 0) {
@@ -153,6 +153,48 @@ export async function deleteProduct({
         await db.delete(products).where(eq(products.id, id))
     }
     revalidatePath('/dashboard/products')
+}
+
+const bulkProductDeleteScheme = z.object({
+    data: z.array(
+        z.object({
+            id: z.number(),
+            creatorId: z.string(),
+        }),
+    ),
+})
+
+export async function bulkDeleteProduct(
+    data: z.infer<typeof bulkProductDeleteScheme>,
+) {
+    const user = await currentUser()
+
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = bulkProductDeleteScheme.parse({
+            data: data.data,
+        })
+
+        for (const product of parse.data) {
+            await db
+                .delete(products)
+                .where(
+                    and(
+                        eq(products.id, product.id),
+                        eq(products.creatorId, product.creatorId),
+                    ),
+                )
+        }
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('dashboard/products')
 }
 
 export async function editProduct(data: z.infer<typeof productEditScheme>) {
@@ -388,6 +430,77 @@ export async function deleteVariation({
 
     await db.delete(productVariations).where(eq(productVariations.id, id))
 
+    revalidatePath('/dashboard/products')
+}
+
+const bulkVariationDeleteScheme = z.object({
+    data: z.array(
+        z.object({
+            id: z.number(),
+            productId: z.number(),
+            creatorId: z.string(),
+        }),
+    ),
+})
+
+export async function bulkDeleteVariation(
+    data: z.infer<typeof bulkVariationDeleteScheme>,
+) {
+    const user = await currentUser()
+
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    // if (user.id !== creatorId) {
+    //     const error = new Error('User does not have permission to delete.')
+    //     throw error
+    // }
+
+    const parse = bulkVariationDeleteScheme.parse({
+        data: data.data,
+    })
+
+    const productIds = parse.data.map((variation) => variation.productId)
+    const variationIds = parse.data.map((variation) => variation.id)
+
+    for (const productId of productIds) {
+        const product = await db.query.products.findFirst({
+            where: and(
+                eq(products.id, productId),
+                eq(products.creatorId, user.id),
+            ),
+        })
+
+        const getAllVariations = await db
+            .select()
+            .from(productVariations)
+            .where(eq(productVariations.productId, productId))
+        const variationsOfProduct = parse.data.filter(
+            (variation) => variation.productId === productId,
+        )
+
+        await db
+            .delete(productVariations)
+            .where(
+                and(
+                    inArray(productVariations.id, variationIds),
+                    eq(productVariations.creatorId, user.id),
+                ),
+            )
+
+        // Check if we are deleting all variations, create new default variation
+        if (getAllVariations.length === variationsOfProduct.length) {
+            await db.insert(productVariations).values({
+                name: 'Default',
+                price: '0',
+                baseProductName: product!.name,
+                productId: productId,
+                creatorId: user.id,
+            })
+        }
+    }
     revalidatePath('/dashboard/products')
 }
 

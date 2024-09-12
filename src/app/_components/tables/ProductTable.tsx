@@ -11,7 +11,7 @@ import {
     type SortingState,
     useReactTable,
 } from '@tanstack/react-table'
-import * as React from 'react'
+import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import {
@@ -23,14 +23,17 @@ import {
     TableRow,
 } from '~/components/ui/table'
 import { type ProductData, type ProductVariation } from '~/server/db/schema'
+import GenericDialog from '../dialogs/GenericDialog'
+import BulkDeleteProductForm from '../forms/BulkDeleteProductForm'
 import { columns } from './ProductColumns'
 
 export default function ProductTable({ data }: { data: ProductData[] }) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] =
-        React.useState<ColumnFiltersState>([])
-    const [rowSelection, setRowSelection] = React.useState({})
-    const [expanded, setExpanded] = React.useState<ExpandedState>({})
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [rowSelection, setRowSelection] = useState({})
+    const [expanded, setExpanded] = useState<ExpandedState>({})
+
+    const [isDeleteProductsOpen, setIsDeleteProductsOpen] = useState(false)
 
     const table = useReactTable({
         data,
@@ -69,6 +72,13 @@ export default function ProductTable({ data }: { data: ProductData[] }) {
             expanded,
         },
     })
+
+    const selectedRowsCount = table.getSelectedRowModel().rows.length
+
+    const getSelectedVariations = () => {
+        const selectedRows = table.getSelectedRowModel().rows
+        return selectedRows.map((row) => row.original)
+    }
 
     return (
         <div>
@@ -179,6 +189,66 @@ export default function ProductTable({ data }: { data: ProductData[] }) {
                     Next
                 </Button>
             </div>
+            {selectedRowsCount > 0 && (
+                <div
+                    className="fixed bottom-0 left-1/4 right-1/4 flex items-center justify-between rounded-md border-t border-border bg-background p-4 shadow-lg transition-all duration-300 ease-in-out"
+                    style={{
+                        transform: `translateY(${selectedRowsCount > 0 ? '0' : '100%'})`,
+                    }}
+                >
+                    <div className="flex flex-row items-center gap-4">
+                        <div>
+                            {selectedRowsCount} row
+                            {selectedRowsCount !== 1 ? 's' : ''} selected
+                        </div>
+                        <Button
+                            variant="ghost"
+                            className="font-semibold text-purple-500"
+                            onClick={() => table.toggleAllRowsSelected(false)}
+                        >
+                            Deselect all
+                        </Button>
+                    </div>
+                    <div className="flex flex-row items-center gap-4">
+                        {/* <Button
+                            variant="outline"
+                            onClick={() => {
+                                console.log(getSelectedVariations())
+                            }}
+                        >
+                            Console Log
+                        </Button> */}
+                        {/* <Button
+                            variant="outline"
+                            onClick={() =>
+                                setIsEditPricesOpen(!isEditPricesOpen)
+                            }
+                        >
+                            Edit Prices
+                        </Button>*/}
+                        <Button
+                            variant="destructive"
+                            onClick={() =>
+                                setIsDeleteProductsOpen(!isDeleteProductsOpen)
+                            }
+                        >
+                            Delete Products
+                        </Button>
+                    </div>
+                </div>
+            )}
+            <GenericDialog
+                isOpen={isDeleteProductsOpen}
+                setIsOpen={setIsDeleteProductsOpen}
+                title="Delete Products"
+                description={`Are you sure you want to delete ${selectedRowsCount} product${selectedRowsCount !== 1 ? 's' : ''}?`}
+            >
+                <BulkDeleteProductForm
+                    data={getSelectedVariations()}
+                    setIsOpen={setIsDeleteProductsOpen}
+                    toggleAllRowsSelected={table.toggleAllRowsSelected}
+                />
+            </GenericDialog>
         </div>
     )
 }

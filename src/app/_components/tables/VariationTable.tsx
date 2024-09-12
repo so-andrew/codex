@@ -22,6 +22,7 @@ import {
 } from '~/components/ui/table'
 import { type ProductVariation } from '~/server/db/schema'
 import GenericDialog from '../dialogs/GenericDialog'
+import BulkDeleteVariationForm from '../forms/BulkDeleteVariationForm'
 import BulkEditVariationPriceForm from '../forms/BulkEditVariationPriceForm'
 import { columns } from './VariationColumns'
 
@@ -30,6 +31,7 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
     const [isEditPricesOpen, setIsEditPricesOpen] = useState(false)
+    const [isDeleteVariationsOpen, setIsDeleteVariationsOpen] = useState(false)
 
     const table = useReactTable({
         data,
@@ -185,12 +187,26 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                             Deselect all
                         </Button>
                     </div>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsEditPricesOpen(!isEditPricesOpen)}
-                    >
-                        Edit Prices
-                    </Button>
+                    <div className="flex flex-row items-center gap-4">
+                        <Button
+                            variant="outline"
+                            onClick={() =>
+                                setIsEditPricesOpen(!isEditPricesOpen)
+                            }
+                        >
+                            Edit Prices
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() =>
+                                setIsDeleteVariationsOpen(
+                                    !isDeleteVariationsOpen,
+                                )
+                            }
+                        >
+                            Delete Variations
+                        </Button>
+                    </div>
                 </div>
             )}
             <GenericDialog
@@ -201,6 +217,18 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                 <BulkEditVariationPriceForm
                     data={getSelectedVariations()}
                     setIsOpen={setIsEditPricesOpen}
+                />
+            </GenericDialog>
+            <GenericDialog
+                isOpen={isDeleteVariationsOpen}
+                setIsOpen={setIsDeleteVariationsOpen}
+                title="Delete Variations"
+                description={`Are you sure you want to delete ${selectedRowsCount} variation${selectedRowsCount !== 1 ? 's' : ''}?`}
+            >
+                <BulkDeleteVariationForm
+                    data={getSelectedVariations()}
+                    setIsOpen={setIsDeleteVariationsOpen}
+                    toggleAllRowsSelected={table.toggleAllRowsSelected}
                 />
             </GenericDialog>
         </div>
