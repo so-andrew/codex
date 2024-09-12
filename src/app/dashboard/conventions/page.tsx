@@ -14,7 +14,7 @@ export default async function Conventions() {
 
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
-            <section className="flex flex-row justify-between border-b pb-8">
+            <section className="flex flex-row items-center justify-between border-b pb-8">
                 <h1 className="text-2xl font-semibold">Conventions</h1>
                 <CreateConvention />
             </section>
