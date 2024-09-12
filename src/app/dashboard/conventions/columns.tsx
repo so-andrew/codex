@@ -1,7 +1,8 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { deleteConvention } from '~/app/actions'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import {
@@ -36,6 +37,8 @@ export const columns: ColumnDef<Convention>[] = [
                 aria-label="Select row"
             />
         ),
+        minSize: 35,
+        maxSize: 35,
     },
     {
         accessorKey: 'name',
@@ -46,9 +49,16 @@ export const columns: ColumnDef<Convention>[] = [
                     onClick={() =>
                         column.toggleSorting(column.getIsSorted() === 'asc')
                     }
+                    className="font-semibold"
                 >
                     Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {column.getIsSorted() === 'asc' ? (
+                        <ArrowUp className="ml-2 h-4 w-4" />
+                    ) : column.getIsSorted() === 'desc' ? (
+                        <ArrowDown className="ml-2 h-4 w-4" />
+                    ) : (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
                 </Button>
             )
         },
@@ -62,9 +72,16 @@ export const columns: ColumnDef<Convention>[] = [
                     onClick={() =>
                         column.toggleSorting(column.getIsSorted() === 'asc')
                     }
+                    className="font-semibold"
                 >
                     Location
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {column.getIsSorted() === 'asc' ? (
+                        <ArrowUp className="ml-2 h-4 w-4" />
+                    ) : column.getIsSorted() === 'desc' ? (
+                        <ArrowDown className="ml-2 h-4 w-4" />
+                    ) : (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
                 </Button>
             )
         },
@@ -78,9 +95,16 @@ export const columns: ColumnDef<Convention>[] = [
                     onClick={() =>
                         column.toggleSorting(column.getIsSorted() === 'asc')
                     }
+                    className="font-semibold"
                 >
                     Start Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {column.getIsSorted() === 'asc' ? (
+                        <ArrowUp className="ml-2 h-4 w-4" />
+                    ) : column.getIsSorted() === 'desc' ? (
+                        <ArrowDown className="ml-2 h-4 w-4" />
+                    ) : (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
                 </Button>
             )
         },
@@ -94,9 +118,16 @@ export const columns: ColumnDef<Convention>[] = [
                     onClick={() =>
                         column.toggleSorting(column.getIsSorted() === 'asc')
                     }
+                    className="font-semibold"
                 >
                     End Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {column.getIsSorted() === 'asc' ? (
+                        <ArrowUp className="ml-2 h-4 w-4" />
+                    ) : column.getIsSorted() === 'desc' ? (
+                        <ArrowDown className="ml-2 h-4 w-4" />
+                    ) : (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
                 </Button>
             )
         },
@@ -122,17 +153,19 @@ export const columns: ColumnDef<Convention>[] = [
                                 )
                             }
                         >
-                            Copy Product ID
+                            Copy Convention ID
                         </DropdownMenuItem>
-                        {/* <DropdownMenuItem
-                            onClick={() => deleteProduct(product)}
+                        <DropdownMenuItem
+                            onClick={() => deleteConvention(convention)}
                             className="text-red-500"
                         >
                             Delete
-                        </DropdownMenuItem> */}
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
         },
+        minSize: 25,
+        maxSize: 25,
     },
 ]

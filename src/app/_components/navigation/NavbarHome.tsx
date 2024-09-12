@@ -1,9 +1,9 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
-import Logo from '../../../public/codexlogo.png'
+import Logo from '~/../public/codexlogo.png'
 
-const Navbar = () => {
+const NavbarHome = () => {
     return (
         <nav className="3xl:px-0 relative z-30 mx-auto flex max-w-[1440px] items-center justify-between px-6 py-5 text-black lg:px-20">
             <Link
@@ -39,4 +39,4 @@ const Navbar = () => {
     )
 }
 
-export default Navbar
+export default NavbarHome

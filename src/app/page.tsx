@@ -1,10 +1,11 @@
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
-import Hero from "./_components/Hero";
+import Hero from './_components/Hero'
+import NavbarHome from './_components/navigation/NavbarHome'
 
 export default function HomePage() {
-  return (
-    <section>
-      <Hero/>
-    </section>
-  );
+    return (
+        <section>
+            <NavbarHome />
+            <Hero />
+        </section>
+    )
 }

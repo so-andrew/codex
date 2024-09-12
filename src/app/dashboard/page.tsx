@@ -5,7 +5,7 @@ export default async function Dashboard() {
     const user = await currentUser()
 
     return (
-        <section className="3xl:px-0 mx-auto flex max-w-[1440px] flex-col gap-4 px-8 py-4 lg:px-20">
+        <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
             <h1 className="text-2xl font-semibold">{`Welcome back, ${user!.firstName}.`}</h1>
             <section className="border-b pb-8">
                 <div className="flex flex-row gap-6">

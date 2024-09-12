@@ -1,16 +1,15 @@
 'use client'
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    type SortingState,
     useReactTable,
+    type ColumnFiltersState,
+    type SortingState,
 } from '@tanstack/react-table'
-import * as React from 'react'
+import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import {
@@ -21,20 +20,16 @@ import {
     TableHeader,
     TableRow,
 } from '~/components/ui/table'
+import { type ProductVariation } from '~/server/db/schema'
+import GenericDialog from '../dialogs/GenericDialog'
+import BulkEditVariationPriceForm from '../forms/BulkEditVariationPriceForm'
+import { columns } from './VariationColumns'
 
-interface ProductTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[]
-    data: TData[]
-}
-
-export default function ProductTable<TData, TValue>({
-    columns,
-    data,
-}: ProductTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] =
-        React.useState<ColumnFiltersState>([])
-    const [rowSelection, setRowSelection] = React.useState({})
+export default function VariationTable({ data }: { data: ProductVariation[] }) {
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [rowSelection, setRowSelection] = useState({})
+    const [isEditPricesOpen, setIsEditPricesOpen] = useState(false)
 
     const table = useReactTable({
         data,
@@ -46,6 +41,7 @@ export default function ProductTable<TData, TValue>({
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onRowSelectionChange: setRowSelection,
+        enableRowSelection: true,
         state: {
             sorting,
             columnFilters,
@@ -53,11 +49,18 @@ export default function ProductTable<TData, TValue>({
         },
     })
 
+    const selectedRowsCount = Object.keys(rowSelection).length
+
+    const getSelectedVariations = () => {
+        const selectedRows = table.getSelectedRowModel().flatRows
+        return selectedRows.map((row) => row.original)
+    }
+
     return (
-        <div>
+        <div className="relative min-h-screen pb-24">
             <div className="flex items-center py-4">
                 <Input
-                    placeholder="Filter products..."
+                    placeholder="Filter variations..."
                     value={
                         (table.getColumn('name')?.getFilterValue() as string) ??
                         ''
@@ -77,7 +80,17 @@ export default function ProductTable<TData, TValue>({
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id}>
+                                        <TableHead
+                                            key={header.id}
+                                            style={{
+                                                minWidth:
+                                                    header.column.columnDef
+                                                        .minSize,
+                                                maxWidth:
+                                                    header.column.columnDef
+                                                        .maxSize,
+                                            }}
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
@@ -104,6 +117,14 @@ export default function ProductTable<TData, TValue>({
                                         <TableCell
                                             key={cell.id}
                                             className="pl-6"
+                                            style={{
+                                                minWidth:
+                                                    cell.column.columnDef
+                                                        .minSize,
+                                                maxWidth:
+                                                    cell.column.columnDef
+                                                        .maxSize,
+                                            }}
                                         >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
@@ -144,6 +165,44 @@ export default function ProductTable<TData, TValue>({
                     Next
                 </Button>
             </div>
+            {selectedRowsCount > 0 && (
+                <div
+                    className="fixed bottom-0 left-1/4 right-1/4 flex items-center justify-between rounded-md border-t border-border bg-background p-4 shadow-lg transition-all duration-300 ease-in-out"
+                    style={{
+                        transform: `translateY(${selectedRowsCount > 0 ? '0' : '100%'})`,
+                    }}
+                >
+                    <div className="flex flex-row items-center gap-4">
+                        <div>
+                            {selectedRowsCount} row
+                            {selectedRowsCount !== 1 ? 's' : ''} selected
+                        </div>
+                        <Button
+                            variant="ghost"
+                            className="font-semibold text-purple-500"
+                            onClick={() => table.toggleAllRowsSelected(false)}
+                        >
+                            Deselect all
+                        </Button>
+                    </div>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsEditPricesOpen(!isEditPricesOpen)}
+                    >
+                        Edit Prices
+                    </Button>
+                </div>
+            )}
+            <GenericDialog
+                isOpen={isEditPricesOpen}
+                setIsOpen={setIsEditPricesOpen}
+                title="Edit Prices"
+            >
+                <BulkEditVariationPriceForm
+                    data={getSelectedVariations()}
+                    setIsOpen={setIsEditPricesOpen}
+                />
+            </GenericDialog>
         </div>
     )
 }

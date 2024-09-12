@@ -1,7 +1,7 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { eq } from 'drizzle-orm'
-import ConventionTable from '~/app/_components/ConventionTable'
 import CreateConvention from '~/app/_components/CreateConvention'
+import ConventionTable from '~/app/_components/tables/ConventionTable'
 import { columns } from '~/app/dashboard/conventions/columns'
 import { db } from '~/server/db'
 import { conventions } from '~/server/db/schema'
@@ -13,7 +13,7 @@ export default async function Conventions() {
     })
 
     return (
-        <section className="3xl:px-0 mx-auto flex max-w-[1440px] flex-col gap-4 px-8 py-4 lg:px-20">
+        <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
             <section className="flex flex-row justify-between border-b pb-8">
                 <h1 className="text-2xl font-semibold">Conventions</h1>
                 <CreateConvention />
