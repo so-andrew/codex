@@ -2,11 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { type Dispatch, type SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { bulkDeleteProduct } from '~/app/actions'
+import { bulkDeleteConvention } from '~/app/actions'
 import { Button } from '~/components/ui/button'
 import { Form } from '~/components/ui/form'
 import { useToast } from '~/hooks/use-toast'
-import { type ProductData } from '~/server/db/schema'
+import { type Convention } from '~/server/db/schema'
 
 const formSchema = z.object({
     data: z.array(
@@ -17,12 +17,12 @@ const formSchema = z.object({
     ),
 })
 
-export default function BulkDeleteProductForm({
+export default function BulkDeleteConventionForm({
     data,
     setIsOpen,
     toggleAllRowsSelected,
 }: {
-    data: ProductData[]
+    data: Convention[]
     setIsOpen: Dispatch<SetStateAction<boolean>>
     toggleAllRowsSelected: (arg: boolean) => void
 }) {
@@ -39,13 +39,13 @@ export default function BulkDeleteProductForm({
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
-            await bulkDeleteProduct(data)
+            await bulkDeleteConvention(data)
             reset({}, { keepValues: true })
             setIsOpen(false)
             toggleAllRowsSelected(false)
             toast({
                 title: 'Success',
-                description: 'Successfully deleted products.',
+                description: 'Successfully deleted conventions.',
             })
         } catch (e) {
             const error = e as Error

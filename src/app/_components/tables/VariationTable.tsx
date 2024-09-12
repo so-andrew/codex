@@ -24,6 +24,7 @@ import { type ProductVariation } from '~/server/db/schema'
 import GenericDialog from '../dialogs/GenericDialog'
 import BulkDeleteVariationForm from '../forms/BulkDeleteVariationForm'
 import BulkEditVariationPriceForm from '../forms/BulkEditVariationPriceForm'
+import EditVariationForm from '../forms/EditVariationForm'
 import { columns } from './VariationColumns'
 
 export default function VariationTable({ data }: { data: ProductVariation[] }) {
@@ -32,6 +33,9 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
     const [rowSelection, setRowSelection] = useState({})
     const [isEditPricesOpen, setIsEditPricesOpen] = useState(false)
     const [isDeleteVariationsOpen, setIsDeleteVariationsOpen] = useState(false)
+    const [editVariation, setEditVariation] = useState<ProductVariation | null>(
+        null,
+    )
 
     const table = useReactTable({
         data,
@@ -56,6 +60,26 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
     const getSelectedVariations = () => {
         const selectedRows = table.getSelectedRowModel().flatRows
         return selectedRows.map((row) => row.original)
+    }
+
+    const handleRowClick = (
+        e: React.MouseEvent,
+        variation: ProductVariation,
+    ) => {
+        console.log(e)
+        if (
+            e.target instanceof HTMLElement &&
+            (e.target.closest('input[type="checkbox"]') ||
+                e.target.closest('label') ||
+                e.target.closest('button[role="checkbox"]'))
+        ) {
+            return
+        }
+        setEditVariation(variation)
+    }
+
+    const clearEditVariation = () => {
+        setEditVariation(null)
     }
 
     return (
@@ -114,6 +138,10 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                                     data-state={
                                         row.getIsSelected() && 'selected'
                                     }
+                                    onClick={(e) =>
+                                        handleRowClick(e, row.original)
+                                    }
+                                    className="cursor-pointer"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
@@ -209,6 +237,25 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                     </div>
                 </div>
             )}
+            <GenericDialog
+                isOpen={!!editVariation}
+                setIsOpen={clearEditVariation}
+                title="Edit Variation"
+            >
+                <EditVariationForm
+                    id={editVariation ? editVariation.id : -1}
+                    creatorId={editVariation ? editVariation.creatorId : ''}
+                    productId={editVariation ? editVariation.productId : -1}
+                    name={editVariation ? editVariation.name : ''}
+                    price={editVariation ? parseInt(editVariation.price) : 0}
+                    sku={
+                        editVariation
+                            ? (editVariation.sku ?? undefined)
+                            : undefined
+                    }
+                    setIsOpen={clearEditVariation}
+                />
+            </GenericDialog>
             <GenericDialog
                 isOpen={isEditPricesOpen}
                 setIsOpen={setIsEditPricesOpen}

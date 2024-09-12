@@ -1,51 +1,47 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type Dispatch, type SetStateAction } from 'react'
+import { Dispatch, SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { bulkDeleteProduct } from '~/app/actions'
+import { deleteConvention } from '~/app/actions'
 import { Button } from '~/components/ui/button'
 import { Form } from '~/components/ui/form'
 import { useToast } from '~/hooks/use-toast'
-import { type ProductData } from '~/server/db/schema'
 
 const formSchema = z.object({
-    data: z.array(
-        z.object({
-            id: z.number(),
-            creatorId: z.string(),
-        }),
-    ),
+    id: z.number(),
+    creatorId: z.string(),
 })
 
-export default function BulkDeleteProductForm({
-    data,
+export default function DeleteConventionForm({
+    id,
+    creatorId,
     setIsOpen,
-    toggleAllRowsSelected,
 }: {
-    data: ProductData[]
+    id: number
+    creatorId: string
     setIsOpen: Dispatch<SetStateAction<boolean>>
-    toggleAllRowsSelected: (arg: boolean) => void
 }) {
+    const { toast } = useToast()
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            data: data,
+            id: id,
+            creatorId: creatorId,
         },
     })
 
-    const { toast } = useToast()
-    const { formState, reset } = form
-    const { isSubmitting } = formState
+    const { reset } = form
+    const isLoading = form.formState.isSubmitting
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
-            await bulkDeleteProduct(data)
+            await deleteConvention(data)
             reset({}, { keepValues: true })
             setIsOpen(false)
-            toggleAllRowsSelected(false)
             toast({
                 title: 'Success',
-                description: 'Successfully deleted products.',
+                description: 'Successfully deleted product.',
             })
         } catch (e) {
             const error = e as Error
@@ -63,7 +59,7 @@ export default function BulkDeleteProductForm({
                     <Button
                         variant="outline"
                         type="button"
-                        disabled={isSubmitting}
+                        disabled={isLoading}
                         onClick={() => setIsOpen(false)}
                     >
                         Cancel
@@ -71,7 +67,7 @@ export default function BulkDeleteProductForm({
                     <Button
                         type="submit"
                         className="bg-red-500 hover:bg-red-600"
-                        disabled={isSubmitting}
+                        disabled={isLoading}
                     >
                         Delete
                     </Button>

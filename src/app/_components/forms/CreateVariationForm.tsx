@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Dispatch, SetStateAction } from 'react'
+import { type Dispatch, type SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { editVariation } from '~/app/actions'
+import { createVariation } from '~/app/actions'
 import { Button } from '~/components/ui/button'
 import {
     Form,
@@ -10,15 +10,11 @@ import {
     FormField,
     FormItem,
     FormLabel,
-    FormMessage,
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { useToast } from '~/hooks/use-toast'
+import { type ProductData } from '~/server/db/schema'
 
-const formSchema = z.object({
-    id: z.number(),
-    productId: z.number(),
-    creatorId: z.string(),
+const variationSchema = z.object({
     name: z
         .string()
         .min(2, { message: 'Must be at least 2 characters long' })
@@ -29,6 +25,8 @@ const formSchema = z.object({
             invalid_type_error: 'Price must be a number',
         })
         .nonnegative(),
+    productId: z.number(),
+    baseProductName: z.string(),
     sku: z
         .string()
         .min(4, { message: 'Must be at least 4 characters long' })
@@ -36,66 +34,35 @@ const formSchema = z.object({
         .optional(),
 })
 
-export default function EditVariationForm({
-    id,
-    productId,
-    creatorId,
-    name,
-    price,
-    sku,
+export default function CreateVariationForm({
+    data,
     setIsOpen,
 }: {
-    id: number
-    productId: number
-    creatorId: string
-    name: string
-    price: number
-    sku: string | undefined
-    setIsOpen: (() => void) | Dispatch<SetStateAction<boolean>>
+    data: ProductData
+    setIsOpen: Dispatch<SetStateAction<boolean>>
 }) {
-    const { toast } = useToast()
-
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof variationSchema>>({
+        resolver: zodResolver(variationSchema),
         defaultValues: {
-            id: id,
-            productId: productId,
-            creatorId: creatorId,
-            name: name,
-            price: price,
-            sku: sku,
+            name: 'New Variation',
+            price: 0,
+            productId: data.id,
+            baseProductName: data.name,
         },
     })
 
-    const { formState, reset } = form
-    const { isDirty, isSubmitting } = formState
+    const { formState } = form
+    const { isSubmitting } = formState
 
-    async function onSubmit(data: z.infer<typeof formSchema>) {
-        try {
-            await editVariation(data)
-            reset({}, { keepValues: true })
-            if (typeof setIsOpen === 'function') {
-                setIsOpen(false)
-            }
-            toast({
-                title: 'Success',
-                description: 'Successfully edited product.',
-            })
-        } catch (e) {
-            const error = e as Error
-            toast({
-                title: error.name,
-                description: error.message,
-            })
-        }
+    async function onSubmit(data: z.infer<typeof variationSchema>) {
+        console.log(data)
+        await createVariation(data)
+        setIsOpen(false)
     }
 
     return (
         <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                     control={form.control}
                     name="name"
@@ -104,11 +71,10 @@ export default function EditVariationForm({
                             <FormLabel>Name</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Enter product name"
+                                    placeholder="Enter variation name"
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -119,9 +85,8 @@ export default function EditVariationForm({
                         <FormItem>
                             <FormLabel>Price</FormLabel>
                             <FormControl>
-                                <Input placeholder="0.00" {...field} />
+                                <Input placeholder="Enter price" {...field} />
                             </FormControl>
-                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -137,26 +102,34 @@ export default function EditVariationForm({
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
                         </FormItem>
                     )}
                 />
-                {/* <FormField
+                <FormField
                     control={form.control}
-                    name="id"
+                    name="productId"
                     render={({ field }) => (
                         <FormControl>
-                            <Input type="hidden" {...field} value={productId} />
+                            <Input type="hidden" {...field} value={data.id} />
                         </FormControl>
                     )}
-                /> */}
+                />
+                <FormField
+                    control={form.control}
+                    name="baseProductName"
+                    render={({ field }) => (
+                        <FormControl>
+                            <Input type="hidden" {...field} value={data.name} />
+                        </FormControl>
+                    )}
+                />
                 <div className="flex flex-row gap-4 pt-4">
                     <Button
                         type="submit"
-                        className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600"
-                        disabled={!isDirty || isSubmitting}
+                        className="bg-purple-500 hover:bg-purple-600"
+                        disabled={isSubmitting}
                     >
-                        Save
+                        Create
                     </Button>
                 </div>
             </form>

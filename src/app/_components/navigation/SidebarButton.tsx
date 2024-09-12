@@ -15,7 +15,10 @@ export default function SidebarButton({
     return (
         <Button
             variant="ghost"
-            className={cn('items-center justify-start gap-2', className)}
+            className={cn(
+                'items-center justify-start gap-2 hover:bg-purple-500/20',
+                className,
+            )}
             {...props}
         >
             {Icon && <Icon size={20} />}

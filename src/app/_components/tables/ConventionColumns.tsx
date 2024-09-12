@@ -1,18 +1,10 @@
-'use client'
-
 import { type ColumnDef } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, MoreHorizontal } from 'lucide-react'
-import { deleteConvention } from '~/app/actions'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
 import { type Convention } from '~/server/db/schema'
+import ConventionTableRowActions from './ConventionTableRowActions'
 
 export const columns: ColumnDef<Convention>[] = [
     {
@@ -60,6 +52,14 @@ export const columns: ColumnDef<Convention>[] = [
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     )}
                 </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const convention = row.original
+            return (
+                <Link href={`/dashboard/conventions/${convention.id}`}>
+                    {row.getValue('name')}
+                </Link>
             )
         },
     },
@@ -134,37 +134,7 @@ export const columns: ColumnDef<Convention>[] = [
     },
     {
         id: 'actions',
-        cell: ({ row }) => {
-            const convention = row.original
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4"></MoreHorizontal>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() =>
-                                navigator.clipboard.writeText(
-                                    convention.id.toString(),
-                                )
-                            }
-                        >
-                            Copy Convention ID
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => deleteConvention(convention)}
-                            className="text-red-500"
-                        >
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )
-        },
+        cell: ({ row }) => <ConventionTableRowActions row={row} />,
         minSize: 25,
         maxSize: 25,
     },

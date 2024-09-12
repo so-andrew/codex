@@ -15,7 +15,7 @@ export default function EditVariationButton<TData extends ProductVariation>({
     row,
 }: EditVariationButtonProps<TData>) {
     const [isEditOpen, setIsEditOpen] = useState(false)
-    const { id, creatorId, productId, name, price } = row.original
+    const { id, creatorId, productId, name, price, sku } = row.original
 
     return (
         <>
@@ -30,6 +30,7 @@ export default function EditVariationButton<TData extends ProductVariation>({
                     productId={productId}
                     name={name}
                     price={parseInt(price)}
+                    sku={sku ?? undefined}
                     setIsOpen={setIsEditOpen}
                 />
             </GenericDialog>

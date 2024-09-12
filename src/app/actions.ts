@@ -149,9 +149,16 @@ export async function deleteProduct({
     creatorId: string
 }) {
     const user = await currentUser()
-    if (user && user.id === creatorId) {
-        await db.delete(products).where(eq(products.id, id))
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
     }
+
+    if (user.id !== creatorId) {
+        const error = new Error('User does not have permission to delete.')
+        throw error
+    }
+    await db.delete(products).where(eq(products.id, id))
     revalidatePath('/dashboard/products')
 }
 
@@ -241,6 +248,7 @@ const variationScheme = z.object({
     price: z.number(),
     productId: z.number(),
     baseProductName: z.string(),
+    sku: z.string().min(4).max(25).optional(),
 })
 
 export async function createVariation(data: z.infer<typeof variationScheme>) {
@@ -256,6 +264,7 @@ export async function createVariation(data: z.infer<typeof variationScheme>) {
             price: data.price,
             productId: data.productId,
             baseProductName: data.baseProductName,
+            sku: data.sku,
         })
 
         await db.insert(productVariations).values({
@@ -264,6 +273,7 @@ export async function createVariation(data: z.infer<typeof variationScheme>) {
             productId: parse.productId,
             baseProductName: parse.baseProductName,
             creatorId: user.id,
+            sku: parse.sku,
         })
     } catch (error) {
         console.error(error)
@@ -277,6 +287,7 @@ const variationEditScheme = z.object({
     productId: z.number(),
     creatorId: z.string(),
     price: z.number().nonnegative(),
+    sku: z.string().min(4).max(25).optional(),
 })
 
 export async function editVariation(data: z.infer<typeof variationEditScheme>) {
@@ -293,6 +304,7 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
             productId: data.productId,
             creatorId: data.creatorId,
             price: data.price,
+            sku: data.sku,
         })
 
         await db
@@ -307,6 +319,20 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
                     eq(productVariations.creatorId, user.id),
                 ),
             )
+
+        if (parse.sku) {
+            await db
+                .update(productVariations)
+                .set({
+                    sku: parse.sku,
+                })
+                .where(
+                    and(
+                        eq(productVariations.id, parse.id),
+                        eq(productVariations.creatorId, user.id),
+                    ),
+                )
+        }
     } catch (e) {
         const error = e as Error
         console.error(error)
@@ -609,11 +635,76 @@ export async function getConventionLength(
     }
 }
 
-export async function deleteConvention(convention: Convention) {
+export async function deleteConventionOld(convention: Convention) {
     const user = await currentUser()
     if (user && user.id === convention.creatorId) {
         await db.delete(conventions).where(eq(conventions.id, convention.id))
     }
     revalidatePath('/dashboard/conventions')
     redirect('/dashboard/conventions')
+}
+
+export async function deleteConvention({
+    id,
+    creatorId,
+}: {
+    id: number
+    creatorId: string
+}) {
+    const user = await currentUser()
+
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    if (user.id !== creatorId) {
+        const error = new Error('User does not have permission to delete.')
+        throw error
+    }
+
+    await db.delete(conventions).where(eq(conventions.id, id))
+    revalidatePath('/dashboard/conventions')
+}
+
+const bulkConventionDeleteScheme = z.object({
+    data: z.array(
+        z.object({
+            id: z.number(),
+            creatorId: z.string(),
+        }),
+    ),
+})
+
+export async function bulkDeleteConvention(
+    data: z.infer<typeof bulkConventionDeleteScheme>,
+) {
+    const user = await currentUser()
+
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = bulkConventionDeleteScheme.parse({
+            data: data.data,
+        })
+
+        for (const convention of parse.data) {
+            await db
+                .delete(conventions)
+                .where(
+                    and(
+                        eq(conventions.id, convention.id),
+                        eq(conventions.creatorId, convention.creatorId),
+                    ),
+                )
+        }
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('dashboard/conventions')
 }

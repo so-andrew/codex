@@ -1,7 +1,5 @@
 'use client'
-
 import {
-    type ColumnDef,
     type ColumnFiltersState,
     flexRender,
     getCoreRowModel,
@@ -11,7 +9,7 @@ import {
     type SortingState,
     useReactTable,
 } from '@tanstack/react-table'
-import * as React from 'react'
+import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import {
@@ -22,20 +20,17 @@ import {
     TableHeader,
     TableRow,
 } from '~/components/ui/table'
+import { type Convention } from '~/server/db/schema'
+import GenericDialog from '../dialogs/GenericDialog'
+import BulkDeleteConventionForm from '../forms/BulkDeleteConventionForm'
+import { columns } from './ConventionColumns'
 
-interface ConventionTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[]
-    data: TData[]
-}
-
-export default function ConventionTable<TData, TValue>({
-    columns,
-    data,
-}: ConventionTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] =
-        React.useState<ColumnFiltersState>([])
-    const [rowSelection, setRowSelection] = React.useState({})
+export default function ConventionTable({ data }: { data: Convention[] }) {
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [rowSelection, setRowSelection] = useState({})
+    const [isDeleteConventionsOpen, setIsDeleteConventionsOpen] =
+        useState(false)
 
     const table = useReactTable({
         data,
@@ -53,6 +48,13 @@ export default function ConventionTable<TData, TValue>({
             rowSelection,
         },
     })
+
+    const selectedRowsCount = Object.keys(rowSelection).length
+
+    const getSelectedVariations = () => {
+        const selectedRows = table.getSelectedRowModel().flatRows
+        return selectedRows.map((row) => row.original)
+    }
 
     return (
         <div>
@@ -163,6 +165,68 @@ export default function ConventionTable<TData, TValue>({
                     Next
                 </Button>
             </div>
+            {selectedRowsCount > 0 && (
+                <div
+                    className="fixed bottom-0 left-1/4 right-1/4 flex items-center justify-between rounded-md border-t border-border bg-background p-4 shadow-lg transition-all duration-300 ease-in-out"
+                    style={{
+                        transform: `translateY(${selectedRowsCount > 0 ? '0' : '100%'})`,
+                    }}
+                >
+                    <div className="flex flex-row items-center gap-4">
+                        <div>
+                            {selectedRowsCount} row
+                            {selectedRowsCount !== 1 ? 's' : ''} selected
+                        </div>
+                        <Button
+                            variant="ghost"
+                            className="font-semibold text-purple-500"
+                            onClick={() => table.toggleAllRowsSelected(false)}
+                        >
+                            Deselect all
+                        </Button>
+                    </div>
+                    <div className="flex flex-row items-center gap-4">
+                        {/* <Button
+                            variant="outline"
+                            onClick={() => {
+                                console.log(getSelectedVariations())
+                            }}
+                        >
+                            Console Log
+                        </Button> */}
+                        {/* <Button
+                            variant="outline"
+                            onClick={() =>
+                                setIsEditPricesOpen(!isEditPricesOpen)
+                            }
+                        >s
+                            Edit Prices
+                        </Button>*/}
+                        <Button
+                            variant="destructive"
+                            onClick={() =>
+                                setIsDeleteConventionsOpen(
+                                    !isDeleteConventionsOpen,
+                                )
+                            }
+                        >
+                            Delete Conventions
+                        </Button>
+                    </div>
+                </div>
+            )}
+            <GenericDialog
+                isOpen={isDeleteConventionsOpen}
+                setIsOpen={setIsDeleteConventionsOpen}
+                title="Delete Conventions"
+                description={`Are you sure you want to delete ${selectedRowsCount} convention${selectedRowsCount !== 1 ? 's' : ''}?`}
+            >
+                <BulkDeleteConventionForm
+                    data={getSelectedVariations()}
+                    setIsOpen={setIsDeleteConventionsOpen}
+                    toggleAllRowsSelected={table.toggleAllRowsSelected}
+                />
+            </GenericDialog>
         </div>
     )
 }
