@@ -10,24 +10,23 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { type ProductData, type ProductVariation } from '~/server/db/schema'
+import { type ProductTableRow } from '~/types'
 import GenericDialog from '../dialogs/GenericDialog'
 import DeleteProductForm from '../forms/DeleteProductForm'
 import DeleteVariationForm from '../forms/DeleteVariationForm'
 
-type ProductDataOrVariation = ProductVariation | ProductData
-
-interface ProductTableRowActionsProps<TData extends ProductDataOrVariation> {
+interface ProductTableRowActionsProps<TData extends ProductTableRow> {
     row: Row<TData>
 }
 
-export default function ProductTableRowActions<
-    TData extends ProductDataOrVariation,
->({ row }: ProductTableRowActionsProps<TData>) {
+export default function ProductTableRowActions<TData extends ProductTableRow>({
+    row,
+}: ProductTableRowActionsProps<TData>) {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-    const id = row.original.id
-    const creatorId = row.original.creatorId
-    const productId = 'productId' in row.original ? row.original.productId : 0
+    const id = row.original.product.id
+    const creatorId = row.original.product.creatorId
+    const productId =
+        'productId' in row.original.product ? row.original.product.productId : 0
 
     return (
         <>
@@ -35,7 +34,7 @@ export default function ProductTableRowActions<
                 isOpen={isDeleteOpen}
                 setIsOpen={setIsDeleteOpen}
                 title="Delete"
-                description={`Are you sure you want to delete ${row.depth > 0 ? 'variation' : 'product'} ${row.original.name}?`}
+                description={`Are you sure you want to delete ${row.depth > 0 ? 'variation' : 'product'} ${row.original.product.name}?`}
             >
                 {row.depth === 0 && (
                     <DeleteProductForm

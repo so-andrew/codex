@@ -25,6 +25,7 @@ export const columns: ColumnDef<ProductVariation>[] = [
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
+                onClick={(e) => e.stopPropagation()}
                 aria-label="Select row"
                 className="grow-0"
             />

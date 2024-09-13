@@ -3,17 +3,13 @@ import { currentUser } from '@clerk/nextjs/server'
 import { randomBytes } from 'crypto'
 import { and, eq, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+//import { cookies } from 'next/headers'
 import { z } from 'zod'
 import { db } from '~/server/db'
 import {
-    type Convention,
     type conventionProductVariationReports,
     conventions,
-    type Product,
     products,
-    type ProductVariation,
     productVariations,
 } from '~/server/db/schema'
 
@@ -39,14 +35,27 @@ export async function test() {
         `scope=${scopes.join('+')}` +
         `&state=` +
         state
-    cookies().set('Auth_State', state, { expires: Date.now() + 300000 })
+    //cookies().set('Auth_State', state, { expires: Date.now() + 300000 })
     return url
 }
 
-const productScheme = z.object({
+// General database item schemas
+const generalItemSchema = z.object({
+    id: z.number(),
+    creatorId: z.string(),
+})
+
+const variationSimpleSchema = z.object({
+    id: z.number(),
+    productId: z.number(),
+    creatorId: z.string(),
+})
+
+// Product schemas
+const productCreateScheme = z.object({
     name: z.string().min(2).max(100),
     category: z.string().optional(),
-    price: z.number(),
+    price: z.coerce.number(),
     variations: z.array(
         z.object({
             name: z.string().min(2).max(100),
@@ -59,24 +68,64 @@ const productEditScheme = z.object({
     id: z.number(),
     name: z.string().min(2).max(100).optional(),
     category: z.string().optional(),
-    price: z.number().optional(),
+    price: z.coerce.number().optional(),
 })
 
-export async function createProduct(data: z.infer<typeof productScheme>) {
-    const user = await currentUser()
-    //console.log(data)
+const bulkProductDeleteScheme = z.object({
+    data: z.array(generalItemSchema),
+})
 
+// Variation schemas
+const variationCreateScheme = z.object({
+    name: z.string().min(2).max(100),
+    price: z.coerce.number().nonnegative(),
+    productId: z.number(),
+    baseProductName: z.string(),
+    sku: z.string().min(4).max(25).optional(),
+})
+
+const variationEditScheme = z.object({
+    name: z.string().min(2).max(100),
+    id: z.number(),
+    productId: z.number(),
+    creatorId: z.string(),
+    price: z.coerce.number().nonnegative(),
+    sku: z.string().min(4).max(25).optional(),
+})
+
+const bulkVariationEditScheme = z.object({
+    data: z.array(variationSimpleSchema),
+    price: z.coerce.number().nonnegative(),
+})
+
+const bulkVariationDeleteScheme = z.object({
+    data: z.array(variationSimpleSchema),
+})
+
+// Convention schemas
+const conventionScheme = z.object({
+    name: z.string().min(2).max(100),
+    location: z.string().min(2).max(100),
+    dateRange: z.object({
+        from: z.date(),
+        to: z.date(),
+    }),
+})
+
+const bulkConventionDeleteScheme = z.object({
+    data: z.array(generalItemSchema),
+})
+
+export async function createProduct(data: z.infer<typeof productCreateScheme>) {
+    const user = await currentUser()
     if (user) {
         try {
-            const parse = productScheme.parse({
+            const parse = productCreateScheme.parse({
                 name: data.name,
                 category: data.category,
                 price: data.price,
                 variations: data.variations,
             })
-
-            // console.log(parse)
-            // console.log(parse.variations && parse.variations.length > 0)
 
             // If the user specified variations to be created
             if (parse.variations && parse.variations.length > 0) {
@@ -133,77 +182,6 @@ export async function createProduct(data: z.infer<typeof productScheme>) {
     }
 }
 
-export async function deleteProductOld(product: Product) {
-    const user = await currentUser()
-    if (user && user.id === product.creatorId) {
-        await db.delete(products).where(eq(products.id, product.id))
-    }
-    revalidatePath('/dashboard/products')
-}
-
-export async function deleteProduct({
-    id,
-    creatorId,
-}: {
-    id: number
-    creatorId: string
-}) {
-    const user = await currentUser()
-    if (!user) {
-        const error = new Error('Invalid user.')
-        throw error
-    }
-
-    if (user.id !== creatorId) {
-        const error = new Error('User does not have permission to delete.')
-        throw error
-    }
-    await db.delete(products).where(eq(products.id, id))
-    revalidatePath('/dashboard/products')
-}
-
-const bulkProductDeleteScheme = z.object({
-    data: z.array(
-        z.object({
-            id: z.number(),
-            creatorId: z.string(),
-        }),
-    ),
-})
-
-export async function bulkDeleteProduct(
-    data: z.infer<typeof bulkProductDeleteScheme>,
-) {
-    const user = await currentUser()
-
-    if (!user) {
-        const error = new Error('Invalid user.')
-        throw error
-    }
-
-    try {
-        const parse = bulkProductDeleteScheme.parse({
-            data: data.data,
-        })
-
-        for (const product of parse.data) {
-            await db
-                .delete(products)
-                .where(
-                    and(
-                        eq(products.id, product.id),
-                        eq(products.creatorId, product.creatorId),
-                    ),
-                )
-        }
-    } catch (e) {
-        const error = e as Error
-        console.error(error)
-        throw error
-    }
-    revalidatePath('dashboard/products')
-}
-
 export async function editProduct(data: z.infer<typeof productEditScheme>) {
     const user = await currentUser()
 
@@ -243,15 +221,63 @@ export async function editProduct(data: z.infer<typeof productEditScheme>) {
     }
 }
 
-const variationScheme = z.object({
-    name: z.string().min(2).max(100),
-    price: z.number(),
-    productId: z.number(),
-    baseProductName: z.string(),
-    sku: z.string().min(4).max(25).optional(),
-})
+export async function deleteProduct({
+    id,
+    creatorId,
+}: {
+    id: number
+    creatorId: string
+}) {
+    const user = await currentUser()
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
 
-export async function createVariation(data: z.infer<typeof variationScheme>) {
+    if (user.id !== creatorId) {
+        const error = new Error('User does not have permission to delete.')
+        throw error
+    }
+    await db.delete(products).where(eq(products.id, id))
+    revalidatePath('/dashboard/products')
+}
+
+export async function bulkDeleteProduct(
+    data: z.infer<typeof bulkProductDeleteScheme>,
+) {
+    const user = await currentUser()
+
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = bulkProductDeleteScheme.parse({
+            data: data.data,
+        })
+
+        for (const product of parse.data) {
+            await db
+                .delete(products)
+                .where(
+                    and(
+                        eq(products.id, product.id),
+                        eq(products.creatorId, product.creatorId),
+                    ),
+                )
+        }
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('dashboard/products')
+}
+
+export async function createVariation(
+    data: z.infer<typeof variationCreateScheme>,
+) {
     const user = await currentUser()
 
     if (!user) {
@@ -259,7 +285,7 @@ export async function createVariation(data: z.infer<typeof variationScheme>) {
         throw error
     }
     try {
-        const parse = variationScheme.parse({
+        const parse = variationCreateScheme.parse({
             name: data.name,
             price: data.price,
             productId: data.productId,
@@ -280,15 +306,6 @@ export async function createVariation(data: z.infer<typeof variationScheme>) {
     }
     revalidatePath('/dashboard/products')
 }
-
-const variationEditScheme = z.object({
-    name: z.string().min(2).max(100),
-    id: z.number(),
-    productId: z.number(),
-    creatorId: z.string(),
-    price: z.number().nonnegative(),
-    sku: z.string().min(4).max(25).optional(),
-})
 
 export async function editVariation(data: z.infer<typeof variationEditScheme>) {
     const user = await currentUser()
@@ -341,22 +358,6 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
     revalidatePath('/dashboard/products')
 }
 
-const bulkVariationEditScheme = z.object({
-    data: z.array(
-        z.object({
-            id: z.number(),
-            productId: z.number(),
-            creatorId: z.string(),
-        }),
-    ),
-    price: z.coerce
-        .number({
-            required_error: 'Price is required',
-            invalid_type_error: 'Price must be a number',
-        })
-        .nonnegative(),
-})
-
 export async function bulkEditVariation(
     data: z.infer<typeof bulkVariationEditScheme>,
 ) {
@@ -393,36 +394,6 @@ export async function bulkEditVariation(
     revalidatePath('/dashboard/products')
 }
 
-export async function deleteVariationOld(variation: ProductVariation) {
-    const user = await currentUser()
-
-    if (!user) {
-        const error = new Error('Invalid user.')
-        throw error
-    }
-
-    if (user.id !== variation.creatorId) {
-        const error = new Error('User does not have permission to delete.')
-        throw error
-    }
-
-    const getAllVariations = await db
-        .select()
-        .from(productVariations)
-        .where(eq(productVariations.productId, variation.productId))
-
-    if (getAllVariations.length <= 1) {
-        const error = new Error('Cannot delete default variation.')
-        throw error
-    }
-
-    await db
-        .delete(productVariations)
-        .where(eq(productVariations.id, variation.id))
-
-    revalidatePath('/dashboard/products')
-}
-
 export async function deleteVariation({
     id,
     productId,
@@ -454,20 +425,20 @@ export async function deleteVariation({
         throw error
     }
 
+    // We will be deleting the last variation other than default, so set product price to price of default variation
+    if (getAllVariations.length === 2) {
+        const defaultVariation = getAllVariations.find(
+            (variation) => variation.id !== id,
+        )
+        await db
+            .update(products)
+            .set({ price: defaultVariation!.price })
+            .where(eq(products.id, productId))
+    }
     await db.delete(productVariations).where(eq(productVariations.id, id))
 
     revalidatePath('/dashboard/products')
 }
-
-const bulkVariationDeleteScheme = z.object({
-    data: z.array(
-        z.object({
-            id: z.number(),
-            productId: z.number(),
-            creatorId: z.string(),
-        }),
-    ),
-})
 
 export async function bulkDeleteVariation(
     data: z.infer<typeof bulkVariationDeleteScheme>,
@@ -516,6 +487,25 @@ export async function bulkDeleteVariation(
                 ),
             )
 
+        // Check if we are deleting all but one variation, set product price to default variation price
+        if (getAllVariations.length - variationsOfProduct.length === 1) {
+            const getLastVariation = await db.query.productVariations.findFirst(
+                {
+                    where: and(
+                        eq(productVariations.productId, productId),
+                        eq(productVariations.creatorId, user.id),
+                    ),
+                },
+            )
+
+            console.log(`Setting price to ${getLastVariation?.price}`)
+
+            await db
+                .update(products)
+                .set({ price: getLastVariation!.price })
+                .where(eq(products.id, productId))
+        }
+
         // Check if we are deleting all variations, create new default variation
         if (getAllVariations.length === variationsOfProduct.length) {
             await db.insert(productVariations).values({
@@ -525,79 +515,83 @@ export async function bulkDeleteVariation(
                 productId: productId,
                 creatorId: user.id,
             })
+            console.log('Setting price to 0')
+            await db
+                .update(products)
+                .set({ price: '0' })
+                .where(eq(products.id, productId))
         }
     }
     revalidatePath('/dashboard/products')
 }
 
-const conventionScheme = z.object({
-    name: z.string().min(2).max(100),
-    location: z.string().min(2).max(100),
-    dateRange: z.object({
-        from: z.date(),
-        to: z.date(),
-    }),
-})
-
+// Create convention
 export async function createConvention(data: z.infer<typeof conventionScheme>) {
     const user = await currentUser()
 
-    if (user) {
-        try {
-            const parse = conventionScheme.parse({
-                name: data.name,
-                location: data.location,
-                dateRange: data.dateRange,
-            })
-
-            const newConvention = await db
-                .insert(conventions)
-                .values({
-                    name: parse.name,
-                    location: parse.location,
-                    startDate: parse.dateRange.from.toISOString(),
-                    endDate: parse.dateRange.to.toISOString(),
-                    creatorId: user.id,
-                })
-                .returning()
-
-            console.log(newConvention)
-
-            const currentProducts = await db.query.products.findMany({
-                where: eq(products.creatorId, user.id),
-            })
-
-            const length = await getConventionLength(
-                newConvention[0]!.startDate,
-                newConvention[0]!.endDate,
-            )
-            console.log(length)
-
-            type NewListing =
-                typeof conventionProductVariationReports.$inferInsert
-
-            // const map1 = currentProducts.map((product) => {
-            //     const newListing: NewListing = {
-            //         name: product.name,
-            //         category: product.category,
-            //         price: product.price!,
-            //         length: length,
-            //         creatorId: product.creatorId,
-            //         productId: product.id,
-            //         conventionId: newConvention[0]!.id,
-            //     }
-            //     return newListing
-            // })
-
-            // console.log(map1)
-            // await db.insert(conventionProductVariationReports).values(map1)
-        } catch (e) {
-            const error = e as Error
-            console.error(error)
-            throw error
-        }
-        return revalidatePath('/dashboard/conventions')
+    if (!user) {
+        const error = new Error('Invalid user.')
+        throw error
     }
+
+    try {
+        const parse = conventionScheme.parse({
+            name: data.name,
+            location: data.location,
+            dateRange: data.dateRange,
+        })
+
+        const newConvention = await db
+            .insert(conventions)
+            .values({
+                name: parse.name,
+                location: parse.location,
+                startDate: parse.dateRange.from.toISOString(),
+                endDate: parse.dateRange.to.toISOString(),
+                creatorId: user.id,
+            })
+            .returning()
+
+        // TODO: Throw error in case of failed db insert
+        console.log(newConvention)
+
+        // const currentProducts = await db.query.products.findMany({
+        //     where: eq(products.creatorId, user.id),
+        // })
+
+        const length = await getConventionLength(
+            newConvention[0]!.startDate,
+            newConvention[0]!.endDate,
+        )
+        console.log(length)
+
+        type NewReport = typeof conventionProductVariationReports.$inferInsert
+
+        const allVariations = await db.query.productVariations.findMany({
+            where: eq(productVariations.creatorId, user.id),
+        })
+
+        // const map1 = currentProducts.map((product) => {
+        //     const newListing: NewListing = {
+        //         name: product.name,
+        //         category: product.category,
+        //         price: product.price!,
+        //         length: length,
+        //         creatorId: product.creatorId,
+        //         productId: product.id,
+        //         conventionId: newConvention[0]!.id,
+        //     }
+        //     return newListing
+        // })
+
+        // console.log(map1)
+        // await db.insert(conventionProductVariationReports).values(map1)
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    return revalidatePath('/dashboard/conventions')
 }
 
 export async function getConventionLength(
@@ -635,15 +629,7 @@ export async function getConventionLength(
     }
 }
 
-export async function deleteConventionOld(convention: Convention) {
-    const user = await currentUser()
-    if (user && user.id === convention.creatorId) {
-        await db.delete(conventions).where(eq(conventions.id, convention.id))
-    }
-    revalidatePath('/dashboard/conventions')
-    redirect('/dashboard/conventions')
-}
-
+// Delete one convention
 export async function deleteConvention({
     id,
     creatorId,
@@ -667,15 +653,7 @@ export async function deleteConvention({
     revalidatePath('/dashboard/conventions')
 }
 
-const bulkConventionDeleteScheme = z.object({
-    data: z.array(
-        z.object({
-            id: z.number(),
-            creatorId: z.string(),
-        }),
-    ),
-})
-
+// Bulk delete conventions
 export async function bulkDeleteConvention(
     data: z.infer<typeof bulkConventionDeleteScheme>,
 ) {

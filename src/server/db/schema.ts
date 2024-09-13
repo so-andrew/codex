@@ -5,6 +5,7 @@ import { sql } from 'drizzle-orm'
 import {
     date,
     integer,
+    json,
     numeric,
     pgEnum,
     pgTableCreator,
@@ -179,22 +180,26 @@ export type Convention = typeof conventions.$inferSelect
 //     }),
 // )
 
+type salesFigures = {
+    days: {
+        date: Date
+        cashSales: number
+        cardSales: number
+    }[]
+}
+
 export const conventionProductVariationReports = createTable(
     'conventionProductVariationReports',
     {
         id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
         name: varchar('name', { length: 256 }).notNull(),
         productId: integer('productId')
-            .references(() => products.id)
+            .references(() => products.id, { onDelete: 'set default' })
+            .default(-1)
             .notNull(),
         price: numeric('price').notNull(),
         length: lengthEnum('length').notNull(),
-        cashSales: integer('cashSales')
-            .array()
-            .default(sql`'{}'::integer[]`),
-        cardSales: integer('cardSales')
-            .array()
-            .default(sql`'{}'::integer[]`),
+        salesFigures: json('salesFigures').$type<salesFigures>(),
         createdAt: timestamp('created_at', { withTimezone: true })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -210,7 +215,8 @@ export const conventionProductVariationReports = createTable(
         //     })
         //     .notNull(),
         productVariationId: integer('productVariationId')
-            .references(() => productVariations.id)
+            .references(() => productVariations.id, { onDelete: 'set default' })
+            .default(-1)
             .notNull(),
         conventionId: integer('conventionId')
             .references(() => conventions.id, { onDelete: 'cascade' })

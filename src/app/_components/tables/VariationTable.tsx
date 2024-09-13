@@ -24,7 +24,6 @@ import { type ProductVariation } from '~/server/db/schema'
 import GenericDialog from '../dialogs/GenericDialog'
 import BulkDeleteVariationForm from '../forms/BulkDeleteVariationForm'
 import BulkEditVariationPriceForm from '../forms/BulkEditVariationPriceForm'
-import EditVariationForm from '../forms/EditVariationForm'
 import { columns } from './VariationColumns'
 
 export default function VariationTable({ data }: { data: ProductVariation[] }) {
@@ -33,9 +32,7 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
     const [rowSelection, setRowSelection] = useState({})
     const [isEditPricesOpen, setIsEditPricesOpen] = useState(false)
     const [isDeleteVariationsOpen, setIsDeleteVariationsOpen] = useState(false)
-    const [editVariation, setEditVariation] = useState<ProductVariation | null>(
-        null,
-    )
+    //const [editVariation, setEditVariation] = useState<ProductVariation | null>(null)
 
     const table = useReactTable({
         data,
@@ -62,25 +59,32 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
         return selectedRows.map((row) => row.original)
     }
 
-    const handleRowClick = (
-        e: React.MouseEvent,
-        variation: ProductVariation,
-    ) => {
-        console.log(e)
-        if (
-            e.target instanceof HTMLElement &&
-            (e.target.closest('input[type="checkbox"]') ||
-                e.target.closest('label') ||
-                e.target.closest('button[role="checkbox"]'))
-        ) {
-            return
-        }
-        setEditVariation(variation)
-    }
+    // const handleRowClick = (
+    //     e: React.MouseEvent,
+    //     variation: ProductVariation,
+    // ) => {
+    //     console.log(e)
+    //     console.log(e.target)
+    //     console.log(e.target instanceof HTMLElement)
 
-    const clearEditVariation = () => {
-        setEditVariation(null)
-    }
+    //     if (
+    //         e.target instanceof HTMLElement &&
+    //         (e.target.closest('input[type="checkbox"]') ||
+    //             e.target.closest('label') ||
+    //             e.target.closest('button') ||
+    //             e.target.closest('div') ||
+    //             e.target.closest('svg'))
+    //     ) {
+    //         return
+    //     }
+    //     console.log(`Setting variation to ${variation.name}`)
+    //     setEditVariation(variation)
+    // }
+
+    // const clearEditVariation = () => {
+    //     console.log('Setting variation to null')
+    //     setEditVariation(null)
+    // }
 
     return (
         <div className="relative min-h-screen pb-24">
@@ -138,9 +142,9 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                                     data-state={
                                         row.getIsSelected() && 'selected'
                                     }
-                                    onClick={(e) =>
-                                        handleRowClick(e, row.original)
-                                    }
+                                    // onClick={(e) =>
+                                    //     handleRowClick(e, row.original)
+                                    // }
                                     className="cursor-pointer"
                                 >
                                     {row.getVisibleCells().map((cell) => (
@@ -237,7 +241,7 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                     </div>
                 </div>
             )}
-            <GenericDialog
+            {/* <GenericDialog
                 isOpen={!!editVariation}
                 setIsOpen={clearEditVariation}
                 title="Edit Variation"
@@ -255,7 +259,36 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                     }
                     setIsOpen={clearEditVariation}
                 />
-            </GenericDialog>
+            </GenericDialog> */}
+
+            {/* <Dialog
+                open={!!editVariation}
+                onOpenChange={() => setEditVariation(null)}
+            >
+                <DialogContent
+                    className="sm-max-w-[800px]"
+                    aria-describedby={undefined}
+                >
+                    <DialogHeader className="space-y-4">
+                        Edit Variation
+                    </DialogHeader>
+                    <EditVariationForm
+                        id={editVariation ? editVariation.id : -1}
+                        creatorId={editVariation ? editVariation.creatorId : ''}
+                        productId={editVariation ? editVariation.productId : -1}
+                        name={editVariation ? editVariation.name : ''}
+                        price={
+                            editVariation ? parseInt(editVariation.price) : 0
+                        }
+                        sku={
+                            editVariation
+                                ? (editVariation.sku ?? undefined)
+                                : undefined
+                        }
+                        setIsOpen={clearEditVariation}
+                    />
+                </DialogContent>
+            </Dialog> */}
             <GenericDialog
                 isOpen={isEditPricesOpen}
                 setIsOpen={setIsEditPricesOpen}

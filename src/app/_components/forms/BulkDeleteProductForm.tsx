@@ -6,7 +6,7 @@ import { bulkDeleteProduct } from '~/app/actions'
 import { Button } from '~/components/ui/button'
 import { Form } from '~/components/ui/form'
 import { useToast } from '~/hooks/use-toast'
-import { type ProductData } from '~/server/db/schema'
+import { type Product } from '~/server/db/schema'
 
 const formSchema = z.object({
     data: z.array(
@@ -22,7 +22,7 @@ export default function BulkDeleteProductForm({
     setIsOpen,
     toggleAllRowsSelected,
 }: {
-    data: ProductData[]
+    data: Product[]
     setIsOpen: Dispatch<SetStateAction<boolean>>
     toggleAllRowsSelected: (arg: boolean) => void
 }) {

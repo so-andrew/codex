@@ -1,37 +1,22 @@
-import { currentUser } from '@clerk/nextjs/server'
-import { and, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import CreateVariation from '~/app/_components/CreateVariation'
 import EditProduct from '~/app/_components/EditProduct'
 import VariationTable from '~/app/_components/tables/VariationTable'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { db } from '~/server/db'
-import {
-    type ProductData,
-    products,
-    type ProductVariation,
-    productVariations,
-} from '~/server/db/schema'
+import { type Product, type ProductVariation } from '~/server/db/schema'
+import { getProductById, getUserProductVariations } from '~/server/queries'
 
 export default async function page({ params }: { params: { id: string } }) {
-    const user = await currentUser()
-    const product = (await db.query.products.findFirst({
-        where: and(
-            eq(products.id, parseInt(params.id)),
-            eq(products.creatorId, user!.id),
-        ),
-    })) as ProductData
+    //const user = await currentUser()
+    const product = (await getProductById(parseInt(params.id))) as Product
 
     if (!product) {
         redirect('/dashboard/products')
     }
 
-    const variations = (await db.query.productVariations.findMany({
-        where: and(
-            eq(productVariations.productId, product.id),
-            eq(productVariations.creatorId, user!.id),
-        ),
-    })) as ProductVariation[]
+    const variations = (await getUserProductVariations(
+        product.id,
+    )) as ProductVariation[]
 
     let formattedAmount = ''
 

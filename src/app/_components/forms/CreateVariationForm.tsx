@@ -12,7 +12,7 @@ import {
     FormLabel,
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { type ProductData } from '~/server/db/schema'
+import { type Product } from '~/server/db/schema'
 
 const variationSchema = z.object({
     name: z
@@ -38,7 +38,7 @@ export default function CreateVariationForm({
     data,
     setIsOpen,
 }: {
-    data: ProductData
+    data: Product
     setIsOpen: Dispatch<SetStateAction<boolean>>
 }) {
     const form = useForm<z.infer<typeof variationSchema>>({

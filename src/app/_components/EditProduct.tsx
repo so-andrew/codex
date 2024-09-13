@@ -22,7 +22,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { useToast } from '~/hooks/use-toast'
-import { type ProductData } from '~/server/db/schema'
+import { type Product } from '~/server/db/schema'
 import { editProduct } from '../actions'
 
 const formSchema = z.object({
@@ -35,7 +35,7 @@ const formSchema = z.object({
 })
 
 type EditProductProps = {
-    product: ProductData
+    product: Product
 }
 
 export default function EditProduct({ product }: EditProductProps) {

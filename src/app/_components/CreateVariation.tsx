@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
-import { type ProductData } from '~/server/db/schema'
+import { type Product } from '~/server/db/schema'
 import GenericDialog from './dialogs/GenericDialog'
 import CreateVariationForm from './forms/CreateVariationForm'
 
-export default function CreateVariation({ product }: { product: ProductData }) {
+export default function CreateVariation({ product }: { product: Product }) {
     const [isOpen, setIsOpen] = useState(false)
 
     return (

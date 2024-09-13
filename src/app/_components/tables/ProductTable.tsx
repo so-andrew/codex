@@ -22,12 +22,13 @@ import {
     TableHeader,
     TableRow,
 } from '~/components/ui/table'
-import { type ProductData, type ProductVariation } from '~/server/db/schema'
+import { type Product } from '~/server/db/schema'
+import { type ProductTableRow } from '~/types'
 import GenericDialog from '../dialogs/GenericDialog'
 import BulkDeleteProductForm from '../forms/BulkDeleteProductForm'
 import { columns } from './ProductColumns'
 
-export default function ProductTable({ data }: { data: ProductData[] }) {
+export default function ProductTable({ data }: { data: ProductTableRow[] }) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
@@ -47,23 +48,26 @@ export default function ProductTable({ data }: { data: ProductData[] }) {
         getFilteredRowModel: getFilteredRowModel(),
         onRowSelectionChange: setRowSelection,
         onExpandedChange: setExpanded,
-        getSubRows: (originalRow: ProductData) => {
+        // getSubRows: (originalRow: ProductData) => {
+        //     return originalRow.variations
+        //         ? originalRow.variations.map((variation: ProductVariation) => ({
+        //               id: variation.id,
+        //               name: variation.name,
+        //               category: originalRow.category,
+        //               price: variation.price,
+        //               createdAt: variation.createdAt,
+        //               updatedAt: variation.updatedAt,
+        //               creatorId: variation.creatorId,
+        //               imageUrl: null,
+        //               squareId: null,
+        //               variations: null,
+        //               baseProductName: originalRow.name,
+        //               productId: originalRow.id,
+        //           }))
+        //         : undefined
+        // },
+        getSubRows: (originalRow: ProductTableRow) => {
             return originalRow.variations
-                ? originalRow.variations.map((variation: ProductVariation) => ({
-                      id: variation.id,
-                      name: variation.name,
-                      category: originalRow.category,
-                      price: variation.price,
-                      createdAt: variation.createdAt,
-                      updatedAt: variation.updatedAt,
-                      creatorId: variation.creatorId,
-                      imageUrl: null,
-                      squareId: null,
-                      variations: null,
-                      baseProductName: originalRow.name,
-                      productId: originalRow.id,
-                  }))
-                : undefined
         },
         state: {
             sorting,
@@ -77,7 +81,7 @@ export default function ProductTable({ data }: { data: ProductData[] }) {
 
     const getSelectedVariations = () => {
         const selectedRows = table.getSelectedRowModel().rows
-        return selectedRows.map((row) => row.original)
+        return selectedRows.map((row) => row.original.product as Product)
     }
 
     return (

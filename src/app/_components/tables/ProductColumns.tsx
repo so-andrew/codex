@@ -9,10 +9,10 @@ import {
 import Link from 'next/link'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
-import { type ProductData } from '~/server/db/schema'
+import { type ProductTableRow } from '~/types'
 import ProductTableRowActions from './ProductTableRowActions'
 
-export const columns: ColumnDef<ProductData>[] = [
+export const columns: ColumnDef<ProductTableRow>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -81,17 +81,17 @@ export const columns: ColumnDef<ProductData>[] = [
             )
         },
         cell: ({ row }) => {
-            const product = row.original
+            const product = row.original.product
             return (
                 // <span className={`pl-[${row.depth * 2}rem]`}>
                 //     {row.getValue('name')}
                 // </span>
                 row.depth === 0 ? (
                     <Link href={`/dashboard/products/${product.id}`}>
-                        {row.getValue('name')}
+                        {product.name}
                     </Link>
                 ) : (
-                    <span className="ml-4">{row.getValue('name')}</span>
+                    <span className="ml-4">{product.name}</span>
                 )
             )
         },
@@ -119,8 +119,9 @@ export const columns: ColumnDef<ProductData>[] = [
             )
         },
         cell: ({ row }) => {
-            return row.depth === 0 ? (
-                <span>{row.getValue('category')}</span>
+            const product = row.original.product
+            return 'category' in product ? (
+                <span>{product.category}</span>
             ) : undefined
         },
     },
@@ -128,7 +129,8 @@ export const columns: ColumnDef<ProductData>[] = [
         accessorKey: 'price',
         header: () => <div className="text-right font-semibold">Price</div>,
         cell: ({ row }) => {
-            const amount = parseFloat(row.getValue('price'))
+            const product = row.original.product
+            const amount = parseFloat(product.price!)
             const formatted = new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
@@ -136,7 +138,7 @@ export const columns: ColumnDef<ProductData>[] = [
 
             return (
                 <div className="text-right font-medium">
-                    {row.getValue('price') ? formatted : 'Multiple'}
+                    {product.price ? formatted : 'Multiple'}
                 </div>
             )
         },
