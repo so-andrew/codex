@@ -1,8 +1,17 @@
 import { auth } from '@clerk/nextjs/server'
 import { and, asc, eq, sql } from 'drizzle-orm'
 import 'server-only'
+import { type CategoryTableRow, type ProductTableRow } from '~/types'
 import { db } from './db'
-import { conventions, products, productVariations } from './db/schema'
+import {
+    type Category,
+    conventions,
+    type Product,
+    productCategories,
+    products,
+    type ProductVariation,
+    productVariations,
+} from './db/schema'
 
 const getSingleProduct = db
     .select()
@@ -21,11 +30,28 @@ const getProducts = db
     .where(eq(products.creatorId, sql.placeholder('userId')))
     .prepare('get-products')
 
+const getCategories = db
+    .select()
+    .from(productCategories)
+    .where(eq(productCategories.creatorId, sql.placeholder('userId')))
+    .prepare('get-categories')
+
 const getConventions = db
     .select()
     .from(conventions)
     .where(eq(conventions.creatorId, sql.placeholder('userId')))
     .prepare('get-conventions')
+
+const getSingleConvention = db
+    .select()
+    .from(conventions)
+    .where(
+        and(
+            eq(conventions.id, sql.placeholder('conventionId')),
+            eq(products.creatorId, sql.placeholder('userId')),
+        ),
+    )
+    .prepare('get-single-convention')
 
 const getProductVariations = db
     .select()
@@ -55,10 +81,77 @@ export async function getUserProducts() {
     return await getProducts.execute({ userId: user.userId })
 }
 
+export async function getProductHierarchy() {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    const productsWithVariations = await db
+        .select()
+        .from(products)
+        .leftJoin(
+            productVariations,
+            eq(products.id, productVariations.productId),
+        )
+
+    const categories = await getCategories.execute({ userId: user.userId })
+    return constructProductHierarchy({ productsWithVariations, categories })
+}
+
+function constructProductHierarchy({
+    productsWithVariations,
+    categories,
+}: {
+    productsWithVariations: Array<{
+        product: Product
+        productVariations: ProductVariation | null
+    }>
+    categories: Category[]
+}) {
+    const categoryMap = new Map<number, string>()
+    for (const category of categories) {
+        categoryMap.set(category.id, category.name)
+    }
+
+    const productMap = new Map<number, ProductTableRow>()
+
+    productsWithVariations.forEach((row) => {
+        const product = row.product
+        const variation = row.productVariations
+        if (!productMap.has(product.id)) {
+            productMap.set(product.id, {
+                product: product,
+                variations: [],
+                categoryName:
+                    product.category && categoryMap.has(product.category)
+                        ? categoryMap.get(product.category)!
+                        : 'Uncategorized',
+            })
+        }
+        if (variation) {
+            productMap.get(product.id)!.variations.push({
+                product: variation,
+                variations: [],
+                categoryName: null,
+            })
+        }
+    })
+
+    return Array.from(productMap.values())
+}
+
 export async function getUserConventions() {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await getConventions.execute({ userId: user.userId })
+}
+
+export async function getConventionById(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    const conventions = await getSingleConvention.execute({
+        conventionId: conventionId,
+        userId: user.userId,
+    })
+    return conventions[0]
 }
 
 export async function getUserProductVariations(productId: number) {
@@ -68,4 +161,52 @@ export async function getUserProductVariations(productId: number) {
         productId: productId,
         userId: user.userId,
     })
+}
+
+export async function getUserCategories() {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    return await getCategories.execute({ userId: user.userId })
+}
+
+export async function getCategoryHierarchy() {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    const categories = (
+        await getCategories.execute({ userId: user.userId })
+    ).map((category) => {
+        return {
+            category: category,
+            subcategories: [],
+        }
+    })
+    //console.log(categories)
+    return constructCategoryHierarchy(categories)
+}
+
+function constructCategoryHierarchy(categories: Array<CategoryTableRow>) {
+    const categoryMap = new Map<number, CategoryTableRow>()
+
+    categories.forEach((row) => {
+        const category = row.category
+        categoryMap.set(category.id, { category, subcategories: [] })
+    })
+
+    const rootCategories: CategoryTableRow[] = []
+
+    categories.forEach((row) => {
+        const category = row.category
+        if (category.parentId === null) {
+            rootCategories.push(categoryMap.get(category.id)!)
+        } else {
+            const parentCategory = categoryMap.get(category.parentId)
+            if (parentCategory) {
+                parentCategory.subcategories.push(categoryMap.get(category.id)!)
+            }
+        }
+    })
+
+    //console.log(rootCategories[0]?.subcategories[1]?.subcategories)
+
+    return rootCategories
 }

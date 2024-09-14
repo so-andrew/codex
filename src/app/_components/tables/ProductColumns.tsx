@@ -121,7 +121,7 @@ export const columns: ColumnDef<ProductTableRow>[] = [
         cell: ({ row }) => {
             const product = row.original.product
             return 'category' in product ? (
-                <span>{product.category}</span>
+                <span>{row.original.categoryName}</span>
             ) : undefined
         },
     },

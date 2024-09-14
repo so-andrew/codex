@@ -1,5 +1,5 @@
 'use client'
-import { Calendar, Home, ScanBarcode } from 'lucide-react'
+import { Boxes, Calendar, Home, ScanBarcode } from 'lucide-react'
 import SidebarDesktop from './SidebarDesktop'
 
 export default function Sidebar() {
@@ -12,6 +12,11 @@ export default function Sidebar() {
                         label: 'Products',
                         href: '/dashboard/products',
                         icon: ScanBarcode,
+                    },
+                    {
+                        label: 'Categories',
+                        href: '/dashboard/categories',
+                        icon: Boxes,
                     },
                     {
                         label: 'Conventions',

@@ -4,11 +4,11 @@ import EditProduct from '~/app/_components/EditProduct'
 import VariationTable from '~/app/_components/tables/VariationTable'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { type Product, type ProductVariation } from '~/server/db/schema'
-import { getProductById, getUserProductVariations } from '~/server/queries'
+import { getProductById, getUserCategories, getUserProductVariations } from '~/server/queries'
 
 export default async function page({ params }: { params: { id: string } }) {
-    //const user = await currentUser()
     const product = (await getProductById(parseInt(params.id))) as Product
+    const categories = await getUserCategories()
 
     if (!product) {
         redirect('/dashboard/products')
@@ -75,7 +75,7 @@ export default async function page({ params }: { params: { id: string } }) {
                         </div>
                     </CardContent>
                 </Card>
-                <EditProduct product={product} />
+                <EditProduct product={product} categories={categories}/>
             </section>
             <section>
                 <div className="flex flex-row justify-between">

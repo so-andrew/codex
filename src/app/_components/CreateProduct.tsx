@@ -1,10 +1,19 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, ChevronsUpDown } from 'lucide-react'
 import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '~/components/ui/button'
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '~/components/ui/command'
 import {
     Dialog,
     DialogContent,
@@ -21,6 +30,14 @@ import {
     FormMessage,
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '~/components/ui/popover'
+import { toast } from '~/hooks/use-toast'
+import { cn } from '~/lib/utils'
+import { type Category } from '~/server/db/schema'
 import { createProduct } from '../actions'
 
 const variationSchema = z.object({
@@ -36,42 +53,12 @@ const variationSchema = z.object({
         .nonnegative(),
 })
 
-// const schemaWithNoVariations = z.object({
-//     name: z
-//         .string()
-//         .min(2, { message: 'Must be at least 2 characters long' })
-//         .max(100, { message: 'Must be less than 100 characters long' }),
-//     category: z.string().optional(),
-//     price: z.coerce
-//         .number({
-//             required_error: 'Price is required',
-//             invalid_type_error: 'Price must be a number',
-//         })
-//         .nonnegative(),
-//     hasVariations: z.literal(false),
-// })
-
-// const schemaWithVariations = z.object({
-//     name: z
-//         .string()
-//         .min(2, { message: 'Must be at least 2 characters long' })
-//         .max(100, { message: 'Must be less than 100 characters long' }),
-//     category: z.string().optional(),
-//     variations: z.array(variationSchema).nonempty(),
-//     hasVariations: z.literal(true),
-// })
-
-// const formSchema = z.discriminatedUnion('hasVariations', [
-//     schemaWithVariations,
-//     schemaWithNoVariations,
-// ])
-
 const formSchema = z.object({
     name: z
         .string()
         .min(2, { message: 'Must be at least 2 characters long' })
         .max(100, { message: 'Must be less than 100 characters long' }),
-    category: z.string().optional(),
+    category: z.number(),
     price: z.coerce
         .number({
             invalid_type_error: 'Price must be a number',
@@ -80,24 +67,26 @@ const formSchema = z.object({
     variations: z.array(variationSchema),
 })
 
-//type FormSchema = z.infer<typeof formSchema>
-
-export default function CreateProduct() {
+export default function CreateProduct({
+    categories,
+}: {
+    categories: Category[]
+}) {
     const [isOpen, setIsOpen] = useState(false)
+    const [isComboboxOpen, setIsComboboxOpen] = useState(false)
     const [variationCount, setVariationCount] = useState(0)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: '',
-            category: '',
+            category: -1,
             price: 0,
             variations: [],
         },
     })
 
-    //const { register, control } = form
-    const { formState } = form
+    const { reset, formState } = form
     const { isSubmitting } = formState
 
     const { fields, append, remove } = useFieldArray({
@@ -117,10 +106,23 @@ export default function CreateProduct() {
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         console.log(data)
-        await createProduct(data)
-        setVariationCount(0)
-        remove()
-        setIsOpen(false)
+        try {
+            await createProduct(data)
+            setVariationCount(0)
+            remove()
+            setIsOpen(false)
+            reset({}, { keepValues: false })
+            toast({
+                title: 'Success',
+                description: 'Successfully created product.',
+            })
+        } catch (e) {
+            const error = e as Error
+            toast({
+                title: error.name,
+                description: error.message,
+            })
+        }
     }
 
     return (
@@ -141,13 +143,6 @@ export default function CreateProduct() {
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(onSubmit)}
-                            // action={async (formData) => {
-                            //     console.log(formData)
-                            //     await createProduct(formData)
-                            //     setVariationCount(0)
-                            //     //remove()
-                            //     setIsOpen(false)
-                            // }}
                             className="space-y-4"
                         >
                             <FormField
@@ -170,35 +165,99 @@ export default function CreateProduct() {
                                 control={form.control}
                                 name="category"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="flex flex-col gap-2">
                                         <FormLabel>Category</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                placeholder="Uncategorized"
-                                                {...field}
-                                            />
+                                            <Popover
+                                                open={isComboboxOpen}
+                                                onOpenChange={setIsComboboxOpen}
+                                            >
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={
+                                                            isComboboxOpen
+                                                        }
+                                                        className="w=[200px] justify-between"
+                                                    >
+                                                        {field.value
+                                                            ? categories.find(
+                                                                  (category) =>
+                                                                      category.id ===
+                                                                      field.value,
+                                                              )?.name
+                                                            : 'Select category...'}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w=[200px] p-0">
+                                                    <Command>
+                                                        <CommandInput placeholder="Search category..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>
+                                                                No category
+                                                                found.
+                                                            </CommandEmpty>
+                                                            <CommandGroup>
+                                                                {categories.map(
+                                                                    (
+                                                                        category,
+                                                                    ) => (
+                                                                        <CommandItem
+                                                                            key={
+                                                                                category.id
+                                                                            }
+                                                                            value={
+                                                                                category.name
+                                                                            }
+                                                                            onSelect={(
+                                                                                currentValue,
+                                                                            ) => {
+                                                                                form.setValue(
+                                                                                    'category',
+                                                                                    category.id,
+                                                                                )
+                                                                                console.log(
+                                                                                    'field.value = ',
+                                                                                    field.value,
+                                                                                )
+                                                                                console.log(
+                                                                                    'Current value = ',
+                                                                                    currentValue,
+                                                                                )
+                                                                                console.log(
+                                                                                    form.getValues(),
+                                                                                )
+                                                                                setIsComboboxOpen(
+                                                                                    false,
+                                                                                )
+                                                                            }}
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    'mr-2 h-4 w-4',
+                                                                                    field.value ===
+                                                                                        category.id
+                                                                                        ? 'opacity-100'
+                                                                                        : 'opacity-0',
+                                                                                )}
+                                                                            />
+                                                                            {
+                                                                                category.name
+                                                                            }
+                                                                        </CommandItem>
+                                                                    ),
+                                                                )}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
                                         </FormControl>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {/* <FormField
-                                control={form.control}
-                                name="hasVariations"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input
-                                                type="hidden"
-                                                {...field}
-                                                value={(
-                                                    variationCount > 0
-                                                ).toString()}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            /> */}
                             {variationCount === 0 && (
                                 <FormField
                                     control={form.control}
@@ -217,7 +276,6 @@ export default function CreateProduct() {
                                     )}
                                 />
                             )}
-
                             {variationCount > 0 &&
                                 fields.map((field, index) => (
                                     <div
@@ -262,7 +320,6 @@ export default function CreateProduct() {
                                         </Button>
                                     </div>
                                 ))}
-
                             <div className="flex flex-row gap-4 pt-4">
                                 <Button type="button" onClick={addVariation}>
                                     Add Variation

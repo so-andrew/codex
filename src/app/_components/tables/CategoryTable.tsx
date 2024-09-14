@@ -1,13 +1,15 @@
 'use client'
 import {
+    type ColumnFiltersState,
+    type ExpandedState,
     flexRender,
     getCoreRowModel,
+    getExpandedRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    useReactTable,
-    type ColumnFiltersState,
     type SortingState,
+    useReactTable,
 } from '@tanstack/react-table'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
@@ -20,35 +22,53 @@ import {
     TableHeader,
     TableRow,
 } from '~/components/ui/table'
-import { type ProductVariation } from '~/server/db/schema'
-import GenericDialog from '../dialogs/GenericDialog'
-import BulkDeleteVariationForm from '../forms/BulkDeleteVariationForm'
-import BulkEditVariationPriceForm from '../forms/BulkEditVariationPriceForm'
-import { columns } from './VariationColumns'
+import { type CategoryTableRow } from '~/types'
+import { columns } from './CategoryColumns'
 
-export default function VariationTable({ data }: { data: ProductVariation[] }) {
+export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
-    const [isEditPricesOpen, setIsEditPricesOpen] = useState(false)
-    const [isDeleteVariationsOpen, setIsDeleteVariationsOpen] = useState(false)
-    //const [editVariation, setEditVariation] = useState<ProductVariation | null>(null)
+    const [expanded, setExpanded] = useState<ExpandedState>({})
 
     const table = useReactTable({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
+        getExpandedRowModel: getExpandedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onRowSelectionChange: setRowSelection,
-        enableRowSelection: true,
+        onExpandedChange: setExpanded,
+        // getSubRows: (originalRow: ProductData) => {
+        //     return originalRow.variations
+        //         ? originalRow.variations.map((variation: ProductVariation) => ({
+        //               id: variation.id,
+        //               name: variation.name,
+        //               category: originalRow.category,
+        //               price: variation.price,
+        //               createdAt: variation.createdAt,
+        //               updatedAt: variation.updatedAt,
+        //               creatorId: variation.creatorId,
+        //               imageUrl: null,
+        //               squareId: null,
+        //               variations: null,
+        //               baseProductName: originalRow.name,
+        //               productId: originalRow.id,
+        //           }))
+        //         : undefined
+        // },
+        getSubRows: (originalRow: CategoryTableRow) => {
+            return originalRow.subcategories
+        },
         state: {
             sorting,
             columnFilters,
             rowSelection,
+            expanded,
         },
     })
 
@@ -56,41 +76,14 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
 
     const getSelectedVariations = () => {
         const selectedRows = table.getSelectedRowModel().flatRows
-        return selectedRows.map((row) => row.original)
+        return selectedRows.map((row) => row.original.category)
     }
 
-    // const handleRowClick = (
-    //     e: React.MouseEvent,
-    //     variation: ProductVariation,
-    // ) => {
-    //     console.log(e)
-    //     console.log(e.target)
-    //     console.log(e.target instanceof HTMLElement)
-
-    //     if (
-    //         e.target instanceof HTMLElement &&
-    //         (e.target.closest('input[type="checkbox"]') ||
-    //             e.target.closest('label') ||
-    //             e.target.closest('button') ||
-    //             e.target.closest('div') ||
-    //             e.target.closest('svg'))
-    //     ) {
-    //         return
-    //     }
-    //     console.log(`Setting variation to ${variation.name}`)
-    //     setEditVariation(variation)
-    // }
-
-    // const clearEditVariation = () => {
-    //     console.log('Setting variation to null')
-    //     setEditVariation(null)
-    // }
-
     return (
-        <div className="relative min-h-screen pb-24">
+        <div>
             <div className="flex items-center py-4">
                 <Input
-                    placeholder="Filter variations..."
+                    placeholder="Filter categories..."
                     value={
                         (table.getColumn('name')?.getFilterValue() as string) ??
                         ''
@@ -142,10 +135,10 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                                     data-state={
                                         row.getIsSelected() && 'selected'
                                     }
-                                    // onClick={(e) =>
-                                    //     handleRowClick(e, row.original)
-                                    // }
-                                    className="cursor-pointer even:bg-slate-200/40"
+                                    //className={`pl-[${row.depth * 2}rem]`}
+                                    style={{
+                                        paddingLeft: `${row.depth * 2}rem`,
+                                    }}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
@@ -220,97 +213,33 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                         </Button>
                     </div>
                     <div className="flex flex-row items-center gap-4">
-                        <Button
+                        {/* <Button
+                            variant="outline"
+                            onClick={() => {
+                                console.log(getSelectedVariations())
+                            }}
+                        >
+                            Console Log
+                        </Button> */}
+                        {/* <Button
                             variant="outline"
                             onClick={() =>
                                 setIsEditPricesOpen(!isEditPricesOpen)
                             }
                         >
                             Edit Prices
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() =>
-                                setIsDeleteVariationsOpen(
-                                    !isDeleteVariationsOpen,
-                                )
-                            }
-                        >
-                            Delete Variations
-                        </Button>
+                        </Button>*/}
+                        {/* <Button
+                           variant="destructive"
+                           onClick={() =>
+                               setIsDeleteProductsOpen(!isDeleteProductsOpen)
+                           }
+                       >
+                           Delete Products
+                       </Button> */}
                     </div>
                 </div>
             )}
-            {/* <GenericDialog
-                isOpen={!!editVariation}
-                setIsOpen={clearEditVariation}
-                title="Edit Variation"
-            >
-                <EditVariationForm
-                    id={editVariation ? editVariation.id : -1}
-                    creatorId={editVariation ? editVariation.creatorId : ''}
-                    productId={editVariation ? editVariation.productId : -1}
-                    name={editVariation ? editVariation.name : ''}
-                    price={editVariation ? parseInt(editVariation.price) : 0}
-                    sku={
-                        editVariation
-                            ? (editVariation.sku ?? undefined)
-                            : undefined
-                    }
-                    setIsOpen={clearEditVariation}
-                />
-            </GenericDialog> */}
-
-            {/* <Dialog
-                open={!!editVariation}
-                onOpenChange={() => setEditVariation(null)}
-            >
-                <DialogContent
-                    className="sm-max-w-[800px]"
-                    aria-describedby={undefined}
-                >
-                    <DialogHeader className="space-y-4">
-                        Edit Variation
-                    </DialogHeader>
-                    <EditVariationForm
-                        id={editVariation ? editVariation.id : -1}
-                        creatorId={editVariation ? editVariation.creatorId : ''}
-                        productId={editVariation ? editVariation.productId : -1}
-                        name={editVariation ? editVariation.name : ''}
-                        price={
-                            editVariation ? parseInt(editVariation.price) : 0
-                        }
-                        sku={
-                            editVariation
-                                ? (editVariation.sku ?? undefined)
-                                : undefined
-                        }
-                        setIsOpen={clearEditVariation}
-                    />
-                </DialogContent>
-            </Dialog> */}
-            <GenericDialog
-                isOpen={isEditPricesOpen}
-                setIsOpen={setIsEditPricesOpen}
-                title="Edit Prices"
-            >
-                <BulkEditVariationPriceForm
-                    data={getSelectedVariations()}
-                    setIsOpen={setIsEditPricesOpen}
-                />
-            </GenericDialog>
-            <GenericDialog
-                isOpen={isDeleteVariationsOpen}
-                setIsOpen={setIsDeleteVariationsOpen}
-                title="Delete Variations"
-                description={`Are you sure you want to delete ${selectedRowsCount} variation${selectedRowsCount !== 1 ? 's' : ''}?`}
-            >
-                <BulkDeleteVariationForm
-                    data={getSelectedVariations()}
-                    setIsOpen={setIsDeleteVariationsOpen}
-                    toggleAllRowsSelected={table.toggleAllRowsSelected}
-                />
-            </GenericDialog>
         </div>
     )
 }

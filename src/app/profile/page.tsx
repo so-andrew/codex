@@ -1,13 +1,9 @@
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs'
-import { auth, currentUser } from '@clerk/nextjs/server'
-import Link from 'next/link';
-import { randomBytes } from "crypto";
-import { cookies } from "next/headers"
-import TestButton from '../_components/TestButton';
+import { RedirectToSignIn, SignedIn, SignedOut } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
+import TestButton from '../_components/TestButton'
 //import { test } from '../actions'
 
-export default async function ProfilePage(){
-
+export default async function ProfilePage() {
     const { userId } = auth()
 
     //const user = await currentUser()
@@ -16,14 +12,14 @@ export default async function ProfilePage(){
     return (
         <section>
             <SignedIn>
-                <div className='flex flex-col items-center gap-8 py-4 min-h-screen'>
-                    <h1 className="font-semibold text-2xl">Profile</h1>
+                <div className="flex min-h-screen flex-col items-center gap-8 py-4">
+                    <h1 className="text-2xl font-semibold">Profile</h1>
                     <p>{userId}</p>
-                    <TestButton/>
+                    <TestButton />
                 </div>
             </SignedIn>
             <SignedOut>
-                <RedirectToSignIn/>
+                <RedirectToSignIn />
             </SignedOut>
         </section>
     )

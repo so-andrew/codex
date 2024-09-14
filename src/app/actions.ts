@@ -1,16 +1,20 @@
 'use server'
-import { currentUser } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { randomBytes } from 'crypto'
+import { differenceInCalendarDays, eachDayOfInterval } from 'date-fns'
 import { and, eq, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 //import { cookies } from 'next/headers'
 import { z } from 'zod'
 import { db } from '~/server/db'
 import {
-    type conventionProductVariationReports,
+    conventionProductVariationReports,
     conventions,
+    productCategories,
     products,
     productVariations,
+    type salesFigureDaily,
+    type salesFigures,
 } from '~/server/db/schema'
 
 export async function test() {
@@ -54,7 +58,7 @@ const variationSimpleSchema = z.object({
 // Product schemas
 const productCreateScheme = z.object({
     name: z.string().min(2).max(100),
-    category: z.string().optional(),
+    category: z.number().optional(),
     price: z.coerce.number(),
     variations: z.array(
         z.object({
@@ -67,12 +71,18 @@ const productCreateScheme = z.object({
 const productEditScheme = z.object({
     id: z.number(),
     name: z.string().min(2).max(100).optional(),
-    category: z.string().optional(),
+    category: z.number().optional(),
     price: z.coerce.number().optional(),
 })
 
 const bulkProductDeleteScheme = z.object({
     data: z.array(generalItemSchema),
+})
+
+// Category schemas
+const categoryCreateScheme = z.object({
+    name: z.string().min(2).max(100),
+    parentId: z.number().optional(),
 })
 
 // Variation schemas
@@ -117,9 +127,20 @@ const bulkConventionDeleteScheme = z.object({
 })
 
 export async function createProduct(data: z.infer<typeof productCreateScheme>) {
-    const user = await currentUser()
-    if (user) {
+    const user = auth()
+    if (user && user.userId) {
         try {
+            // If we have never created a category before, create a default
+            const categories = await db.select().from(productCategories)
+            if (!categories || categories.length === 0) {
+                await db.insert(productCategories).values({
+                    id: -1,
+                    name: 'Uncategorized',
+                    parentId: null,
+                    creatorId: user.userId,
+                })
+            }
+
             const parse = productCreateScheme.parse({
                 name: data.name,
                 category: data.category,
@@ -135,7 +156,7 @@ export async function createProduct(data: z.infer<typeof productCreateScheme>) {
                     .values({
                         name: parse.name,
                         category: parse.category,
-                        creatorId: user.id,
+                        creatorId: user.userId,
                     })
                     .returning()
 
@@ -148,7 +169,7 @@ export async function createProduct(data: z.infer<typeof productCreateScheme>) {
                         baseProductName: baseProduct[0]!.name,
                         price: variation.price.toString(),
                         productId: baseProduct[0]!.id,
-                        creatorId: user.id,
+                        creatorId: user.userId,
                     }
                     return newVariation
                 })
@@ -161,7 +182,7 @@ export async function createProduct(data: z.infer<typeof productCreateScheme>) {
                         name: parse.name,
                         category: parse.category,
                         price: parse.price.toString(), // TODO: Rework how price is stored/displayed in UI
-                        creatorId: user.id,
+                        creatorId: user.userId,
                     })
                     .returning()
 
@@ -170,7 +191,7 @@ export async function createProduct(data: z.infer<typeof productCreateScheme>) {
                     price: parse.price.toString(),
                     baseProductName: newProduct[0]!.name,
                     productId: newProduct[0]!.id,
-                    creatorId: user.id,
+                    creatorId: user.userId,
                 })
             }
         } catch (e) {
@@ -183,9 +204,9 @@ export async function createProduct(data: z.infer<typeof productCreateScheme>) {
 }
 
 export async function editProduct(data: z.infer<typeof productEditScheme>) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
@@ -200,7 +221,7 @@ export async function editProduct(data: z.infer<typeof productEditScheme>) {
         const foundProduct = await db.query.products.findFirst({
             where: and(
                 eq(products.id, parse.id),
-                eq(products.creatorId, user.id),
+                eq(products.creatorId, user.userId),
             ),
         })
         await db
@@ -211,7 +232,10 @@ export async function editProduct(data: z.infer<typeof productEditScheme>) {
                 price: parse.price?.toString() ?? foundProduct?.price,
             })
             .where(
-                and(eq(products.id, data.id), eq(products.creatorId, user.id)),
+                and(
+                    eq(products.id, data.id),
+                    eq(products.creatorId, user.userId),
+                ),
             )
         return revalidatePath('/dashboard/products')
     } catch (e) {
@@ -228,13 +252,13 @@ export async function deleteProduct({
     id: number
     creatorId: string
 }) {
-    const user = await currentUser()
-    if (!user) {
+    const user = auth()
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
 
-    if (user.id !== creatorId) {
+    if (user.userId !== creatorId) {
         const error = new Error('User does not have permission to delete.')
         throw error
     }
@@ -245,9 +269,9 @@ export async function deleteProduct({
 export async function bulkDeleteProduct(
     data: z.infer<typeof bulkProductDeleteScheme>,
 ) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
@@ -275,12 +299,52 @@ export async function bulkDeleteProduct(
     revalidatePath('dashboard/products')
 }
 
+export async function createCategory(
+    data: z.infer<typeof categoryCreateScheme>,
+) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    // If we have never created a category before, create a default
+    const categories = await db.select().from(productCategories)
+    if (!categories || categories.length === 0) {
+        await db.insert(productCategories).values({
+            id: -1,
+            name: 'Uncategorized',
+            parentId: null,
+            creatorId: user.userId,
+        })
+    }
+
+    try {
+        const parse = categoryCreateScheme.parse({
+            name: data.name,
+            parentId: data.parentId,
+        })
+
+        await db.insert(productCategories).values({
+            name: parse.name,
+            parentId: parse.parentId ?? undefined,
+            creatorId: user.userId,
+        })
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('/dashboard/categories')
+}
+
 export async function createVariation(
     data: z.infer<typeof variationCreateScheme>,
 ) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
@@ -298,7 +362,7 @@ export async function createVariation(
             price: parse.price.toString(),
             productId: parse.productId,
             baseProductName: parse.baseProductName,
-            creatorId: user.id,
+            creatorId: user.userId,
             sku: parse.sku,
         })
     } catch (error) {
@@ -308,8 +372,8 @@ export async function createVariation(
 }
 
 export async function editVariation(data: z.infer<typeof variationEditScheme>) {
-    const user = await currentUser()
-    if (!user) {
+    const user = auth()
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
@@ -333,7 +397,7 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
             .where(
                 and(
                     eq(productVariations.id, parse.id),
-                    eq(productVariations.creatorId, user.id),
+                    eq(productVariations.creatorId, user.userId),
                 ),
             )
 
@@ -346,7 +410,7 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
                 .where(
                     and(
                         eq(productVariations.id, parse.id),
-                        eq(productVariations.creatorId, user.id),
+                        eq(productVariations.creatorId, user.userId),
                     ),
                 )
         }
@@ -361,8 +425,8 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
 export async function bulkEditVariation(
     data: z.infer<typeof bulkVariationEditScheme>,
 ) {
-    const user = await currentUser()
-    if (!user) {
+    const user = auth()
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
@@ -383,7 +447,7 @@ export async function bulkEditVariation(
             .where(
                 and(
                     inArray(productVariations.id, variationIds),
-                    eq(productVariations.creatorId, user.id),
+                    eq(productVariations.creatorId, user.userId),
                 ),
             )
     } catch (e) {
@@ -403,14 +467,14 @@ export async function deleteVariation({
     productId: number
     creatorId: string
 }) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
 
-    if (user.id !== creatorId) {
+    if (user.userId !== creatorId) {
         const error = new Error('User does not have permission to delete.')
         throw error
     }
@@ -443,9 +507,9 @@ export async function deleteVariation({
 export async function bulkDeleteVariation(
     data: z.infer<typeof bulkVariationDeleteScheme>,
 ) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
@@ -466,7 +530,7 @@ export async function bulkDeleteVariation(
         const product = await db.query.products.findFirst({
             where: and(
                 eq(products.id, productId),
-                eq(products.creatorId, user.id),
+                eq(products.creatorId, user.userId),
             ),
         })
 
@@ -483,7 +547,7 @@ export async function bulkDeleteVariation(
             .where(
                 and(
                     inArray(productVariations.id, variationIds),
-                    eq(productVariations.creatorId, user.id),
+                    eq(productVariations.creatorId, user.userId),
                 ),
             )
 
@@ -493,7 +557,7 @@ export async function bulkDeleteVariation(
                 {
                     where: and(
                         eq(productVariations.productId, productId),
-                        eq(productVariations.creatorId, user.id),
+                        eq(productVariations.creatorId, user.userId),
                     ),
                 },
             )
@@ -513,7 +577,7 @@ export async function bulkDeleteVariation(
                 price: '0',
                 baseProductName: product!.name,
                 productId: productId,
-                creatorId: user.id,
+                creatorId: user.userId,
             })
             console.log('Setting price to 0')
             await db
@@ -527,9 +591,9 @@ export async function bulkDeleteVariation(
 
 // Create convention
 export async function createConvention(data: z.infer<typeof conventionScheme>) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
@@ -541,16 +605,18 @@ export async function createConvention(data: z.infer<typeof conventionScheme>) {
             dateRange: data.dateRange,
         })
 
-        const newConvention = await db
+        const newConventionQuery = await db
             .insert(conventions)
             .values({
                 name: parse.name,
                 location: parse.location,
                 startDate: parse.dateRange.from.toISOString(),
                 endDate: parse.dateRange.to.toISOString(),
-                creatorId: user.id,
+                creatorId: user.userId,
             })
             .returning()
+
+        const newConvention = newConventionQuery[0]
 
         // TODO: Throw error in case of failed db insert
         console.log(newConvention)
@@ -559,33 +625,50 @@ export async function createConvention(data: z.infer<typeof conventionScheme>) {
         //     where: eq(products.creatorId, user.id),
         // })
 
-        const length = await getConventionLength(
-            newConvention[0]!.startDate,
-            newConvention[0]!.endDate,
-        )
+        const length = await getConventionLength({
+            startDateString: newConvention!.startDate,
+            endDateString: newConvention!.endDate,
+        })
         console.log(length)
 
         type NewReport = typeof conventionProductVariationReports.$inferInsert
 
         const allVariations = await db.query.productVariations.findMany({
-            where: eq(productVariations.creatorId, user.id),
+            where: eq(productVariations.creatorId, user.userId),
         })
 
-        // const map1 = currentProducts.map((product) => {
-        //     const newListing: NewListing = {
-        //         name: product.name,
-        //         category: product.category,
-        //         price: product.price!,
-        //         length: length,
-        //         creatorId: product.creatorId,
-        //         productId: product.id,
-        //         conventionId: newConvention[0]!.id,
-        //     }
-        //     return newListing
-        // })
+        //const productVariationsWithReports = await db.select({ productId: productVariations.productId }).from(productVariations).rightJoin(conventionProductVariationReports, eq(productVariations.id,conventionProductVariationReports.productVariationId))
 
-        // console.log(map1)
-        // await db.insert(conventionProductVariationReports).values(map1)
+        const map2 = allVariations.map((variation) => {
+            const dayReports: salesFigures = {}
+            const daysInRange = eachDayOfInterval({
+                start: newConvention!.startDate,
+                end: newConvention!.endDate,
+            })
+            for (const day of daysInRange) {
+                const dayReport: salesFigureDaily = {
+                    date: day,
+                    cashSales: 0,
+                    cardSales: 0,
+                }
+                dayReports[day.toISOString()] = dayReport
+            }
+
+            const newReport: NewReport = {
+                name: variation.name,
+                productId: variation.productId,
+                productName: variation.baseProductName,
+                price: variation.price,
+                salesFigures: dayReports,
+                creatorId: variation.creatorId,
+                productVariationId: variation.id,
+                conventionId: newConvention!.id,
+            }
+
+            return newReport
+        })
+        console.log(map2)
+        await db.insert(conventionProductVariationReports).values(map2)
     } catch (e) {
         const error = e as Error
         console.error(error)
@@ -594,7 +677,17 @@ export async function createConvention(data: z.infer<typeof conventionScheme>) {
     return revalidatePath('/dashboard/conventions')
 }
 
-export async function getConventionLength(
+export async function getConventionLength({
+    startDateString,
+    endDateString,
+}: {
+    startDateString: string
+    endDateString: string
+}) {
+    return differenceInCalendarDays(startDateString, endDateString)
+}
+
+export async function getConventionLengthOld(
     startDateString: string,
     endDateString: string,
 ) {
@@ -637,14 +730,14 @@ export async function deleteConvention({
     id: number
     creatorId: string
 }) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
 
-    if (user.id !== creatorId) {
+    if (user.userId !== creatorId) {
         const error = new Error('User does not have permission to delete.')
         throw error
     }
@@ -657,9 +750,9 @@ export async function deleteConvention({
 export async function bulkDeleteConvention(
     data: z.infer<typeof bulkConventionDeleteScheme>,
 ) {
-    const user = await currentUser()
+    const user = auth()
 
-    if (!user) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }

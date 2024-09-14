@@ -3,11 +3,11 @@
 
 import { sql } from 'drizzle-orm'
 import {
+    type AnyPgColumn,
     date,
     integer,
     json,
     numeric,
-    pgEnum,
     pgTableCreator,
     timestamp,
     varchar,
@@ -21,15 +21,6 @@ import {
  */
 export const createTable = pgTableCreator((name) => `codex_${name}`)
 
-// Enums
-export const lengthEnum = pgEnum('length', [
-    '1day',
-    '2day',
-    '3day',
-    '4day',
-    'other',
-])
-
 // Users
 export const users = createTable('users', {
     id: varchar('id', { length: 256 }).primaryKey().notNull(),
@@ -40,7 +31,12 @@ export type User = typeof users.$inferSelect
 export const products = createTable('product', {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
     name: varchar('name', { length: 256 }).notNull(),
-    category: varchar('category', { length: 256 }),
+    category: integer('category')
+        .default(-1)
+        .notNull()
+        .references(() => productCategories.id, {
+            onDelete: 'set default',
+        }),
     price: numeric('price'),
     imageUrl: varchar('imageUrl', { length: 1024 }),
     squareId: varchar('squareId', { length: 256 }),
@@ -98,6 +94,21 @@ export type ProductVariation = typeof productVariations.$inferSelect
 //         conventionSalesFigure: many(conventionProductListings),
 //     }),
 // )
+
+export const productCategories = createTable('productCategories', {
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+    name: varchar('name', { length: 256 }).notNull(),
+    creatorId: varchar('creatorId', { length: 256 })
+        .references(() => users.id, { onDelete: 'cascade' })
+        .notNull(),
+    parentId: integer('parentId').references(
+        (): AnyPgColumn => productCategories.id,
+        {
+            onDelete: 'cascade',
+        },
+    ),
+})
+export type Category = typeof productCategories.$inferSelect
 
 // Conventions
 export const conventions = createTable('convention', {
@@ -180,12 +191,12 @@ export type Convention = typeof conventions.$inferSelect
 //     }),
 // )
 
-type salesFigures = {
-    days: {
-        date: Date
-        cashSales: number
-        cardSales: number
-    }[]
+export type salesFigures = Record<string, salesFigureDaily>
+
+export type salesFigureDaily = {
+    date: Date
+    cashSales: number
+    cardSales: number
 }
 
 export const conventionProductVariationReports = createTable(
@@ -197,8 +208,9 @@ export const conventionProductVariationReports = createTable(
             .references(() => products.id, { onDelete: 'set default' })
             .default(-1)
             .notNull(),
+        productName: varchar('productName', { length: 256 }).notNull(),
         price: numeric('price').notNull(),
-        length: lengthEnum('length').notNull(),
+        //length: lengthEnum('length').notNull(),
         salesFigures: json('salesFigures').$type<salesFigures>(),
         createdAt: timestamp('created_at', { withTimezone: true })
             .default(sql`CURRENT_TIMESTAMP`)

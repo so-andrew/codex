@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { SidebarItems } from '~/types'
+import { type SidebarItems } from '~/types'
 import SidebarButton from './SidebarButton'
 
 interface SidebarDesktopProps {

@@ -1,17 +1,8 @@
-import { currentUser } from '@clerk/nextjs/server'
-import { and, eq } from 'drizzle-orm'
 import ConventionDropdownMenu from '~/app/_components/ConventionDropdownMenu'
-import { db } from '~/server/db'
-import { conventions } from '~/server/db/schema'
+import { getConventionById } from '~/server/queries'
 
 export default async function page({ params }: { params: { id: string } }) {
-    const user = await currentUser()
-    const convention = await db.query.conventions.findFirst({
-        where: and(
-            eq(conventions.id, parseInt(params.id)),
-            eq(conventions.creatorId, user!.id),
-        ),
-    })
+    const convention = await getConventionById(parseInt(params.id))
 
     const startDateString = convention
         ? new Date(Date.parse(convention.startDate)).toLocaleDateString(

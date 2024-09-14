@@ -1,5 +1,9 @@
 import { type LucideIcon } from 'lucide-react'
-import { type Product, type ProductVariation } from './server/db/schema'
+import {
+    type Category,
+    type Product,
+    type ProductVariation,
+} from './server/db/schema'
 
 export interface SidebarItems {
     links: Array<{
@@ -17,4 +21,14 @@ export type ProductWithVariations = {
 export type ProductTableRow = {
     product: Product | ProductVariation
     variations: ProductTableRow[]
+    categoryName: string | null
+}
+
+export type CategoryTableRow = {
+    category: Category
+    subcategories: CategoryTableRow[]
+}
+
+export type CategoryWithSubcategories = Category & {
+    subcategories: CategoryWithSubcategories[] | null
 }

@@ -41,7 +41,7 @@ export default function DeleteConventionForm({
             setIsOpen(false)
             toast({
                 title: 'Success',
-                description: 'Successfully deleted product.',
+                description: 'Successfully deleted convention.',
             })
         } catch (e) {
             const error = e as Error
