@@ -1,4 +1,15 @@
 'use client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table'
+import { type Convention } from '@/server/db/schema'
 import {
     type ColumnFiltersState,
     flexRender,
@@ -10,17 +21,6 @@ import {
     useReactTable,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '~/components/ui/table'
-import { type Convention } from '~/server/db/schema'
 import GenericDialog from '../dialogs/GenericDialog'
 import BulkDeleteConventionForm from '../forms/BulkDeleteConventionForm'
 import { columns } from './ConventionColumns'

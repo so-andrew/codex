@@ -1,11 +1,11 @@
-import React from 'react'
 import {
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from '~/components/ui/dialog'
+} from '@/components/ui/dialog'
+import React from 'react'
 
 export default function GenericDialog({
     children,

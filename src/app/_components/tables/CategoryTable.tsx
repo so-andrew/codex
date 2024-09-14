@@ -1,4 +1,15 @@
 'use client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table'
+import { type CategoryTableRow } from '@/types'
 import {
     type ColumnFiltersState,
     type ExpandedState,
@@ -12,17 +23,6 @@ import {
     useReactTable,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '~/components/ui/table'
-import { type CategoryTableRow } from '~/types'
 import { columns } from './CategoryColumns'
 
 export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {

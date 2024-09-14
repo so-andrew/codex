@@ -1,10 +1,5 @@
 'use client'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, ChevronsUpDown } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from '~/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
     Command,
     CommandEmpty,
@@ -12,14 +7,14 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from '~/components/ui/command'
+} from '@/components/ui/command'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from '~/components/ui/dialog'
+} from '@/components/ui/dialog'
 import {
     Form,
     FormControl,
@@ -27,15 +22,20 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from '~/components/ui/popover'
-import { cn } from '~/lib/utils'
-import { Category } from '~/server/db/schema'
+} from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+import { Category } from '@/server/db/schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { createCategory } from '../actions'
 
 const formSchema = z.object({

@@ -1,9 +1,9 @@
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { type Convention } from '@/server/db/schema'
 import { type ColumnDef } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '~/components/ui/button'
-import { Checkbox } from '~/components/ui/checkbox'
-import { type Convention } from '~/server/db/schema'
 import ConventionTableRowActions from './ConventionTableRowActions'
 
 export const columns: ColumnDef<Convention>[] = [

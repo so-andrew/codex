@@ -1,7 +1,7 @@
+import { type CategoryTableRow, type ProductTableRow } from '@/types'
 import { auth } from '@clerk/nextjs/server'
 import { and, asc, eq, sql } from 'drizzle-orm'
 import 'server-only'
-import { type CategoryTableRow, type ProductTableRow } from '~/types'
 import { db } from './db'
 import {
     type Category,
@@ -93,6 +93,7 @@ export async function getProductHierarchy() {
         )
 
     const categories = await getCategories.execute({ userId: user.userId })
+
     return constructProductHierarchy({ productsWithVariations, categories })
 }
 
@@ -166,7 +167,15 @@ export async function getUserProductVariations(productId: number) {
 export async function getUserCategories() {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
-    return await getCategories.execute({ userId: user.userId })
+    const categories = await getCategories.execute({ userId: user.userId })
+    const categoryMap = new Map<number, string>()
+    for (const category of categories) {
+        categoryMap.set(category.id, category.name)
+    }
+    return {
+        categories: categories,
+        categoryMap: categoryMap,
+    }
 }
 
 export async function getCategoryHierarchy() {
@@ -205,8 +214,6 @@ function constructCategoryHierarchy(categories: Array<CategoryTableRow>) {
             }
         }
     })
-
-    //console.log(rootCategories[0]?.subcategories[1]?.subcategories)
 
     return rootCategories
 }

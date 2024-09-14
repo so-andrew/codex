@@ -1,16 +1,16 @@
 'use client'
 
-import { type Row } from '@tanstack/react-table'
-import { MoreHorizontal } from 'lucide-react'
-import { useState } from 'react'
-import { Button } from '~/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
-import { type Convention } from '~/server/db/schema'
+} from '@/components/ui/dropdown-menu'
+import { type Convention } from '@/server/db/schema'
+import { type Row } from '@tanstack/react-table'
+import { MoreHorizontal } from 'lucide-react'
+import { useState } from 'react'
 import GenericDialog from '../dialogs/GenericDialog'
 import DeleteConventionForm from '../forms/DeleteConventionForm'
 

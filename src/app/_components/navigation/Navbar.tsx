@@ -1,7 +1,7 @@
+import Logo from '@/../public/codexlogo.png'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
-import Logo from '~/../public/codexlogo.png'
 
 export const Navbar = () => {
     return (

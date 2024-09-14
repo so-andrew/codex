@@ -1,8 +1,8 @@
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { type ProductVariation } from '@/server/db/schema'
 import { type ColumnDef } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
-import { Button } from '~/components/ui/button'
-import { Checkbox } from '~/components/ui/checkbox'
-import { type ProductVariation } from '~/server/db/schema'
 import VariationTableRowActions from './VariationTableRowActions'
 
 export const columns: ColumnDef<ProductVariation>[] = [

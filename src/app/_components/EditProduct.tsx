@@ -1,11 +1,7 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, ChevronsUpDown } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from '~/components/ui/button'
+import { editProduct } from '@/app/actions'
+import { Button } from '@/components/ui/button'
 import {
     Command,
     CommandEmpty,
@@ -13,14 +9,14 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from '~/components/ui/command'
+} from '@/components/ui/command'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from '~/components/ui/dialog'
+} from '@/components/ui/dialog'
 import {
     Form,
     FormControl,
@@ -28,17 +24,21 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from '~/components/ui/popover'
-import { useToast } from '~/hooks/use-toast'
-import { cn } from '~/lib/utils'
-import { Category, type Product } from '~/server/db/schema'
-import { editProduct } from '../actions'
+} from '@/components/ui/popover'
+import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
+import { type Category, type Product } from '@/server/db/schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 const formSchema = z.object({
     id: z.number(),
@@ -70,6 +70,12 @@ export default function EditProduct({ product, categories }: EditProductProps) {
 
     const { reset, formState } = form
     const { isDirty, isSubmitting } = formState
+
+    // useEffect(() => {
+    //     console.log('isDirty:', isDirty)
+    //     console.log('dirtyFields:', dirtyFields)
+    //     console.log('touchedFields:', touchedFields)
+    // }, [dirtyFields, formState, isDirty, touchedFields])
 
     const { toast } = useToast()
 
@@ -134,31 +140,32 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col gap-2">
                                         <FormLabel>Category</FormLabel>
-                                        <FormControl>
-                                            <Popover
-                                                open={isComboboxOpen}
-                                                onOpenChange={setIsComboboxOpen}
-                                            >
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        role="combobox"
-                                                        aria-expanded={
-                                                            isComboboxOpen
-                                                        }
-                                                        className="w=[200px] justify-between"
-                                                    >
-                                                        {field.value
-                                                            ? categories.find(
-                                                                  (category) =>
-                                                                      category.id ===
-                                                                      field.value,
-                                                              )?.name
-                                                            : 'Select category...'}
-                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w=[200px] p-0">
+
+                                        <Popover
+                                            open={isComboboxOpen}
+                                            onOpenChange={setIsComboboxOpen}
+                                        >
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={
+                                                        isComboboxOpen
+                                                    }
+                                                    className="w=[200px] justify-between"
+                                                >
+                                                    {field.value
+                                                        ? categories.find(
+                                                              (category) =>
+                                                                  category.id ===
+                                                                  field.value,
+                                                          )?.name
+                                                        : 'Select category...'}
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w=[200px] p-0">
+                                                <FormControl>
                                                     <Command>
                                                         <CommandInput placeholder="Search category..." />
                                                         <CommandList>
@@ -178,27 +185,9 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                                                             value={
                                                                                 category.name
                                                                             }
-                                                                            onSelect={(
-                                                                                currentValue,
-                                                                            ) => {
-                                                                                form.setValue(
-                                                                                    'category',
+                                                                            onSelect={() => {
+                                                                                field.onChange(
                                                                                     category.id,
-                                                                                )
-                                                                                console.log(
-                                                                                    'field.value = ',
-                                                                                    field.value,
-                                                                                )
-                                                                                console.log(
-                                                                                    'Current value = ',
-                                                                                    currentValue,
-                                                                                )
-                                                                                console.log(
-                                                                                    form.getValues(),
-                                                                                )
-                                                                                console.log(
-                                                                                    'isDirty: ',
-                                                                                    isDirty,
                                                                                 )
                                                                                 setIsComboboxOpen(
                                                                                     false,
@@ -223,9 +212,9 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                                             </CommandGroup>
                                                         </CommandList>
                                                     </Command>
-                                                </PopoverContent>
-                                            </Popover>
-                                        </FormControl>
+                                                </FormControl>
+                                            </PopoverContent>
+                                        </Popover>
                                     </FormItem>
                                 )}
                             />

@@ -1,6 +1,6 @@
+import { Button, type ButtonProps } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { type LucideIcon } from 'lucide-react'
-import { Button, type ButtonProps } from '~/components/ui/button'
-import { cn } from '~/lib/utils'
 
 interface SidebarButtonProps extends ButtonProps {
     icon?: LucideIcon

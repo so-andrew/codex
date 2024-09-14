@@ -5,8 +5,7 @@ import { differenceInCalendarDays, eachDayOfInterval } from 'date-fns'
 import { and, eq, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 //import { cookies } from 'next/headers'
-import { z } from 'zod'
-import { db } from '~/server/db'
+import { db } from '@/server/db'
 import {
     conventionProductVariationReports,
     conventions,
@@ -15,7 +14,8 @@ import {
     productVariations,
     type salesFigureDaily,
     type salesFigures,
-} from '~/server/db/schema'
+} from '@/server/db/schema'
+import { z } from 'zod'
 
 export async function test() {
     'use server'

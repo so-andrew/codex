@@ -1,5 +1,5 @@
-import ConventionDropdownMenu from '~/app/_components/ConventionDropdownMenu'
-import { getConventionById } from '~/server/queries'
+import ConventionDropdownMenu from '@/app/_components/ConventionDropdownMenu'
+import { getConventionById } from '@/server/queries'
 
 export default async function page({ params }: { params: { id: string } }) {
     const convention = await getConventionById(parseInt(params.id))

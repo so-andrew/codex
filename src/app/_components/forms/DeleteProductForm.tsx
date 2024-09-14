@@ -1,13 +1,13 @@
 'use client'
 
+import { deleteProduct } from '@/app/actions'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import { useToast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { type Dispatch, type SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { deleteProduct } from '~/app/actions'
-import { Button } from '~/components/ui/button'
-import { Form } from '~/components/ui/form'
-import { useToast } from '~/hooks/use-toast'
 
 const formSchema = z.object({
     id: z.number(),

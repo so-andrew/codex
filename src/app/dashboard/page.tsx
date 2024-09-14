@@ -1,5 +1,5 @@
+import { Button } from '@/components/ui/button'
 import { currentUser } from '@clerk/nextjs/server'
-import { Button } from '~/components/ui/button'
 
 export default async function Dashboard() {
     const user = await currentUser()

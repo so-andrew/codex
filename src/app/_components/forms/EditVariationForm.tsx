@@ -1,9 +1,5 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Dispatch, SetStateAction } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { editVariation } from '~/app/actions'
-import { Button } from '~/components/ui/button'
+import { editVariation } from '@/app/actions'
+import { Button } from '@/components/ui/button'
 import {
     Form,
     FormControl,
@@ -11,9 +7,13 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import { useToast } from '~/hooks/use-toast'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { useToast } from '@/hooks/use-toast'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Dispatch, SetStateAction } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 const formSchema = z.object({
     id: z.number(),

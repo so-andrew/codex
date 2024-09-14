@@ -1,9 +1,9 @@
-import { type LucideIcon } from 'lucide-react'
 import {
     type Category,
     type Product,
     type ProductVariation,
-} from './server/db/schema'
+} from '@/server/db/schema'
+import { type LucideIcon } from 'lucide-react'
 
 export interface SidebarItems {
     links: Array<{

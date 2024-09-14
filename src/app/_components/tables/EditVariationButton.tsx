@@ -1,9 +1,9 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { type ProductVariation } from '@/server/db/schema'
 import { type Row } from '@tanstack/react-table'
 import { useState } from 'react'
-import { Button } from '~/components/ui/button'
-import { type ProductVariation } from '~/server/db/schema'
 import GenericDialog from '../dialogs/GenericDialog'
 import EditVariationForm from '../forms/EditVariationForm'
 

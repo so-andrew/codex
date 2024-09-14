@@ -1,5 +1,5 @@
-import { Navbar } from '~/app/_components/navigation/Navbar'
-import Sidebar from '~/app/_components/navigation/Sidebar'
+import { Navbar } from '@/app/_components/navigation/Navbar'
+import Sidebar from '@/app/_components/navigation/Sidebar'
 
 export default function ProductLayout({
     children,

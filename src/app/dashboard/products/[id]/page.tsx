@@ -1,14 +1,18 @@
+import CreateVariation from '@/app/_components/CreateVariation'
+import EditProduct from '@/app/_components/EditProduct'
+import VariationTable from '@/app/_components/tables/VariationTable'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { type Product, type ProductVariation } from '@/server/db/schema'
+import {
+    getProductById,
+    getUserCategories,
+    getUserProductVariations,
+} from '@/server/queries'
 import { redirect } from 'next/navigation'
-import CreateVariation from '~/app/_components/CreateVariation'
-import EditProduct from '~/app/_components/EditProduct'
-import VariationTable from '~/app/_components/tables/VariationTable'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { type Product, type ProductVariation } from '~/server/db/schema'
-import { getProductById, getUserCategories, getUserProductVariations } from '~/server/queries'
 
 export default async function page({ params }: { params: { id: string } }) {
     const product = (await getProductById(parseInt(params.id))) as Product
-    const categories = await getUserCategories()
+    const { categories, categoryMap } = await getUserCategories()
 
     if (!product) {
         redirect('/dashboard/products')
@@ -67,7 +71,9 @@ export default async function page({ params }: { params: { id: string } }) {
                     <CardContent>
                         <div className="flex flex-row justify-between gap-2 px-2">
                             <span className="text-lg text-gray-500">
-                                {product?.category}
+                                {product
+                                    ? (categoryMap.get(product.category) ?? '')
+                                    : ''}
                             </span>
                             <span className="text-lg text-gray-500">
                                 {formattedAmount}
@@ -75,7 +81,7 @@ export default async function page({ params }: { params: { id: string } }) {
                         </div>
                     </CardContent>
                 </Card>
-                <EditProduct product={product} categories={categories}/>
+                <EditProduct product={product} categories={categories} />
             </section>
             <section>
                 <div className="flex flex-row justify-between">

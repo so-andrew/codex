@@ -1,6 +1,6 @@
-import CreateCategory from '~/app/_components/CreateCategory'
-import CategoryTable from '~/app/_components/tables/CategoryTable'
-import { getCategoryHierarchy, getUserCategories } from '~/server/queries'
+import CreateCategory from '@/app/_components/CreateCategory'
+import CategoryTable from '@/app/_components/tables/CategoryTable'
+import { getCategoryHierarchy, getUserCategories } from '@/server/queries'
 
 export default async function page() {
     const hierarchy = await getCategoryHierarchy()

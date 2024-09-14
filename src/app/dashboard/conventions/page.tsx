@@ -1,6 +1,6 @@
-import CreateConvention from '~/app/_components/CreateConvention'
-import ConventionTable from '~/app/_components/tables/ConventionTable'
-import { getUserConventions } from '~/server/queries'
+import CreateConvention from '@/app/_components/CreateConvention'
+import ConventionTable from '@/app/_components/tables/ConventionTable'
+import { getUserConventions } from '@/server/queries'
 
 export default async function Conventions() {
     const userConventions = await getUserConventions()

@@ -1,15 +1,12 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from '~/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from '~/components/ui/dialog'
+} from '@/components/ui/dialog'
 import {
     Form,
     FormControl,
@@ -17,10 +14,13 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import { useToast } from '~/hooks/use-toast'
-import { type ProductVariation } from '~/server/db/schema'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { useToast } from '@/hooks/use-toast'
+import { type ProductVariation } from '@/server/db/schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 const formSchema = z.object({
     id: z.number(),

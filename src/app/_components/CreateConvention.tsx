@@ -1,19 +1,13 @@
 'use client'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from '~/components/ui/button'
-import { Calendar } from '~/components/ui/calendar'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from '~/components/ui/dialog'
+} from '@/components/ui/dialog'
 import {
     Form,
     FormControl,
@@ -21,14 +15,20 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from '~/components/ui/popover'
-import { cn } from '~/lib/utils'
+} from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { createConvention } from '../actions'
 
 const formSchema = z.object({

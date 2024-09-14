@@ -1,3 +1,6 @@
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { type ProductTableRow } from '@/types'
 import { type ColumnDef } from '@tanstack/react-table'
 import {
     ArrowDown,
@@ -7,9 +10,6 @@ import {
     ChevronUp,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '~/components/ui/button'
-import { Checkbox } from '~/components/ui/checkbox'
-import { type ProductTableRow } from '~/types'
 import ProductTableRowActions from './ProductTableRowActions'
 
 export const columns: ColumnDef<ProductTableRow>[] = [

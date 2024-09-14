@@ -1,15 +1,15 @@
 'use client'
 
-import { MoreHorizontal } from 'lucide-react'
-import { Button } from '~/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
-import { type Convention } from '~/server/db/schema'
+} from '@/components/ui/dropdown-menu'
+import { type Convention } from '@/server/db/schema'
+import { MoreHorizontal } from 'lucide-react'
 import { deleteConvention } from '../actions'
 
 export default function ConventionDropdownMenu({
