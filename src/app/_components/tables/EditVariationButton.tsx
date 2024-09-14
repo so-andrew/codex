@@ -1,11 +1,11 @@
 'use client'
 
+import GenericDialog from '@/app/_components/dialogs/GenericDialog'
+import EditVariationForm from '@/app/_components/forms/EditVariationForm'
 import { Button } from '@/components/ui/button'
 import { type ProductVariation } from '@/server/db/schema'
 import { type Row } from '@tanstack/react-table'
 import { useState } from 'react'
-import GenericDialog from '../dialogs/GenericDialog'
-import EditVariationForm from '../forms/EditVariationForm'
 
 interface EditVariationButtonProps<TData extends ProductVariation> {
     row: Row<TData>

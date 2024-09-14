@@ -1,5 +1,6 @@
 'use client'
 
+import { deleteConvention } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { type Convention } from '@/server/db/schema'
 import { MoreHorizontal } from 'lucide-react'
-import { deleteConvention } from '../actions'
 
 export default function ConventionDropdownMenu({
     convention,

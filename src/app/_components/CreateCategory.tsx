@@ -30,7 +30,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { Category } from '@/server/db/schema'
+import { type Category } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useState } from 'react'

@@ -1,4 +1,6 @@
 'use client'
+import GenericDialog from '@/app/_components/dialogs/GenericDialog'
+import BulkDeleteProductForm from '@/app/_components/forms/BulkDeleteProductForm'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -24,8 +26,6 @@ import {
     useReactTable,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import GenericDialog from '../dialogs/GenericDialog'
-import BulkDeleteProductForm from '../forms/BulkDeleteProductForm'
 import { columns } from './ProductColumns'
 
 export default function ProductTable({ data }: { data: ProductTableRow[] }) {

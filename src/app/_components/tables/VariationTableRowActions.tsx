@@ -1,5 +1,7 @@
 'use client'
 
+import GenericDialog from '@/app/_components/dialogs/GenericDialog'
+import DeleteVariationForm from '@/app/_components/forms/DeleteVariationForm'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -11,8 +13,6 @@ import { type ProductVariation } from '@/server/db/schema'
 import { type Row } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
 import { useState } from 'react'
-import GenericDialog from '../dialogs/GenericDialog'
-import DeleteVariationForm from '../forms/DeleteVariationForm'
 
 interface VariationTableRowActionsProps<TData extends ProductVariation> {
     row: Row<TData>

@@ -1,10 +1,10 @@
 'use client'
 
+import GenericDialog from '@/app/_components/dialogs/GenericDialog'
+import CreateVariationForm from '@/app/_components/forms/CreateVariationForm'
 import { Button } from '@/components/ui/button'
 import { type Product } from '@/server/db/schema'
 import { useState } from 'react'
-import GenericDialog from './dialogs/GenericDialog'
-import CreateVariationForm from './forms/CreateVariationForm'
 
 export default function CreateVariation({ product }: { product: Product }) {
     const [isOpen, setIsOpen] = useState(false)

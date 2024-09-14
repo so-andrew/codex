@@ -1,4 +1,7 @@
 'use client'
+import GenericDialog from '@/app/_components/dialogs/GenericDialog'
+import BulkDeleteVariationForm from '@/app/_components/forms/BulkDeleteVariationForm'
+import BulkEditVariationPriceForm from '@/app/_components/forms/BulkEditVariationPriceForm'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -21,9 +24,6 @@ import {
     type SortingState,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import GenericDialog from '../dialogs/GenericDialog'
-import BulkDeleteVariationForm from '../forms/BulkDeleteVariationForm'
-import BulkEditVariationPriceForm from '../forms/BulkEditVariationPriceForm'
 import { columns } from './VariationColumns'
 
 export default function VariationTable({ data }: { data: ProductVariation[] }) {

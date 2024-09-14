@@ -4,7 +4,7 @@ import { getCategoryHierarchy, getUserCategories } from '@/server/queries'
 
 export default async function page() {
     const hierarchy = await getCategoryHierarchy()
-    const categories = await getUserCategories()
+    const { categories } = await getUserCategories()
 
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">

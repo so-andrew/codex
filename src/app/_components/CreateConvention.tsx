@@ -1,4 +1,5 @@
 'use client'
+import { createConvention } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -29,7 +30,6 @@ import { CalendarIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { createConvention } from '../actions'
 
 const formSchema = z.object({
     name: z

@@ -1,8 +1,8 @@
+import { db } from '@/server/db'
 import { type CategoryTableRow, type ProductTableRow } from '@/types'
 import { auth } from '@clerk/nextjs/server'
 import { and, asc, eq, sql } from 'drizzle-orm'
 import 'server-only'
-import { db } from './db'
 import {
     type Category,
     conventions,
