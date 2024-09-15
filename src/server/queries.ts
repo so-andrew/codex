@@ -5,6 +5,7 @@ import { and, asc, eq, sql } from 'drizzle-orm'
 import 'server-only'
 import {
     type Category,
+    conventionProductVariationReports,
     conventions,
     type Product,
     productCategories,
@@ -28,12 +29,14 @@ const getProducts = db
     .select()
     .from(products)
     .where(eq(products.creatorId, sql.placeholder('userId')))
+    .orderBy(productCategories.name)
     .prepare('get-products')
 
 const getCategories = db
     .select()
     .from(productCategories)
     .where(eq(productCategories.creatorId, sql.placeholder('userId')))
+    .orderBy(productCategories.id)
     .prepare('get-categories')
 
 const getConventions = db
@@ -45,12 +48,7 @@ const getConventions = db
 const getSingleConvention = db
     .select()
     .from(conventions)
-    .where(
-        and(
-            eq(conventions.id, sql.placeholder('conventionId')),
-            eq(products.creatorId, sql.placeholder('userId')),
-        ),
-    )
+    .where(eq(conventions.id, sql.placeholder('conventionId')))
     .prepare('get-single-convention')
 
 const getProductVariations = db
@@ -216,4 +214,13 @@ function constructCategoryHierarchy(categories: Array<CategoryTableRow>) {
     })
 
     return rootCategories
+}
+
+export async function getConventionReports(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    return await db
+        .select()
+        .from(conventionProductVariationReports)
+        .where(eq(conventionProductVariationReports.conventionId, conventionId))
 }

@@ -140,32 +140,31 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col gap-2">
                                         <FormLabel>Category</FormLabel>
-
-                                        <Popover
-                                            open={isComboboxOpen}
-                                            onOpenChange={setIsComboboxOpen}
-                                        >
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    aria-expanded={
-                                                        isComboboxOpen
-                                                    }
-                                                    className="w=[200px] justify-between"
-                                                >
-                                                    {field.value
-                                                        ? categories.find(
-                                                              (category) =>
-                                                                  category.id ===
-                                                                  field.value,
-                                                          )?.name
-                                                        : 'Select category...'}
-                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w=[200px] p-0">
-                                                <FormControl>
+                                        <FormControl>
+                                            <Popover
+                                                open={isComboboxOpen}
+                                                onOpenChange={setIsComboboxOpen}
+                                            >
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={
+                                                            isComboboxOpen
+                                                        }
+                                                        className="w=[200px] justify-between"
+                                                    >
+                                                        {field.value
+                                                            ? categories.find(
+                                                                  (category) =>
+                                                                      category.id ===
+                                                                      field.value,
+                                                              )?.name
+                                                            : 'Select category...'}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w=[200px] p-0">
                                                     <Command>
                                                         <CommandInput placeholder="Search category..." />
                                                         <CommandList>
@@ -212,9 +211,9 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                                             </CommandGroup>
                                                         </CommandList>
                                                     </Command>
-                                                </FormControl>
-                                            </PopoverContent>
-                                        </Popover>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </FormControl>
                                     </FormItem>
                                 )}
                             />

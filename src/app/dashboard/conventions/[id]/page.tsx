@@ -1,27 +1,30 @@
-import ConventionDropdownMenu from '@/app/_components/ConventionDropdownMenu'
-import { getConventionById } from '@/server/queries'
+import EditConvention from '@/app/_components/EditConvention'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getConventionById, getConventionReports } from '@/server/queries'
+import { eachDayOfInterval } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
+import { redirect } from 'next/navigation'
 
 export default async function page({ params }: { params: { id: string } }) {
     const convention = await getConventionById(parseInt(params.id))
+    const reports = await getConventionReports(parseInt(params.id))
+
+    if (!convention) {
+        redirect('/dashboard/conventions')
+    }
+
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const daysInRange = eachDayOfInterval({
+        start: convention.startDate,
+        end: convention.endDate,
+    })
 
     const startDateString = convention
-        ? new Date(Date.parse(convention.startDate)).toLocaleDateString(
-              'en-US',
-              {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-              },
-          )
+        ? formatInTimeZone(convention.startDate, timeZone, 'EEEE, MMM d, yyyy')
         : 'N/A'
+
     const endDateString = convention
-        ? new Date(Date.parse(convention.endDate)).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-          })
+        ? formatInTimeZone(convention.endDate, timeZone, 'EEEE, MMM d, yyyy')
         : 'N/A'
 
     return (
@@ -44,10 +47,52 @@ export default async function page({ params }: { params: { id: string } }) {
                         <CardTitle>{}</CardTitle>
                     </CardHeader>
                 </Card> */}
-                {convention && (
-                    <ConventionDropdownMenu convention={convention} />
-                )}
+                {convention && <EditConvention convention={convention} />}
             </section>
+
+            <Tabs
+                defaultValue={formatInTimeZone(
+                    daysInRange[0]!,
+                    timeZone,
+                    'EEE, MMM d',
+                )}
+                className="w-fit"
+            >
+                <TabsList className={`flex flex-row justify-start`}>
+                    {daysInRange.map((day) => {
+                        const dateString = formatInTimeZone(
+                            day,
+                            timeZone,
+                            'EEE, MMM d',
+                        )
+                        return (
+                            <TabsTrigger key={day.getDate()} value={dateString}>
+                                {dateString}
+                            </TabsTrigger>
+                        )
+                    })}
+                </TabsList>
+                {daysInRange.map((day) => {
+                    const dateString = formatInTimeZone(
+                        day,
+                        timeZone,
+                        'EEE, MMM d',
+                    )
+                    return (
+                        <TabsContent key={day.getDate()} value={dateString}>
+                            <div className="flex flex-col gap-4 pt-4">
+                                <h1>{dateString}</h1>
+                            </div>
+                        </TabsContent>
+                    )
+                })}
+            </Tabs>
+
+            {/* <section className="flex flex-col gap-4">
+                {categories.map((category) => {
+                    return <h1 key={category.id}>{category.name}</h1>
+                })}
+            </section> */}
         </section>
     )
 }

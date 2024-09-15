@@ -1,5 +1,3 @@
-'use client'
-
 import GenericDialog from '@/app/_components/dialogs/GenericDialog'
 import EditVariationForm from '@/app/_components/forms/EditVariationForm'
 import { Button } from '@/components/ui/button'

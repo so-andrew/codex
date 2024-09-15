@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { type Convention } from '@/server/db/schema'
 import { type ColumnDef } from '@tanstack/react-table'
+import { formatInTimeZone } from 'date-fns-tz'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import Link from 'next/link'
 import ConventionTableRowActions from './ConventionTableRowActions'
@@ -108,6 +109,18 @@ export const columns: ColumnDef<Convention>[] = [
                 </Button>
             )
         },
+        cell: ({ getValue }) => {
+            const date = getValue() as Date
+            return (
+                <span>
+                    {formatInTimeZone(
+                        date,
+                        Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        'yyyy-MM-dd',
+                    )}
+                </span>
+            )
+        },
     },
     {
         accessorKey: 'endDate',
@@ -129,6 +142,18 @@ export const columns: ColumnDef<Convention>[] = [
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     )}
                 </Button>
+            )
+        },
+        cell: ({ getValue }) => {
+            const date = getValue() as Date
+            return (
+                <span>
+                    {formatInTimeZone(
+                        date,
+                        Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        'yyyy-MM-dd',
+                    )}
+                </span>
             )
         },
     },

@@ -4,6 +4,8 @@ import { getCategoryHierarchy, getUserCategories } from '@/server/queries'
 
 export default async function page() {
     const hierarchy = await getCategoryHierarchy()
+    console.log(hierarchy)
+    const filteredHierarchy = hierarchy.filter((row) => row.category.id !== -1)
     const { categories } = await getUserCategories()
 
     return (
@@ -13,7 +15,7 @@ export default async function page() {
                 <CreateCategory categories={categories} />
             </section>
             <section>
-                <CategoryTable data={hierarchy} />
+                <CategoryTable data={filteredHierarchy} />
             </section>
         </section>
     )

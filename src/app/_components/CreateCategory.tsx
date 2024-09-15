@@ -58,7 +58,7 @@ export default function CreateCategory({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: 'New Category',
-            parentId: undefined,
+            parentId: -1,
         },
     })
 
@@ -147,34 +147,6 @@ export default function CreateCategory({
                                                                 found.
                                                             </CommandEmpty>
                                                             <CommandGroup>
-                                                                <CommandItem
-                                                                    key={-1}
-                                                                    value={
-                                                                        undefined
-                                                                    }
-                                                                    onSelect={() => {
-                                                                        form.setValue(
-                                                                            'parentId',
-                                                                            undefined,
-                                                                        )
-                                                                        setIsComboboxOpen(
-                                                                            false,
-                                                                        )
-                                                                    }}
-                                                                >
-                                                                    <Check
-                                                                        className={cn(
-                                                                            'mr-2 h-4 w-4',
-                                                                            field.value ===
-                                                                                undefined
-                                                                                ? 'opacity-100'
-                                                                                : 'opacity-0',
-                                                                        )}
-                                                                    />
-                                                                    {
-                                                                        'Uncategorized'
-                                                                    }
-                                                                </CommandItem>
                                                                 {categories.map(
                                                                     (
                                                                         category,
@@ -186,23 +158,9 @@ export default function CreateCategory({
                                                                             value={
                                                                                 category.name
                                                                             }
-                                                                            onSelect={(
-                                                                                currentValue,
-                                                                            ) => {
-                                                                                form.setValue(
-                                                                                    'parentId',
+                                                                            onSelect={() => {
+                                                                                field.onChange(
                                                                                     category.id,
-                                                                                )
-                                                                                console.log(
-                                                                                    'field.value = ',
-                                                                                    field.value,
-                                                                                )
-                                                                                console.log(
-                                                                                    'Current value = ',
-                                                                                    currentValue,
-                                                                                )
-                                                                                console.log(
-                                                                                    form.getValues(),
                                                                                 )
                                                                                 setIsComboboxOpen(
                                                                                     false,

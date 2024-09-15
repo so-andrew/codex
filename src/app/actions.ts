@@ -85,6 +85,13 @@ const categoryCreateScheme = z.object({
     parentId: z.number().optional(),
 })
 
+const categoryEditScheme = z.object({
+    id: z.number(),
+    name: z.string().min(2).max(100),
+    parentId: z.number().optional(),
+    creatorId: z.string(),
+})
+
 // Variation schemas
 const variationCreateScheme = z.object({
     name: z.string().min(2).max(100),
@@ -113,12 +120,22 @@ const bulkVariationDeleteScheme = z.object({
 })
 
 // Convention schemas
-const conventionScheme = z.object({
+const conventionCreateScheme = z.object({
     name: z.string().min(2).max(100),
     location: z.string().min(2).max(100),
     dateRange: z.object({
         from: z.date(),
         to: z.date(),
+    }),
+})
+
+const conventionEditScheme = z.object({
+    id: z.number(),
+    name: z.string().min(2).max(100),
+    location: z.string().min(2).max(100),
+    dateRange: z.object({
+        from: z.date(),
+        to: z.date().optional(),
     }),
 })
 
@@ -245,24 +262,23 @@ export async function editProduct(data: z.infer<typeof productEditScheme>) {
     }
 }
 
-export async function deleteProduct({
-    id,
-    creatorId,
-}: {
-    id: number
-    creatorId: string
-}) {
+export async function deleteProduct(data: z.infer<typeof generalItemSchema>) {
     const user = auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
 
-    if (user.userId !== creatorId) {
+    const parse = generalItemSchema.parse({
+        id: data.id,
+        creatorId: data.creatorId,
+    })
+
+    if (user.userId !== parse.creatorId) {
         const error = new Error('User does not have permission to delete.')
         throw error
     }
-    await db.delete(products).where(eq(products.id, id))
+    await db.delete(products).where(eq(products.id, parse.id))
     revalidatePath('/dashboard/products')
 }
 
@@ -328,7 +344,7 @@ export async function createCategory(
 
         await db.insert(productCategories).values({
             name: parse.name,
-            parentId: parse.parentId ?? undefined,
+            parentId: parse.parentId === -1 ? null : parse.parentId,
             creatorId: user.userId,
         })
     } catch (e) {
@@ -336,6 +352,59 @@ export async function createCategory(
         console.error(error)
         throw error
     }
+    revalidatePath('/dashboard/categories')
+}
+
+export async function editCategory(data: z.infer<typeof categoryEditScheme>) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = categoryEditScheme.parse({
+            id: data.id,
+            name: data.name,
+            parentId: data.parentId,
+            creatorId: data.creatorId,
+        })
+
+        await db
+            .update(productCategories)
+            .set({
+                name: data.name,
+                parentId: data.parentId,
+            })
+            .where(eq(productCategories.id, parse.id))
+        revalidatePath('/dashboard/categories')
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+}
+
+export async function deleteCategory(data: z.infer<typeof generalItemSchema>) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    const parse = generalItemSchema.parse({
+        id: data.id,
+        creatorId: data.creatorId,
+    })
+
+    if (user.userId !== parse.creatorId) {
+        const error = new Error('User does not have permission to delete.')
+        throw error
+    }
+
+    await db.delete(productCategories).where(eq(productCategories.id, parse.id))
     revalidatePath('/dashboard/categories')
 }
 
@@ -590,7 +659,9 @@ export async function bulkDeleteVariation(
 }
 
 // Create convention
-export async function createConvention(data: z.infer<typeof conventionScheme>) {
+export async function createConvention(
+    data: z.infer<typeof conventionCreateScheme>,
+) {
     const user = auth()
 
     if (!user || !user.userId) {
@@ -599,10 +670,17 @@ export async function createConvention(data: z.infer<typeof conventionScheme>) {
     }
 
     try {
-        const parse = conventionScheme.parse({
+        const parse = conventionCreateScheme.parse({
             name: data.name,
             location: data.location,
             dateRange: data.dateRange,
+        })
+
+        if (!parse.dateRange.to) parse.dateRange.to = parse.dateRange.from
+
+        const length = await getConventionLength({
+            startDate: parse.dateRange.from,
+            endDate: parse.dateRange.to,
         })
 
         const newConventionQuery = await db
@@ -610,8 +688,9 @@ export async function createConvention(data: z.infer<typeof conventionScheme>) {
             .values({
                 name: parse.name,
                 location: parse.location,
-                startDate: parse.dateRange.from.toISOString(),
-                endDate: parse.dateRange.to.toISOString(),
+                length: length,
+                startDate: parse.dateRange.from,
+                endDate: parse.dateRange.to,
                 creatorId: user.userId,
             })
             .returning()
@@ -619,25 +698,12 @@ export async function createConvention(data: z.infer<typeof conventionScheme>) {
         const newConvention = newConventionQuery[0]
 
         // TODO: Throw error in case of failed db insert
-        console.log(newConvention)
-
-        // const currentProducts = await db.query.products.findMany({
-        //     where: eq(products.creatorId, user.id),
-        // })
-
-        const length = await getConventionLength({
-            startDateString: newConvention!.startDate,
-            endDateString: newConvention!.endDate,
-        })
-        console.log(length)
 
         type NewReport = typeof conventionProductVariationReports.$inferInsert
 
         const allVariations = await db.query.productVariations.findMany({
             where: eq(productVariations.creatorId, user.userId),
         })
-
-        //const productVariationsWithReports = await db.select({ productId: productVariations.productId }).from(productVariations).rightJoin(conventionProductVariationReports, eq(productVariations.id,conventionProductVariationReports.productVariationId))
 
         const map2 = allVariations.map((variation) => {
             const dayReports: salesFigures = {}
@@ -677,49 +743,49 @@ export async function createConvention(data: z.infer<typeof conventionScheme>) {
     return revalidatePath('/dashboard/conventions')
 }
 
-export async function getConventionLength({
-    startDateString,
-    endDateString,
-}: {
-    startDateString: string
-    endDateString: string
-}) {
-    return differenceInCalendarDays(startDateString, endDateString)
+export async function editConvention(
+    data: z.infer<typeof conventionEditScheme>,
+) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = conventionEditScheme.parse({
+            id: data.id,
+            name: data.name,
+            location: data.location,
+            dateRange: data.dateRange,
+        })
+
+        await db
+            .update(conventions)
+            .set({
+                name: parse.name,
+                location: parse.location,
+                startDate: parse.dateRange.from,
+                endDate: parse.dateRange.to,
+            })
+            .where(eq(conventions.id, parse.id))
+        revalidatePath('/dashboard/conventions')
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
 }
 
-export async function getConventionLengthOld(
-    startDateString: string,
-    endDateString: string,
-) {
-    const startDate = new Date(Date.parse(startDateString))
-    const endDate = new Date(Date.parse(endDateString))
-
-    const utcStart = Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-    )
-    const utcEnd = Date.UTC(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-    )
-
-    const timeDiff = Math.abs(utcStart - utcEnd)
-    const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24))
-
-    switch (daysDiff) {
-        case 0:
-            return '1day'
-        case 1:
-            return '2day'
-        case 2:
-            return '3day'
-        case 3:
-            return '4day'
-        default:
-            return 'other'
-    }
+export async function getConventionLength({
+    startDate,
+    endDate,
+}: {
+    startDate: Date
+    endDate: Date
+}) {
+    return differenceInCalendarDays(endDate, startDate) + 1
 }
 
 // Delete one convention

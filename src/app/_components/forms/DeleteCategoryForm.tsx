@@ -1,4 +1,4 @@
-import { deleteProduct } from '@/app/actions'
+import { deleteCategory } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
@@ -12,7 +12,7 @@ const formSchema = z.object({
     creatorId: z.string(),
 })
 
-export default function DeleteProductForm({
+export default function DeleteCategoryForm({
     id,
     creatorId,
     setIsOpen,
@@ -22,7 +22,6 @@ export default function DeleteProductForm({
     setIsOpen: Dispatch<SetStateAction<boolean>>
 }) {
     const { toast } = useToast()
-
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -36,12 +35,12 @@ export default function DeleteProductForm({
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
-            await deleteProduct(data)
+            await deleteCategory(data)
             reset({}, { keepValues: true })
             setIsOpen(false)
             toast({
                 title: 'Success',
-                description: 'Successfully deleted product.',
+                description: 'Successfully deleted category.',
             })
         } catch (e) {
             const error = e as Error

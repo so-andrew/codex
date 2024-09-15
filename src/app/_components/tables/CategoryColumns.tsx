@@ -9,6 +9,7 @@ import {
     ChevronDown,
     ChevronUp,
 } from 'lucide-react'
+import CategoryTableRowActions from './CategoryTableRowActions'
 
 export const columns: ColumnDef<CategoryTableRow>[] = [
     {
@@ -99,5 +100,11 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
                 // )
             )
         },
+    },
+    {
+        id: 'actions',
+        cell: ({ row }) => <CategoryTableRowActions row={row} />,
+        minSize: 25,
+        maxSize: 25,
     },
 ]

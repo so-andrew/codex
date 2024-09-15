@@ -4,7 +4,6 @@
 import { sql } from 'drizzle-orm'
 import {
     type AnyPgColumn,
-    date,
     integer,
     json,
     numeric,
@@ -115,8 +114,15 @@ export const conventions = createTable('convention', {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
     name: varchar('name', { length: 256 }).notNull(),
     location: varchar('location', { length: 256 }).notNull(),
-    startDate: date('startDate').notNull(),
-    endDate: date('endDate').notNull(),
+    length: integer('length').default(1).notNull(),
+    startDate: timestamp('startDate', {
+        mode: 'date',
+        withTimezone: true,
+    }).notNull(),
+    endDate: timestamp('endDate', {
+        mode: 'date',
+        withTimezone: true,
+    }).notNull(),
     creatorId: varchar('creatorId', { length: 256 })
         .references(() => users.id, { onDelete: 'cascade' })
         .notNull(),
@@ -210,7 +216,6 @@ export const conventionProductVariationReports = createTable(
             .notNull(),
         productName: varchar('productName', { length: 256 }).notNull(),
         price: numeric('price').notNull(),
-        //length: lengthEnum('length').notNull(),
         salesFigures: json('salesFigures').$type<salesFigures>(),
         createdAt: timestamp('created_at', { withTimezone: true })
             .default(sql`CURRENT_TIMESTAMP`)
@@ -221,11 +226,6 @@ export const conventionProductVariationReports = createTable(
         creatorId: varchar('creatorId', { length: 256 })
             .references(() => users.id, { onDelete: 'cascade' })
             .notNull(),
-        // conventionProductReportId: integer('conventionProductReportId')
-        //     .references(() => conventionProductReports.id, {
-        //         onDelete: 'cascade',
-        //     })
-        //     .notNull(),
         productVariationId: integer('productVariationId')
             .references(() => productVariations.id, { onDelete: 'set default' })
             .default(-1)
