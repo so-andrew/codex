@@ -1,17 +1,53 @@
 import EditConvention from '@/app/_components/EditConvention'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getConventionById, getConventionReports } from '@/server/queries'
+import { type ProductsByCategory, type ReportsByProduct } from '@/types'
 import { eachDayOfInterval } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 import { redirect } from 'next/navigation'
+import ConventionTabs from '../_components/ConventionTabs'
 
 export default async function page({ params }: { params: { id: string } }) {
-    const convention = await getConventionById(parseInt(params.id))
-    const reports = await getConventionReports(parseInt(params.id))
+    const conventionId = parseInt(params.id)
+    const convention = await getConventionById(conventionId)
 
     if (!convention) {
         redirect('/dashboard/conventions')
     }
+
+    const reports = await getConventionReports(conventionId)
+
+    const products: Record<number, ReportsByProduct> = {}
+    reports.map((report) => {
+        const productId = report.productId ?? -1
+        if (!products[productId]) {
+            const reportByProduct: ReportsByProduct = {
+                productId: report.productId ?? -1,
+                productName: report.productName,
+                categoryId: report.categoryId ?? -1,
+                categoryName: report.categoryName ?? 'Uncategorized',
+                reports: [],
+            }
+            products[productId] = reportByProduct
+        }
+        products[productId].reports.push(report)
+    })
+
+    const categories: Record<number, ProductsByCategory> = {}
+    Object.values(products).map((product) => {
+        if (!categories[product.categoryId]) {
+            const productByCategory: ProductsByCategory = {
+                categoryId: product.categoryId,
+                categoryName: product.categoryName,
+                products: [],
+            }
+            categories[product.categoryId] = productByCategory
+        }
+        categories[product.categoryId]?.products.push(product)
+    })
+
+    const categorizedData = Object.values(categories)
+    //console.log(categorizedData)
 
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     const daysInRange = eachDayOfInterval({
@@ -30,7 +66,7 @@ export default async function page({ params }: { params: { id: string } }) {
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
             <section className="flex flex-row justify-between border-b pb-8">
-                <div className="flex flex-col gap-2">
+                {/* <div className="flex flex-col gap-2">
                     <h1 className="text-2xl font-semibold">
                         {convention?.name}
                     </h1>
@@ -40,59 +76,27 @@ export default async function page({ params }: { params: { id: string } }) {
                     <h2 className="text-lg text-gray-500">
                         {startDateString} - {endDateString}
                     </h2>
-                </div>
+                </div> */}
 
-                {/* <Card>
+                <Card>
                     <CardHeader>
-                        <CardTitle>{}</CardTitle>
+                        <CardTitle className="text-2xl font-semibold">
+                            {convention.name}
+                        </CardTitle>
                     </CardHeader>
-                </Card> */}
+                    <CardContent>
+                        <h2 className="text-lg text-gray-500">
+                            {convention?.location}
+                        </h2>
+                        <h2 className="text-lg text-gray-500">
+                            {startDateString} - {endDateString}
+                        </h2>
+                    </CardContent>
+                </Card>
                 {convention && <EditConvention convention={convention} />}
             </section>
 
-            <Tabs
-                defaultValue={formatInTimeZone(
-                    daysInRange[0]!,
-                    timeZone,
-                    'EEE, MMM d',
-                )}
-                className="w-fit"
-            >
-                <TabsList className={`flex flex-row justify-start`}>
-                    {daysInRange.map((day) => {
-                        const dateString = formatInTimeZone(
-                            day,
-                            timeZone,
-                            'EEE, MMM d',
-                        )
-                        return (
-                            <TabsTrigger key={day.getDate()} value={dateString}>
-                                {dateString}
-                            </TabsTrigger>
-                        )
-                    })}
-                </TabsList>
-                {daysInRange.map((day) => {
-                    const dateString = formatInTimeZone(
-                        day,
-                        timeZone,
-                        'EEE, MMM d',
-                    )
-                    return (
-                        <TabsContent key={day.getDate()} value={dateString}>
-                            <div className="flex flex-col gap-4 pt-4">
-                                <h1>{dateString}</h1>
-                            </div>
-                        </TabsContent>
-                    )
-                })}
-            </Tabs>
-
-            {/* <section className="flex flex-col gap-4">
-                {categories.map((category) => {
-                    return <h1 key={category.id}>{category.name}</h1>
-                })}
-            </section> */}
+            <ConventionTabs data={categorizedData} range={daysInRange} />
         </section>
     )
 }

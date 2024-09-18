@@ -22,6 +22,7 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
+    PaginationState,
     type SortingState,
     useReactTable,
 } from '@tanstack/react-table'
@@ -33,6 +34,10 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
     const [expanded, setExpanded] = useState<ExpandedState>({})
+    const [pagination, setPagination] = useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 50,
+    })
 
     const [isDeleteProductsOpen, setIsDeleteProductsOpen] = useState(false)
 
@@ -42,6 +47,7 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
         getCoreRowModel: getCoreRowModel(),
         getExpandedRowModel: getExpandedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        onPaginationChange: setPagination,
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
@@ -74,6 +80,7 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
             columnFilters,
             rowSelection,
             expanded,
+            pagination,
         },
     })
 

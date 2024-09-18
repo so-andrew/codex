@@ -1,5 +1,9 @@
 import { db } from '@/server/db'
-import { type CategoryTableRow, type ProductTableRow } from '@/types'
+import {
+    type CategoryTableRow,
+    type ProductTableRow,
+    ReportType,
+} from '@/types'
 import { auth } from '@clerk/nextjs/server'
 import { and, asc, eq, sql } from 'drizzle-orm'
 import 'server-only'
@@ -216,11 +220,57 @@ function constructCategoryHierarchy(categories: Array<CategoryTableRow>) {
     return rootCategories
 }
 
-export async function getConventionReports(conventionId: number) {
+export async function getConventionReportsOld(conventionId: number) {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await db
         .select()
         .from(conventionProductVariationReports)
         .where(eq(conventionProductVariationReports.conventionId, conventionId))
+}
+
+export async function getConventionReports(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    return (await db
+        .select({
+            reportId: conventionProductVariationReports.id,
+            reportName: conventionProductVariationReports.name,
+            reportPrice: conventionProductVariationReports.price,
+            reportSalesFigures: conventionProductVariationReports.salesFigures,
+            productId: conventionProductVariationReports.productId,
+            productName: conventionProductVariationReports.productName,
+            categoryId: productCategories.id,
+            categoryName: productCategories.name,
+        })
+        .from(conventionProductVariationReports)
+        .where(eq(conventionProductVariationReports.conventionId, conventionId))
+        .leftJoin(
+            products,
+            eq(conventionProductVariationReports.productId, products.id),
+        )
+        .leftJoin(
+            productCategories,
+            eq(products.category, productCategories.id),
+        )) as ReportType[]
+}
+
+export async function getConventionCategories(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    return await db
+        .selectDistinct({
+            id: productCategories.id,
+            name: productCategories.name,
+        })
+        .from(conventionProductVariationReports)
+        .where(eq(conventionProductVariationReports.conventionId, conventionId))
+        .leftJoin(
+            products,
+            eq(conventionProductVariationReports.productId, products.id),
+        )
+        .leftJoin(
+            productCategories,
+            eq(products.category, productCategories.id),
+        )
 }

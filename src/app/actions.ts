@@ -457,6 +457,16 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
             sku: data.sku,
         })
 
+        const getAllVariations = await db
+            .select()
+            .from(productVariations)
+            .where(eq(productVariations.productId, parse.productId))
+
+        if (getAllVariations.length <= 1 && parse.name !== 'Default') {
+            const error = new Error('Cannot edit name of default variation.')
+            throw error
+        }
+
         await db
             .update(productVariations)
             .set({

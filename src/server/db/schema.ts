@@ -210,10 +210,9 @@ export const conventionProductVariationReports = createTable(
     {
         id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
         name: varchar('name', { length: 256 }).notNull(),
-        productId: integer('productId')
-            .references(() => products.id, { onDelete: 'set default' })
-            .default(-1)
-            .notNull(),
+        productId: integer('productId').references(() => products.id, {
+            onDelete: 'set null',
+        }),
         productName: varchar('productName', { length: 256 }).notNull(),
         price: numeric('price').notNull(),
         salesFigures: json('salesFigures').$type<salesFigures>(),
@@ -226,10 +225,10 @@ export const conventionProductVariationReports = createTable(
         creatorId: varchar('creatorId', { length: 256 })
             .references(() => users.id, { onDelete: 'cascade' })
             .notNull(),
-        productVariationId: integer('productVariationId')
-            .references(() => productVariations.id, { onDelete: 'set default' })
-            .default(-1)
-            .notNull(),
+        productVariationId: integer('productVariationId').references(
+            () => productVariations.id,
+            { onDelete: 'set null' },
+        ),
         conventionId: integer('conventionId')
             .references(() => conventions.id, { onDelete: 'cascade' })
             .notNull(),

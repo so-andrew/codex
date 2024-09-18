@@ -145,7 +145,7 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
                                     // onClick={(e) =>
                                     //     handleRowClick(e, row.original)
                                     // }
-                                    className="cursor-pointer even:bg-slate-200/40"
+                                    className="cursor-pointer even:bg-slate-300/20"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
