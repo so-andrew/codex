@@ -143,6 +143,16 @@ const bulkConventionDeleteScheme = z.object({
     data: z.array(generalItemSchema),
 })
 
+// Record schema
+const reportScheme = z.object({
+    id: z.coerce.number(),
+    key: z.string(),
+    cashSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
+    cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
+})
+
+const reportFormScheme = z.array(reportScheme)
+
 export async function createProduct(data: z.infer<typeof productCreateScheme>) {
     const user = auth()
     if (user && user.userId) {
@@ -854,4 +864,44 @@ export async function bulkDeleteConvention(
         throw error
     }
     revalidatePath('dashboard/conventions')
+}
+
+export async function editRecords(data: z.infer<typeof reportFormScheme>) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    console.log(data)
+    for (const report of data) {
+        const parse = reportScheme.parse({
+            id: report.id,
+            key: report.key,
+            cashSales: report.cashSales ?? undefined,
+            cardSales: report.cardSales ?? undefined,
+        })
+
+        const salesReports = await db
+            .select({
+                salesFigures: conventionProductVariationReports.salesFigures,
+            })
+            .from(conventionProductVariationReports)
+            .where(eq(conventionProductVariationReports.id, parse.id))
+        const salesFigureDay = salesReports[0]!.salesFigures![parse.key]
+        const newSalesFigureDay = {
+            date: salesFigureDay!.date,
+            cashSales: parse.cashSales ?? salesFigureDay!.cashSales,
+            cardSales: parse.cardSales ?? salesFigureDay!.cardSales,
+        }
+
+        salesReports[0]!.salesFigures![parse.key] = newSalesFigureDay
+        console.log(salesReports[0])
+        await db
+            .update(conventionProductVariationReports)
+            .set({ salesFigures: salesReports[0]!.salesFigures })
+            .where(eq(conventionProductVariationReports.id, parse.id))
+    }
+    revalidatePath('/dashboard/conventions')
 }

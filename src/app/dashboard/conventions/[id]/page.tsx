@@ -35,6 +35,7 @@ export default async function page({ params }: { params: { id: string } }) {
 
     const categories: Record<number, ProductsByCategory> = {}
     Object.values(products).map((product) => {
+        product.reports.sort((a, b) => a.reportId - b.reportId)
         if (!categories[product.categoryId]) {
             const productByCategory: ProductsByCategory = {
                 categoryId: product.categoryId,

@@ -70,3 +70,8 @@ export type defaultValues = Record<
         cardSales: number
     }
 >
+
+export type SalesReportFormData = {
+    cashSales: number | undefined
+    cardSales: number | undefined
+}
