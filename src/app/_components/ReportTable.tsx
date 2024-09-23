@@ -1,4 +1,3 @@
-'use client'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -17,11 +16,13 @@ import {
     type ProductsByCategory,
     type SalesReportFormData,
 } from '@/types'
+import { formatInTimeZone } from 'date-fns-tz'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { editRecords } from '../actions'
+import { useFormStore } from '../providers/form-store-provider'
 
 const reportSchema = z.object({
     id: z.coerce.number(),
@@ -39,6 +40,15 @@ export default function ReportTable({
     data: ProductsByCategory[]
     day: string
 }) {
+    const { dirtyFormExists, setDirtyFormExists } = useFormStore(
+        (state) => state,
+    )
+
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const dayString = useRef<string>(
+        formatInTimeZone(day, timeZone, 'EEE, MMM d'),
+    )
+
     const def = useRef<defaultValues>({})
     const startingRowExpandedState: Record<number, boolean> = {}
 
@@ -93,8 +103,8 @@ export default function ReportTable({
         //console.log(data)
         const updates = []
 
-        console.log(defaultValues)
-        console.log(getValues())
+        // console.log(defaultValues)
+        // console.log(getValues())
 
         //console.log(dirtyFields)
         const values = dirtyValues(dirtyFields, data)
@@ -135,6 +145,10 @@ export default function ReportTable({
             )
         }
     }, [isSubmitSuccessful, reset])
+
+    useEffect(() => {
+        setDirtyFormExists(Object.keys(dirtyFields).length > 0)
+    }, [dirtyFields, setDirtyFormExists])
 
     return (
         <>

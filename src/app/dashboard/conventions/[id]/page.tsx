@@ -1,4 +1,5 @@
 import EditConvention from '@/app/_components/EditConvention'
+import { FormStoreProvider } from '@/app/providers/form-store-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getConventionById, getConventionReports } from '@/server/queries'
 import { type ProductsByCategory, type ReportsByProduct } from '@/types'
@@ -65,39 +66,39 @@ export default async function page({ params }: { params: { id: string } }) {
         : 'N/A'
 
     return (
-        <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
-            <section className="flex flex-row justify-between border-b pb-8">
-                {/* <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl font-semibold">
-                        {convention?.name}
-                    </h1>
-                    <h2 className="text-lg text-gray-500">
-                        {convention?.location}
-                    </h2>
-                    <h2 className="text-lg text-gray-500">
-                        {startDateString} - {endDateString}
-                    </h2>
-                </div> */}
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold">
-                            {convention.name}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+        <FormStoreProvider>
+            <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
+                <section className="flex flex-row justify-between border-b pb-8">
+                    {/* <div className="flex flex-col gap-2">
+                        <h1 className="text-2xl font-semibold">
+                            {convention?.name}
+                        </h1>
                         <h2 className="text-lg text-gray-500">
                             {convention?.location}
                         </h2>
                         <h2 className="text-lg text-gray-500">
                             {startDateString} - {endDateString}
                         </h2>
-                    </CardContent>
-                </Card>
-                {convention && <EditConvention convention={convention} />}
+                    </div> */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-2xl font-semibold">
+                                {convention.name}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <h2 className="text-lg text-gray-500">
+                                {convention?.location}
+                            </h2>
+                            <h2 className="text-lg text-gray-500">
+                                {startDateString} - {endDateString}
+                            </h2>
+                        </CardContent>
+                    </Card>
+                    {convention && <EditConvention convention={convention} />}
+                </section>
+                <ConventionTabs data={categorizedData} range={daysInRange} />
             </section>
-
-            <ConventionTabs data={categorizedData} range={daysInRange} />
-        </section>
+        </FormStoreProvider>
     )
 }
