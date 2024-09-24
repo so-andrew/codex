@@ -1,7 +1,7 @@
 import EditConvention from '@/app/_components/EditConvention'
 import { FormStoreProvider } from '@/app/providers/form-store-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getConventionById, getConventionReports } from '@/server/queries'
+import { getConventionById, getConventionReportsNew } from '@/server/queries'
 import { type ProductsByCategory, type ReportsByProduct } from '@/types'
 import { eachDayOfInterval } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
@@ -16,7 +16,10 @@ export default async function page({ params }: { params: { id: string } }) {
         redirect('/dashboard/conventions')
     }
 
-    const reports = await getConventionReports(conventionId)
+    // const reports = await getConventionReports(conventionId)
+    // console.log('reports:', reports)
+    const reports = await getConventionReportsNew(conventionId)
+    //console.log('reports:', reports)
 
     const products: Record<number, ReportsByProduct> = {}
     reports.map((report) => {
@@ -36,7 +39,7 @@ export default async function page({ params }: { params: { id: string } }) {
 
     const categories: Record<number, ProductsByCategory> = {}
     Object.values(products).map((product) => {
-        product.reports.sort((a, b) => a.reportId - b.reportId)
+        product.reports.sort((a, b) => a.id - b.id)
         if (!categories[product.categoryId]) {
             const productByCategory: ProductsByCategory = {
                 categoryId: product.categoryId,
@@ -49,7 +52,7 @@ export default async function page({ params }: { params: { id: string } }) {
     })
 
     const categorizedData = Object.values(categories)
-    //console.log(categorizedData)
+    //console.log('categorizedData:', categorizedData[0]?.products[0]?.reports[0])
 
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     const daysInRange = eachDayOfInterval({

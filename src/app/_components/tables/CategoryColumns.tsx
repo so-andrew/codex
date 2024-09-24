@@ -41,7 +41,8 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
         maxSize: 15,
     },
     {
-        accessorKey: 'name',
+        accessorFn: (row) => row.category.name,
+        id: 'name',
         header: ({ column }) => {
             return (
                 <>
@@ -69,7 +70,7 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
             const category = row.original.category
             return (
                 <div
-                    className="flex items-center"
+                    className="flex items-center font-medium"
                     style={{
                         paddingLeft: `${row.depth * 2}rem`,
                     }}
@@ -77,7 +78,7 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
                     {row.getCanExpand() ? (
                         <Button
                             variant="ghost"
-                            className="mr-2 px-0 focus:outline-none"
+                            className="ml-[-1rem] mr-2 px-2 focus:outline-none"
                             onClick={row.getToggleExpandedHandler()}
                         >
                             {row.getIsExpanded() ? (
@@ -102,9 +103,53 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
         },
     },
     {
+        accessorFn: (row) => row.category.productCount,
+        id: 'count',
+        header: ({ column }) => {
+            return (
+                <>
+                    {/* <span className="mr-6 h-4 w-4"></span> */}
+                    <Button
+                        variant="ghost"
+                        onClick={() =>
+                            column.toggleSorting(column.getIsSorted() === 'asc')
+                        }
+                        className="text-right font-semibold"
+                    >
+                        Items
+                        {column.getIsSorted() === 'asc' ? (
+                            <ArrowUp className="ml-2 h-4 w-4" />
+                        ) : column.getIsSorted() === 'desc' ? (
+                            <ArrowDown className="ml-2 h-4 w-4" />
+                        ) : (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                        )}
+                    </Button>
+                </>
+            )
+        },
+        cell: ({ row }) => {
+            const category = row.original.category
+            return (
+                <div>{category.productCount}</div>
+                // row.depth === 0 ? (
+                //     <Link href={`/dashboard/products/${product.id}`}>
+                //         {product.name} {row.depth}
+                //     </Link>
+                // ) : (
+                //     <span className="ml-4">{product.name}</span>
+                // )
+            )
+        },
+        minSize: 20,
+        maxSize: 20,
+        size: 20,
+    },
+    {
         id: 'actions',
         cell: ({ row }) => <CategoryTableRowActions row={row} />,
-        minSize: 25,
-        maxSize: 25,
+        minSize: 35,
+        maxSize: 35,
+        size: 35,
     },
 ]

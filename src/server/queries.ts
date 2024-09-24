@@ -1,15 +1,11 @@
 import { db } from '@/server/db'
-import {
-    type CategoryTableRow,
-    type ProductTableRow,
-    ReportType,
-} from '@/types'
+import { type CategoryTableRow, type ProductTableRow } from '@/types'
 import { auth } from '@clerk/nextjs/server'
-import { and, asc, eq, sql } from 'drizzle-orm'
+import { and, asc, count, eq, sql } from 'drizzle-orm'
 import 'server-only'
 import {
     type Category,
-    conventionProductVariationReports,
+    conventionProductReports,
     conventions,
     type Product,
     productCategories,
@@ -37,9 +33,17 @@ const getProducts = db
     .prepare('get-products')
 
 const getCategories = db
-    .select()
+    .select({
+        id: productCategories.id,
+        name: productCategories.name,
+        creatorId: productCategories.creatorId,
+        parentId: productCategories.parentId,
+        productCount: count(products.id),
+    })
     .from(productCategories)
     .where(eq(productCategories.creatorId, sql.placeholder('userId')))
+    .leftJoin(products, eq(productCategories.id, products.category))
+    .groupBy(productCategories.id)
     .orderBy(productCategories.id)
     .prepare('get-categories')
 
@@ -170,6 +174,7 @@ export async function getUserCategories() {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
     const categories = await getCategories.execute({ userId: user.userId })
+    //console.log(categories)
     const categoryMap = new Map<number, string>()
     for (const category of categories) {
         categoryMap.set(category.id, category.name)
@@ -225,34 +230,55 @@ export async function getConventionReportsOld(conventionId: number) {
     if (!user.userId) throw new Error('Unauthorized')
     return await db
         .select()
-        .from(conventionProductVariationReports)
-        .where(eq(conventionProductVariationReports.conventionId, conventionId))
+        .from(conventionProductReports)
+        .where(eq(conventionProductReports.conventionId, conventionId))
 }
 
-export async function getConventionReports(conventionId: number) {
+// export async function getConventionReports(conventionId: number) {
+//     const user = auth()
+//     if (!user.userId) throw new Error('Unauthorized')
+//     return (await db
+//         .select({
+//             reportId: conventionProductReports.id,
+//             reportName: conventionProductReports.name,
+//             reportPrice: conventionProductReports.price,
+//             reportSalesFigures: conventionProductReports.salesFigures,
+//             productId: conventionProductReports.productId,
+//             productName: conventionProductReports.productName,
+//             categoryId: productCategories.id,
+//             categoryName: productCategories.name,
+//         })
+//         .from(conventionProductReports)
+//         .where(eq(conventionProductReports.conventionId, conventionId))
+//         .leftJoin(products, eq(conventionProductReports.productId, products.id))
+//         .leftJoin(
+//             productCategories,
+//             eq(products.category, productCategories.id),
+//         )) as ReportType[]
+// }
+
+export async function getConventionReportsNew(conventionId: number) {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
-    return (await db
-        .select({
-            reportId: conventionProductVariationReports.id,
-            reportName: conventionProductVariationReports.name,
-            reportPrice: conventionProductVariationReports.price,
-            reportSalesFigures: conventionProductVariationReports.salesFigures,
-            productId: conventionProductVariationReports.productId,
-            productName: conventionProductVariationReports.productName,
-            categoryId: productCategories.id,
-            categoryName: productCategories.name,
-        })
-        .from(conventionProductVariationReports)
-        .where(eq(conventionProductVariationReports.conventionId, conventionId))
-        .leftJoin(
-            products,
-            eq(conventionProductVariationReports.productId, products.id),
-        )
-        .leftJoin(
-            productCategories,
-            eq(products.category, productCategories.id),
-        )) as ReportType[]
+    const reportsWithRevenue = await db.query.conventionProductReports.findMany(
+        {
+            where: eq(conventionProductReports.conventionId, conventionId),
+            columns: {
+                id: true,
+                name: true,
+                productId: true,
+                productName: true,
+                categoryId: true,
+                categoryName: true,
+                conventionId: true,
+                price: true,
+            },
+            with: {
+                revenues: true,
+            },
+        },
+    )
+    return reportsWithRevenue
 }
 
 export async function getConventionCategories(conventionId: number) {
@@ -263,12 +289,9 @@ export async function getConventionCategories(conventionId: number) {
             id: productCategories.id,
             name: productCategories.name,
         })
-        .from(conventionProductVariationReports)
-        .where(eq(conventionProductVariationReports.conventionId, conventionId))
-        .leftJoin(
-            products,
-            eq(conventionProductVariationReports.productId, products.id),
-        )
+        .from(conventionProductReports)
+        .where(eq(conventionProductReports.conventionId, conventionId))
+        .leftJoin(products, eq(conventionProductReports.productId, products.id))
         .leftJoin(
             productCategories,
             eq(products.category, productCategories.id),

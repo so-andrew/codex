@@ -59,7 +59,8 @@ export const columns: ColumnDef<ProductTableRow>[] = [
         maxSize: 35,
     },
     {
-        accessorKey: 'name',
+        accessorFn: (row) => row.product.name,
+        id: 'name',
         header: ({ column }) => {
             return (
                 <Button
@@ -87,7 +88,10 @@ export const columns: ColumnDef<ProductTableRow>[] = [
                 //     {row.getValue('name')}
                 // </span>
                 row.depth === 0 ? (
-                    <Link href={`/dashboard/products/${product.id}`}>
+                    <Link
+                        href={`/dashboard/products/${product.id}`}
+                        className="text-blue-500 font-medium"
+                    >
                         {product.name}
                     </Link>
                 ) : (
@@ -97,7 +101,7 @@ export const columns: ColumnDef<ProductTableRow>[] = [
         },
     },
     {
-        accessorKey: 'category',
+        accessorKey: 'categoryName',
         header: ({ column }) => {
             return (
                 <Button
@@ -126,7 +130,8 @@ export const columns: ColumnDef<ProductTableRow>[] = [
         },
     },
     {
-        accessorKey: 'price',
+        accessorFn: (row) => row.product.price,
+        id: 'price',
         header: () => <div className="text-right font-semibold">Price</div>,
         cell: ({ row }) => {
             const product = row.original.product
@@ -146,7 +151,7 @@ export const columns: ColumnDef<ProductTableRow>[] = [
     {
         id: 'actions',
         cell: ({ row }) => <ProductTableRowActions row={row} />,
-        minSize: 25,
-        maxSize: 25,
+        minSize: 35,
+        maxSize: 35,
     },
 ]

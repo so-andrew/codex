@@ -1,5 +1,4 @@
 import {
-    salesFigures,
     type Category,
     type Product,
     type ProductVariation,
@@ -25,8 +24,12 @@ export type ProductTableRow = {
     categoryName: string | null
 }
 
+export type CategoryWithCount = Category & {
+    productCount: number | undefined
+}
+
 export type CategoryTableRow = {
-    category: Category
+    category: CategoryWithCount
     subcategories: CategoryTableRow[]
 }
 
@@ -34,15 +37,22 @@ export type CategoryWithSubcategories = Category & {
     subcategories: CategoryWithSubcategories[] | null
 }
 
-export type ReportType = {
+export type DailyRevenue = {
     reportId: number
-    reportName: string
-    reportPrice: string
-    reportSalesFigures: salesFigures
+    date: Date
+    cashSales: number
+    cardSales: number
+}
+
+export type ReportType = {
+    id: number
+    name: string
+    price: string
     productId: number | null
     productName: string
     categoryId: number | null
     categoryName: string | null
+    revenues: DailyRevenue[]
 }
 
 export type ReportTableRow = ReportType & { key: string | undefined }
@@ -65,7 +75,7 @@ export type defaultValues = Record<
     number,
     {
         id: number
-        key: string
+        key: Date
         cashSales: number
         cardSales: number
     }

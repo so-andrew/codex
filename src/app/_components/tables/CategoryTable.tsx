@@ -41,26 +41,9 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
+        filterFromLeafRows: true,
         onRowSelectionChange: setRowSelection,
         onExpandedChange: setExpanded,
-        // getSubRows: (originalRow: ProductData) => {
-        //     return originalRow.variations
-        //         ? originalRow.variations.map((variation: ProductVariation) => ({
-        //               id: variation.id,
-        //               name: variation.name,
-        //               category: originalRow.category,
-        //               price: variation.price,
-        //               createdAt: variation.createdAt,
-        //               updatedAt: variation.updatedAt,
-        //               creatorId: variation.creatorId,
-        //               imageUrl: null,
-        //               squareId: null,
-        //               variations: null,
-        //               baseProductName: originalRow.name,
-        //               productId: originalRow.id,
-        //           }))
-        //         : undefined
-        // },
         getSubRows: (originalRow: CategoryTableRow) => {
             return originalRow.subcategories
         },
@@ -78,6 +61,8 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
         const selectedRows = table.getSelectedRowModel().flatRows
         return selectedRows.map((row) => row.original.category)
     }
+
+    //console.log(data[0])
 
     return (
         <div>
@@ -105,13 +90,19 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
                                     return (
                                         <TableHead
                                             key={header.id}
+                                            // style={{
+                                            //     minWidth:
+                                            //         header.column.columnDef
+                                            //             .minSize,
+                                            //     maxWidth:
+                                            //         header.column.columnDef
+                                            //             .maxSize,
+                                            // }}
                                             style={{
-                                                minWidth:
-                                                    header.column.columnDef
-                                                        .minSize,
-                                                maxWidth:
-                                                    header.column.columnDef
-                                                        .maxSize,
+                                                width:
+                                                    header.id === 'name'
+                                                        ? '65%'
+                                                        : 'min-content',
                                             }}
                                         >
                                             {header.isPlaceholder
@@ -126,12 +117,23 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
                                 })}
                             </TableRow>
                         ))}
+                        {/* <TableRow>
+                            <TableHead style={{width: 'min-content'}}/>
+                            <TableHead className="pl-12" style={{width: '60%'}}>
+                                Name
+                            </TableHead>
+                            <TableHead className="pl-6" style={{width: 'min-content'}}>
+                                Count
+                            </TableHead>
+                            <TableHead style={{width: 'min-content'}}/>
+                        </TableRow> */}
                     </TableHeader>
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
+                                    className="even:bg-gray-300/20"
                                     data-state={
                                         row.getIsSelected() && 'selected'
                                     }
@@ -152,6 +154,9 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
                                                     cell.column.columnDef
                                                         .maxSize,
                                             }}
+                                            // style={{
+                                            //     width: 'min-content',
+                                            // }}
                                         >
                                             {flexRender(
                                                 cell.column.columnDef.cell,

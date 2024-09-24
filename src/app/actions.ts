@@ -7,14 +7,16 @@ import { revalidatePath } from 'next/cache'
 //import { cookies } from 'next/headers'
 import { db } from '@/server/db'
 import {
-    conventionProductVariationReports,
+    conventionProductReports,
     conventions,
     productCategories,
+    productDailyRevenue,
     products,
     productVariations,
     type salesFigureDaily,
     type salesFigures,
 } from '@/server/db/schema'
+import { getUserCategories } from '@/server/queries'
 import { z } from 'zod'
 
 export async function test() {
@@ -146,7 +148,7 @@ const bulkConventionDeleteScheme = z.object({
 // Record schema
 const reportScheme = z.object({
     id: z.coerce.number(),
-    key: z.string(),
+    key: z.date(),
     cashSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
     cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
 })
@@ -679,7 +681,7 @@ export async function bulkDeleteVariation(
 }
 
 // Create convention
-export async function createConvention(
+export async function createConventionOld(
     data: z.infer<typeof conventionCreateScheme>,
 ) {
     const user = auth()
@@ -719,7 +721,7 @@ export async function createConvention(
 
         // TODO: Throw error in case of failed db insert
 
-        type NewReport = typeof conventionProductVariationReports.$inferInsert
+        type NewReport = typeof conventionProductReports.$inferInsert
 
         const allVariations = await db.query.productVariations.findMany({
             where: eq(productVariations.creatorId, user.userId),
@@ -753,8 +755,116 @@ export async function createConvention(
 
             return newReport
         })
-        console.log(map2)
-        await db.insert(conventionProductVariationReports).values(map2)
+        //console.log(map2)
+        await db.insert(conventionProductReports).values(map2)
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    return revalidatePath('/dashboard/conventions')
+}
+
+export async function createConvention(
+    data: z.infer<typeof conventionCreateScheme>,
+) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = conventionCreateScheme.parse({
+            name: data.name,
+            location: data.location,
+            dateRange: data.dateRange,
+        })
+
+        if (!parse.dateRange.to) parse.dateRange.to = parse.dateRange.from
+
+        const length = await getConventionLength({
+            startDate: parse.dateRange.from,
+            endDate: parse.dateRange.to,
+        })
+
+        // Create convention db entry
+        const newConventionQuery = await db
+            .insert(conventions)
+            .values({
+                name: parse.name,
+                location: parse.location,
+                length: length,
+                startDate: parse.dateRange.from,
+                endDate: parse.dateRange.to,
+                creatorId: user.userId,
+            })
+            .returning()
+
+        const newConvention = newConventionQuery[0]
+
+        // TODO: Throw error in case of failed db insert
+
+        type NewReport = typeof conventionProductReports.$inferInsert
+        type newDailyRevenue = typeof productDailyRevenue.$inferInsert
+
+        // Get all products
+        // const allVariations = await db.query.productVariations.findMany({
+        //     where: eq(productVariations.creatorId, user.userId),
+        // })
+
+        const allVariations = await db
+            .select()
+            .from(productVariations)
+            .where(eq(productVariations.creatorId, user.userId))
+            .leftJoin(products, eq(productVariations.productId, products.id))
+
+        console.log('allVariations:', allVariations)
+
+        // Get all categories
+        const { categoryMap } = await getUserCategories()
+
+        // Generate reports for all products
+        const map2 = allVariations.map(({ productVariations, product }) => {
+            const newReport: NewReport = {
+                name: productVariations.name,
+                productId: productVariations.productId,
+                productName: productVariations.baseProductName,
+                categoryId: product?.category ?? -1,
+                categoryName:
+                    product && categoryMap.has(product.category)
+                        ? categoryMap.get(product.category)
+                        : 'Uncategorized',
+                price: productVariations.price,
+                creatorId: productVariations.creatorId,
+                productVariationId: productVariations.id,
+                conventionId: newConvention!.id,
+            }
+            return newReport
+        })
+
+        const reports = await db
+            .insert(conventionProductReports)
+            .values(map2)
+            .returning()
+        const dailyRevenues = []
+
+        // Generate all revenue entries for reports
+        for (const report of reports) {
+            const daysInRange = eachDayOfInterval({
+                start: newConvention!.startDate,
+                end: newConvention!.endDate,
+            })
+            for (const day of daysInRange) {
+                const dailyRevenue: newDailyRevenue = {
+                    reportId: report.id,
+                    date: day,
+                }
+                dailyRevenues.push(dailyRevenue)
+            }
+        }
+        await db.insert(productDailyRevenue).values(dailyRevenues)
     } catch (e) {
         const error = e as Error
         console.error(error)
@@ -883,25 +993,29 @@ export async function editRecords(data: z.infer<typeof reportFormScheme>) {
             cardSales: report.cardSales ?? undefined,
         })
 
-        const salesReports = await db
-            .select({
-                salesFigures: conventionProductVariationReports.salesFigures,
-            })
-            .from(conventionProductVariationReports)
-            .where(eq(conventionProductVariationReports.id, parse.id))
-        const salesFigureDay = salesReports[0]!.salesFigures![parse.key]
-        const newSalesFigureDay = {
-            date: salesFigureDay!.date,
-            cashSales: parse.cashSales ?? salesFigureDay!.cashSales,
-            cardSales: parse.cardSales ?? salesFigureDay!.cardSales,
-        }
-
-        salesReports[0]!.salesFigures![parse.key] = newSalesFigureDay
-        console.log(salesReports[0])
         await db
-            .update(conventionProductVariationReports)
-            .set({ salesFigures: salesReports[0]!.salesFigures })
-            .where(eq(conventionProductVariationReports.id, parse.id))
+            .update(productDailyRevenue)
+            .set({ cashSales: parse.cashSales, cardSales: parse.cardSales })
+            .where(
+                and(
+                    eq(productDailyRevenue.reportId, parse.id),
+                    eq(productDailyRevenue.date, parse.key),
+                ),
+            )
+
+        // const salesFigureDay = salesReports[0]!.salesFigures![parse.key]
+        // const newSalesFigureDay = {
+        //     date: salesFigureDay!.date,
+        //     cashSales: parse.cashSales ?? salesFigureDay!.cashSales,
+        //     cardSales: parse.cardSales ?? salesFigureDay!.cardSales,
+        // }
+
+        // salesReports[0]!.salesFigures![parse.key] = newSalesFigureDay
+        // //console.log(salesReports[0])
+        // await db
+        //     .update(conventionProductReports)
+        //     .set({ salesFigures: salesReports[0]!.salesFigures })
+        //     .where(eq(conventionProductReports.id, parse.id))
     }
     revalidatePath('/dashboard/conventions')
 }

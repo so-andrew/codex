@@ -1,13 +1,14 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { sql } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import {
     type AnyPgColumn,
     integer,
     json,
     numeric,
     pgTableCreator,
+    primaryKey,
     timestamp,
     varchar,
 } from 'drizzle-orm/pg-core'
@@ -48,18 +49,9 @@ export const products = createTable('product', {
     creatorId: varchar('creatorId', { length: 256 })
         .references(() => users.id, { onDelete: 'cascade' })
         .notNull(),
-    //variations: json('variations').$type<ProductVariation[]>().default([]),
 })
 export type Product = typeof products.$inferSelect
 export type ProductData = Product & { variations: ProductVariation[] | null }
-
-// export const productsRelations = relations(products, ({ one, many }) => ({
-//     creator: one(users, {
-//         fields: [products.creatorId],
-//         references: [users.id],
-//     }),
-//     productVariations: many(productVariations),
-// }))
 
 // Product variations
 export const productVariations = createTable('productVariations', {
@@ -82,17 +74,6 @@ export const productVariations = createTable('productVariations', {
         .notNull(),
 })
 export type ProductVariation = typeof productVariations.$inferSelect
-
-// export const productVariationsRelations = relations(
-//     productVariations,
-//     ({ one, many }) => ({
-//         creator: one(users, {
-//             fields: [productVariations.creatorId],
-//             references: [users.id],
-//         }),
-//         conventionSalesFigure: many(conventionProductListings),
-//     }),
-// )
 
 export const productCategories = createTable('productCategories', {
     id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
@@ -129,84 +110,15 @@ export const conventions = createTable('convention', {
 })
 export type Convention = typeof conventions.$inferSelect
 
-// export const conventionsRelations = relations(conventions, ({ one, many }) => ({
-//     creator: one(users, {
-//         fields: [conventions.creatorId],
-//         references: [users.id],
-//     }),
-//     conventionProductListings: many(conventionProductListings),
-// }))
-
-// Convention product listings
-// export const conventionProductReports = createTable(
-//     'conventionProductReports',
-//     {
-//         id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
-//         name: varchar('name', { length: 256 }).notNull(),
-//         category: varchar('category', { length: 256 }),
-//         price: numeric('price'),
-//         length: lengthEnum('length').notNull(),
-//         cashSales: integer('cashSales')
-//             .array()
-//             .default(sql`'{}'::integer[]`),
-//         cardSales: integer('cardSales')
-//             .array()
-//             .default(sql`'{}'::integer[]`),
-//         createdAt: timestamp('created_at', { withTimezone: true })
-//             .default(sql`CURRENT_TIMESTAMP`)
-//             .notNull(),
-//         updatedAt: timestamp('updated_at', { withTimezone: true }).$onUpdate(
-//             () => new Date(),
-//         ),
-//         creatorId: varchar('creatorId', { length: 256 })
-//             .references(() => users.id, { onDelete: 'cascade' })
-//             .notNull(),
-//         productId: integer('productId')
-//             .references(() => products.id)
-//             .notNull(),
-//         productVariationId: integer('productVariationId').references(
-//             () => productVariations.id,
-//         ),
-//         conventionId: integer('conventionId')
-//             .references(() => conventions.id, { onDelete: 'cascade' })
-//             .notNull(),
-//     },
-// )
-// export type ConventionProductReport =
-//     typeof conventionProductReports.$inferSelect
-
-// export const conventionProductListingsRelations = relations(
-//     conventionProductListings,
-//     ({ one }) => ({
-//         creator: one(users, {
-//             fields: [conventionProductListings.creatorId],
-//             references: [users.id],
-//         }),
-//         convention: one(conventions, {
-//             fields: [conventionProductListings.conventionId],
-//             references: [conventions.id],
-//         }),
-//         product: one(products, {
-//             fields: [conventionProductListings.productId],
-//             references: [products.id],
-//         }),
-//         productVariation: one(productVariations, {
-//             fields: [conventionProductListings.productVariationId],
-//             references: [productVariations.id],
-//         }),
-//     }),
-// )
-
 export type salesFigures = Record<string, salesFigureDaily>
-
 export type salesFigureDaily = {
     date: Date
     cashSales: number
     cardSales: number
 }
 
-export const conventionProductVariationReports = createTable(
-    'conventionProductVariationReports',
+export const conventionProductReports = createTable(
+    'conventionProductReports',
     {
         id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
         name: varchar('name', { length: 256 }).notNull(),
@@ -229,34 +141,53 @@ export const conventionProductVariationReports = createTable(
             () => productVariations.id,
             { onDelete: 'set null' },
         ),
+        categoryId: integer('categoryId')
+            .default(-1)
+            .notNull()
+            .references(() => productCategories.id, {
+                onDelete: 'set default',
+            }),
+        categoryName: varchar('categoryName').default('Uncategorized'),
         conventionId: integer('conventionId')
             .references(() => conventions.id, { onDelete: 'cascade' })
             .notNull(),
     },
 )
-export type ConventionProductVariationReport =
-    typeof conventionProductVariationReports.$inferSelect
+export type ConventionProductReport =
+    typeof conventionProductReports.$inferSelect
 
-// export const conventionProductVariationListingsRelations = relations(
-//     conventionProductVariationListings,
-//     ({ one }) => ({
-//         creator: one(users, {
-//             fields: [conventionProductVariationListings.creatorId],
-//             references: [users.id],
-//         }),
-//         convention: one(conventions, {
-//             fields: [conventionProductVariationListings.conventionId],
-//             references: [conventions.id],
-//         }),
-//         conventionProductListing: one(conventionProductListings, {
-//             fields: [
-//                 conventionProductVariationListings.conventionProductListingId,
-//             ],
-//             references: [conventionProductListings.id],
-//         }),
-//         productVariation: one(productVariations, {
-//             fields: [conventionProductVariationListings.productVariationId],
-//             references: [productVariations.id],
-//         }),
-//     }),
-// )
+export const reportRelations = relations(
+    conventionProductReports,
+    ({ many }) => ({
+        revenues: many(productDailyRevenue),
+    }),
+)
+
+export const productDailyRevenue = createTable(
+    'productDailyRevenue',
+    {
+        reportId: integer('reportId')
+            .references(() => conventionProductReports.id, {
+                onDelete: 'cascade',
+            })
+            .notNull(),
+        date: timestamp('date', {
+            mode: 'date',
+            withTimezone: true,
+        }).notNull(),
+        cashSales: integer('cashSales').default(0).notNull(),
+        cardSales: integer('cardSales').default(0).notNull(),
+    },
+    (table) => {
+        return {
+            pk: primaryKey({ columns: [table.reportId, table.date] }),
+        }
+    },
+)
+
+export const revenueRelations = relations(productDailyRevenue, ({ one }) => ({
+    revenue: one(conventionProductReports, {
+        fields: [productDailyRevenue.reportId],
+        references: [conventionProductReports.id],
+    }),
+}))

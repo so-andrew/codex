@@ -112,10 +112,7 @@ export default function ConventionTabs({
                         <TabsContent key={index} value={dateString}>
                             <Card className="pb-16">
                                 <CardContent className="flex flex-col gap-4">
-                                    <ReportTable
-                                        data={data}
-                                        day={day.toISOString()}
-                                    />
+                                    <ReportTable data={data} day={day} />
                                 </CardContent>
                             </Card>
                         </TabsContent>

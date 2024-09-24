@@ -5,6 +5,7 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -16,6 +17,7 @@ import {
     type ProductsByCategory,
     type SalesReportFormData,
 } from '@/types'
+import { isEqual } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
@@ -26,7 +28,7 @@ import { useFormStore } from '../providers/form-store-provider'
 
 const reportSchema = z.object({
     id: z.coerce.number(),
-    key: z.string(),
+    key: z.date(),
     cashSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
     cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
 })
@@ -38,7 +40,7 @@ export default function ReportTable({
     day,
 }: {
     data: ProductsByCategory[]
-    day: string
+    day: Date
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -57,11 +59,15 @@ export default function ReportTable({
             startingRowExpandedState[product.productId] =
                 product.reports.length > 1
             for (const report of product.reports) {
-                def.current[report.reportId] = {
-                    id: report.reportId,
+                def.current[report.id] = {
+                    id: report.id,
                     key: day,
-                    cashSales: report.reportSalesFigures[day]!.cashSales,
-                    cardSales: report.reportSalesFigures[day]!.cardSales,
+                    cashSales: report.revenues.find((revenue) =>
+                        isEqual(revenue.date, day),
+                    )!.cashSales,
+                    cardSales: report.revenues.find((revenue) =>
+                        isEqual(revenue.date, day),
+                    )!.cardSales,
                 }
             }
         }
@@ -229,7 +235,7 @@ export default function ReportTable({
                                                             ) : (
                                                                 <span className="pl-8" />
                                                             )}
-                                                            <span className="pl-2">
+                                                            <span className="pl-2 font-medium">
                                                                 {
                                                                     product.productName
                                                                 }
@@ -250,7 +256,7 @@ export default function ReportTable({
                                                                         parseFloat(
                                                                             product
                                                                                 .reports[0]!
-                                                                                .reportPrice,
+                                                                                .price,
                                                                         ),
                                                                     )}
                                                                 </TableCell>
@@ -259,7 +265,7 @@ export default function ReportTable({
                                                                         control={
                                                                             form.control
                                                                         }
-                                                                        name={`${product.reports[0]!.reportId}.cashSales`}
+                                                                        name={`${product.reports[0]!.id}.cashSales`}
                                                                         render={({
                                                                             field,
                                                                         }) => (
@@ -287,7 +293,7 @@ export default function ReportTable({
                                                                                             console.log(
                                                                                                 product
                                                                                                     .reports[0]!
-                                                                                                    .reportName,
+                                                                                                    .name,
                                                                                                 e
                                                                                                     .target
                                                                                                     .value,
@@ -311,7 +317,7 @@ export default function ReportTable({
                                                                         control={
                                                                             form.control
                                                                         }
-                                                                        name={`${product.reports[0]!.reportId}.cardSales`}
+                                                                        name={`${product.reports[0]!.id}.cardSales`}
                                                                         render={({
                                                                             field,
                                                                         }) => (
@@ -339,7 +345,7 @@ export default function ReportTable({
                                                                                             console.log(
                                                                                                 product
                                                                                                     .reports[0]!
-                                                                                                    .reportName,
+                                                                                                    .name,
                                                                                                 e
                                                                                                     .target
                                                                                                     .value,
@@ -368,7 +374,7 @@ export default function ReportTable({
                                                             (report) => {
                                                                 const amount =
                                                                     parseFloat(
-                                                                        report.reportPrice,
+                                                                        report.price,
                                                                     )
                                                                 const formatted =
                                                                     new Intl.NumberFormat(
@@ -384,13 +390,13 @@ export default function ReportTable({
                                                                 return (
                                                                     <TableRow
                                                                         key={
-                                                                            report.reportId
+                                                                            report.id
                                                                         }
                                                                         className="cursor-pointer even:bg-slate-200/40"
                                                                     >
                                                                         <TableCell className="pl-20">
                                                                             {
-                                                                                report.reportName
+                                                                                report.name
                                                                             }
                                                                         </TableCell>
                                                                         <TableCell>
@@ -403,7 +409,7 @@ export default function ReportTable({
                                                                                 control={
                                                                                     form.control
                                                                                 }
-                                                                                name={`${report.reportId}.cashSales`}
+                                                                                name={`${report.id}.cashSales`}
                                                                                 render={({
                                                                                     field,
                                                                                 }) => (
@@ -427,7 +433,7 @@ export default function ReportTable({
                                                                                                     e,
                                                                                                 ) => {
                                                                                                     console.log(
-                                                                                                        report.reportName,
+                                                                                                        report.name,
                                                                                                         e
                                                                                                             .target
                                                                                                             .value,
@@ -451,7 +457,7 @@ export default function ReportTable({
                                                                                 control={
                                                                                     form.control
                                                                                 }
-                                                                                name={`${report.reportId}.cardSales`}
+                                                                                name={`${report.id}.cardSales`}
                                                                                 render={({
                                                                                     field,
                                                                                 }) => (
@@ -475,7 +481,7 @@ export default function ReportTable({
                                                                                                     e,
                                                                                                 ) => {
                                                                                                     console.log(
-                                                                                                        report.reportName,
+                                                                                                        report.name,
                                                                                                         e
                                                                                                             .target
                                                                                                             .value,
@@ -502,6 +508,17 @@ export default function ReportTable({
                                             )
                                         })}
                                     </TableBody>
+                                    <TableFooter>
+                                        <TableRow className="even:bg-gray-300/20">
+                                            <TableCell
+                                                colSpan={3}
+                                                className="py-4 pl-12 font-bold"
+                                            >
+                                                Total
+                                            </TableCell>
+                                            <TableCell>Test Value</TableCell>
+                                        </TableRow>
+                                    </TableFooter>
                                 </Table>
                             </div>
                         )

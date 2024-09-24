@@ -58,7 +58,10 @@ export const columns: ColumnDef<Convention>[] = [
         cell: ({ row }) => {
             const convention = row.original
             return (
-                <Link href={`/dashboard/conventions/${convention.id}`}>
+                <Link
+                    href={`/dashboard/conventions/${convention.id}`}
+                    className="text-blue-500 font-meduim"
+                >
                     {row.getValue('name')}
                 </Link>
             )
@@ -121,6 +124,8 @@ export const columns: ColumnDef<Convention>[] = [
                 </span>
             )
         },
+        minSize: 35,
+        maxSize: 35,
     },
     {
         accessorKey: 'endDate',
@@ -156,11 +161,13 @@ export const columns: ColumnDef<Convention>[] = [
                 </span>
             )
         },
+        minSize: 35,
+        maxSize: 35,
     },
     {
         id: 'actions',
         cell: ({ row }) => <ConventionTableRowActions row={row} />,
-        minSize: 25,
-        maxSize: 25,
+        minSize: 50,
+        maxSize: 50,
     },
 ]

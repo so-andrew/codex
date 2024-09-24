@@ -82,13 +82,20 @@ export default function ConventionTable({ data }: { data: Convention[] }) {
                                     return (
                                         <TableHead
                                             key={header.id}
+                                            // style={{
+                                            //     minWidth:
+                                            //         header.column.columnDef
+                                            //             .minSize,
+                                            //     maxWidth:
+                                            //         header.column.columnDef
+                                            //             .maxSize,
+                                            // }}
                                             style={{
-                                                minWidth:
-                                                    header.column.columnDef
-                                                        .minSize,
-                                                maxWidth:
-                                                    header.column.columnDef
-                                                        .maxSize,
+                                                width:
+                                                    header.id === 'name' ||
+                                                    header.id === 'location'
+                                                        ? '25%'
+                                                        : 'min-content',
                                             }}
                                         >
                                             {header.isPlaceholder
@@ -109,6 +116,7 @@ export default function ConventionTable({ data }: { data: Convention[] }) {
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
+                                    className="even:bg-gray-300/20"
                                     data-state={
                                         row.getIsSelected() && 'selected'
                                     }

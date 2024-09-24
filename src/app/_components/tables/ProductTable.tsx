@@ -22,7 +22,7 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    PaginationState,
+    type PaginationState,
     type SortingState,
     useReactTable,
 } from '@tanstack/react-table'
@@ -52,26 +52,9 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
+        filterFromLeafRows: true,
         onRowSelectionChange: setRowSelection,
         onExpandedChange: setExpanded,
-        // getSubRows: (originalRow: ProductData) => {
-        //     return originalRow.variations
-        //         ? originalRow.variations.map((variation: ProductVariation) => ({
-        //               id: variation.id,
-        //               name: variation.name,
-        //               category: originalRow.category,
-        //               price: variation.price,
-        //               createdAt: variation.createdAt,
-        //               updatedAt: variation.updatedAt,
-        //               creatorId: variation.creatorId,
-        //               imageUrl: null,
-        //               squareId: null,
-        //               variations: null,
-        //               baseProductName: originalRow.name,
-        //               productId: originalRow.id,
-        //           }))
-        //         : undefined
-        // },
         getSubRows: (originalRow: ProductTableRow) => {
             return originalRow.variations
         },
@@ -117,14 +100,21 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
                                     return (
                                         <TableHead
                                             key={header.id}
+                                            // style={{
+                                            //     minWidth:
+                                            //         header.column.columnDef
+                                            //             .minSize,
+                                            //     maxWidth:
+                                            //         header.column.columnDef
+                                            //             .maxSize,
+                                            // }}
                                             style={{
-                                                minWidth:
-                                                    header.column.columnDef
-                                                        .minSize,
-                                                maxWidth:
-                                                    header.column.columnDef
-                                                        .maxSize,
+                                                width:
+                                                    header.id === 'name'
+                                                        ? '60%'
+                                                        : 'min-content',
                                             }}
+                                            //style={{width: 'min-content'}}
                                         >
                                             {header.isPlaceholder
                                                 ? null
@@ -144,6 +134,7 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
+                                    className="cursor-pointer even:bg-gray-300/20"
                                     data-state={
                                         row.getIsSelected() && 'selected'
                                     }
@@ -152,14 +143,14 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
                                         <TableCell
                                             key={cell.id}
                                             className="pl-6"
-                                            style={{
-                                                minWidth:
-                                                    cell.column.columnDef
-                                                        .minSize,
-                                                maxWidth:
-                                                    cell.column.columnDef
-                                                        .maxSize,
-                                            }}
+                                            // style={{
+                                            //     minWidth:
+                                            //         cell.column.columnDef
+                                            //             .minSize,
+                                            //     maxWidth:
+                                            //         cell.column.columnDef
+                                            //             .maxSize,
+                                            // }}
                                         >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
