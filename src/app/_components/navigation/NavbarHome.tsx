@@ -1,5 +1,7 @@
 import Logo from '@/../public/codexlogo.png'
+import { Button } from '@/components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
+import { UserRound } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -23,12 +25,12 @@ const NavbarHome = () => {
             <ul className="hidden h-full gap-12 sm:flex">
                 <div className="ml-10 items-center justify-center text-xl lg:flex">
                     <SignedOut>
-                        {/* <Link href="/sign-in">
-                            <Button type="button" title="Login" variant="btn_purple"/>
-                        </Link> */}
-                        <div className="btn_purple rounded-full">
-                            <SignInButton />
-                        </div>
+                        <SignInButton>
+                            <Button className="items-center justify-start w-max gap-2 rounded-full text-lg font-medium bg-purple-500 hover:bg-purple-600 px-7 py-7">
+                                <UserRound size={20}></UserRound>
+                                <span>Sign In</span>
+                            </Button>
+                        </SignInButton>
                     </SignedOut>
                     <SignedIn>
                         <UserButton />

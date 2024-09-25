@@ -21,11 +21,12 @@ import { useState } from 'react'
 export default function ConventionTabs({
     data,
     range,
+    revenue,
 }: {
     data: ProductsByCategory[]
     range: Date[]
+    revenue: Map<string, Record<number, number>>
 }) {
-    //const { dirtyStates, setDirtyState } = useFormStore((state) => state)
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
     )
@@ -35,18 +36,7 @@ export default function ConventionTabs({
         formatInTimeZone(range[0]!, timeZone, 'EEE, MMM d'),
     )
     const [clickedTab, setClickedTab] = useState('')
-
     const [isAlertOpen, setIsAlertOpen] = useState(false)
-
-    // const formStates: Record<string, boolean> = {}
-    // for (const date of range) {
-    //     const ds = formatInTimeZone(date, timeZone, 'EEE, MMM d')
-    //     formStates[ds] = false
-    //     //setDirtyState(ds, false)
-    // }
-
-    // const [formDirtyState, setFormDirtyState] =
-    //     useState<Record<string, boolean>>(formStates)
 
     const onTabChange = (value: string) => {
         if (dirtyFormExists) {
@@ -71,24 +61,10 @@ export default function ConventionTabs({
         setClickedTab('')
     }
 
-    // const setFormDirty = ({
-    //     key,
-    //     isDirty,
-    // }: {
-    //     key: string
-    //     isDirty: boolean
-    // }) => {
-    //     setFormDirtyState((prev) => ({
-    //         ...prev,
-    //         [key]: isDirty,
-    //     }))
-    //     console.log(key, formDirtyState[key])
-    // }
-
     return (
         <>
             <Tabs value={tab} onValueChange={onTabChange} className="w-full">
-                <TabsList className={`flex w-fit flex-row justify-start`}>
+                <TabsList className={`flex w-fit flex-row justify-start mb-4`}>
                     {range.map((day) => {
                         const dateString = formatInTimeZone(
                             day,
@@ -112,7 +88,13 @@ export default function ConventionTabs({
                         <TabsContent key={index} value={dateString}>
                             <Card className="pb-16">
                                 <CardContent className="flex flex-col gap-4">
-                                    <ReportTable data={data} day={day} />
+                                    <ReportTable
+                                        data={data}
+                                        day={day}
+                                        revenue={
+                                            revenue.get(day.toISOString())!
+                                        }
+                                    />
                                 </CardContent>
                             </Card>
                         </TabsContent>

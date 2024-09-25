@@ -1,7 +1,11 @@
 import EditConvention from '@/app/_components/EditConvention'
 import { FormStoreProvider } from '@/app/providers/form-store-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getConventionById, getConventionReportsNew } from '@/server/queries'
+import {
+    getConventionById,
+    getConventionReports,
+    getConventionRevenue,
+} from '@/server/queries'
 import { type ProductsByCategory, type ReportsByProduct } from '@/types'
 import { eachDayOfInterval } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
@@ -16,9 +20,15 @@ export default async function page({ params }: { params: { id: string } }) {
         redirect('/dashboard/conventions')
     }
 
-    // const reports = await getConventionReports(conventionId)
-    // console.log('reports:', reports)
-    const reports = await getConventionReportsNew(conventionId)
+    const reports = await getConventionReports(conventionId)
+    const { itemizedRevenue, totalRevenue, revenueByCategory } =
+        await getConventionRevenue(conventionId)
+    //console.log(itemizedRevenue)
+    //console.log('total revenue:', totalRevenue)
+    const totalRevenueString = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    }).format(totalRevenue)
     //console.log('reports:', reports)
 
     const products: Record<number, ReportsByProduct> = {}
@@ -72,35 +82,44 @@ export default async function page({ params }: { params: { id: string } }) {
         <FormStoreProvider>
             <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
                 <section className="flex flex-row justify-between border-b pb-8">
-                    {/* <div className="flex flex-col gap-2">
-                        <h1 className="text-2xl font-semibold">
-                            {convention?.name}
-                        </h1>
-                        <h2 className="text-lg text-gray-500">
-                            {convention?.location}
-                        </h2>
-                        <h2 className="text-lg text-gray-500">
-                            {startDateString} - {endDateString}
-                        </h2>
-                    </div> */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-2xl font-semibold">
-                                {convention.name}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <h2 className="text-lg text-gray-500">
-                                {convention?.location}
-                            </h2>
-                            <h2 className="text-lg text-gray-500">
-                                {startDateString} - {endDateString}
-                            </h2>
-                        </CardContent>
-                    </Card>
+                    <div className="flex flex-row justify-start gap-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-2xl font-semibold">
+                                    {convention.name}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <h2 className="text-lg text-gray-500">
+                                    {convention?.location}
+                                </h2>
+                                <h2 className="text-lg text-gray-500">
+                                    {startDateString} - {endDateString}
+                                </h2>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg font- text-gray-500">
+                                    Total Revenue
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-row justify-between items-center text-lg pr-20">
+                                    <span className="text-2xl font-bold">
+                                        {totalRevenueString}
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                     {convention && <EditConvention convention={convention} />}
                 </section>
-                <ConventionTabs data={categorizedData} range={daysInRange} />
+                <ConventionTabs
+                    data={categorizedData}
+                    range={daysInRange}
+                    revenue={revenueByCategory}
+                />
             </section>
         </FormStoreProvider>
     )

@@ -1,6 +1,7 @@
 import { db } from '@/server/db'
 import { type CategoryTableRow, type ProductTableRow } from '@/types'
 import { auth } from '@clerk/nextjs/server'
+import { eachDayOfInterval } from 'date-fns'
 import { and, asc, count, eq, sql } from 'drizzle-orm'
 import 'server-only'
 import {
@@ -9,6 +10,7 @@ import {
     conventions,
     type Product,
     productCategories,
+    productDailyRevenue,
     products,
     type ProductVariation,
     productVariations,
@@ -257,7 +259,7 @@ export async function getConventionReportsOld(conventionId: number) {
 //         )) as ReportType[]
 // }
 
-export async function getConventionReportsNew(conventionId: number) {
+export async function getConventionReports(conventionId: number) {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
     const reportsWithRevenue = await db.query.conventionProductReports.findMany(
@@ -296,4 +298,85 @@ export async function getConventionCategories(conventionId: number) {
             productCategories,
             eq(products.category, productCategories.id),
         )
+}
+
+export async function getConventionRevenue(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+
+    const itemized = await db
+        .select({
+            date: productDailyRevenue.date,
+            reportId: productDailyRevenue.reportId,
+            categoryId: productDailyRevenue.categoryId,
+            cashSales: productDailyRevenue.cashSales,
+            cardSales: productDailyRevenue.cardSales,
+            price: sql<number>`cast(${conventionProductReports.price} as float)`,
+            totalSales: sql<number>`cast(sum(${productDailyRevenue.cardSales})+sum(${productDailyRevenue.cashSales}) as int)`,
+            totalRevenue: sql<number>`cast(${conventionProductReports.price}*(sum(${productDailyRevenue.cardSales})+sum(${productDailyRevenue.cashSales})) as float)`,
+        })
+        .from(productDailyRevenue)
+        .leftJoin(
+            conventionProductReports,
+            eq(productDailyRevenue.reportId, conventionProductReports.id),
+        )
+        .groupBy(
+            productDailyRevenue.date,
+            productDailyRevenue.reportId,
+            productDailyRevenue.categoryId,
+            conventionProductReports.price,
+            productDailyRevenue.cashSales,
+            productDailyRevenue.cardSales,
+        )
+        .where(eq(productDailyRevenue.conventionId, conventionId))
+
+    const conventionTotalRevenue = itemized.reduce((acc, element) => {
+        return +acc + +element.totalRevenue
+    }, 0)
+
+    const datesInRange = await getConventionDateRange(conventionId)
+    if (!datesInRange) throw new Error('Invalid dates')
+    const revenueDateMap = new Map<string, Record<number, number>>(
+        datesInRange.map((date) => {
+            return [date.toISOString(), {} as Record<number, number>]
+        }),
+    )
+    for (const revenue of itemized) {
+        if (!revenueDateMap.has(revenue.date.toISOString())) {
+            revenueDateMap.set(
+                revenue.date.toISOString(),
+                {} as Record<number, number>,
+            )
+        }
+        const dailyRecord = revenueDateMap.get(revenue.date.toISOString())
+        if (!dailyRecord![revenue.categoryId]) {
+            dailyRecord![revenue.categoryId] = 0
+        }
+        dailyRecord![revenue.categoryId]! +=
+            revenue.price * (revenue.cardSales + revenue.cashSales)
+        revenueDateMap.set(revenue.date.toISOString(), dailyRecord!)
+    }
+
+    return {
+        itemizedRevenue: itemized,
+        totalRevenue: conventionTotalRevenue,
+        revenueByCategory: revenueDateMap,
+    }
+}
+
+async function getConventionDateRange(conventionId: number) {
+    const query = await db
+        .select({
+            startDate: conventions.startDate,
+            endDate: conventions.endDate,
+        })
+        .from(conventions)
+        .where(eq(conventions.id, conventionId))
+
+    return query[0]
+        ? eachDayOfInterval({
+              start: query[0].startDate,
+              end: query[0].endDate,
+          })
+        : undefined
 }

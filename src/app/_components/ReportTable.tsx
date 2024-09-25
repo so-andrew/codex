@@ -17,6 +17,8 @@ import {
     type ProductsByCategory,
     type SalesReportFormData,
 } from '@/types'
+import { DevTool } from '@hookform/devtools'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { isEqual } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 import { ChevronDown, ChevronUp } from 'lucide-react'
@@ -33,14 +35,16 @@ const reportSchema = z.object({
     cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
 })
 
-const formSchema = z.array(reportSchema)
+const formSchema = z.record(z.string(), reportSchema)
 
 export default function ReportTable({
     data,
     day,
+    revenue,
 }: {
     data: ProductsByCategory[]
     day: Date
+    revenue: Record<number, number>
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -52,6 +56,8 @@ export default function ReportTable({
     )
 
     const def = useRef<defaultValues>({})
+
+    //const formDefaults: defaultValues =
     const startingRowExpandedState: Record<number, boolean> = {}
 
     for (const category of data) {
@@ -59,7 +65,7 @@ export default function ReportTable({
             startingRowExpandedState[product.productId] =
                 product.reports.length > 1
             for (const report of product.reports) {
-                def.current[report.id] = {
+                def.current[report.id.toString()] = {
                     id: report.id,
                     key: day,
                     cashSales: report.revenues.find((revenue) =>
@@ -73,16 +79,7 @@ export default function ReportTable({
         }
     }
 
-    // const category = data.find((element) =>
-    //     element.products.find((product) =>
-    //         product.reports.find((report) => report.reportId === 61),
-    //     ),
-    // )
-
-    // const product = category?.products.find(
-    //     (product) => product.productId === 40,
-    // )
-    // console.log(product)
+    //console.log(def.current)
 
     const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>(
         startingRowExpandedState,
@@ -90,11 +87,12 @@ export default function ReportTable({
 
     const { toast } = useToast()
 
-    const form = useForm({
-        // resolver: zodResolver(formSchema),
+    const form = useForm<defaultValues>({
+        resolver: zodResolver(formSchema),
         defaultValues: def.current,
     })
-    const { formState, reset, getValues } = form
+
+    const { formState, reset, getValues, control, getFieldState } = form
     const { isDirty, dirtyFields, isSubmitSuccessful, defaultValues } =
         formState
 
@@ -105,14 +103,9 @@ export default function ReportTable({
         }))
     }
 
-    async function onSubmit(data: Record<number, SalesReportFormData>) {
+    async function onSubmit(data: z.infer<typeof formSchema>) {
         //console.log(data)
         const updates = []
-
-        // console.log(defaultValues)
-        // console.log(getValues())
-
-        //console.log(dirtyFields)
         const values = dirtyValues(dirtyFields, data)
         for (const [productId, formData] of Object.entries(values)) {
             try {
@@ -418,16 +411,7 @@ export default function ReportTable({
                                                                                             <Input
                                                                                                 type="number"
                                                                                                 min="0"
-                                                                                                className="w-20"
-                                                                                                // defaultValue={
-                                                                                                //     report
-                                                                                                //         .reportSalesFigures[
-                                                                                                //         report
-                                                                                                //             .key
-                                                                                                //     ]
-                                                                                                //         ?.cashSales ??
-                                                                                                //     0
-                                                                                                // }
+                                                                                                className={`w-20 ${getFieldState(`${report.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                                 {...field}
                                                                                                 onChange={(
                                                                                                     e,
@@ -466,7 +450,7 @@ export default function ReportTable({
                                                                                             <Input
                                                                                                 type="number"
                                                                                                 min="0"
-                                                                                                className="w-20"
+                                                                                                className={`w-20 ${getFieldState(`${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                                 // defaultValue={
                                                                                                 //     report
                                                                                                 //         .reportSalesFigures[
@@ -516,7 +500,19 @@ export default function ReportTable({
                                             >
                                                 Total
                                             </TableCell>
-                                            <TableCell>Test Value</TableCell>
+                                            <TableCell>
+                                                {new Intl.NumberFormat(
+                                                    'en-US',
+                                                    {
+                                                        style: 'currency',
+                                                        currency: 'USD',
+                                                    },
+                                                ).format(
+                                                    revenue[
+                                                        category.categoryId
+                                                    ]!,
+                                                )}
+                                            </TableCell>
                                         </TableRow>
                                     </TableFooter>
                                 </Table>
@@ -533,16 +529,16 @@ export default function ReportTable({
                             {/* <span>{`isDirty: ${isDirty}, getValues() === defaultValues = ${getValues() === defaultValues}, number of changes: ${Object.keys(dirtyFields).length}`}</span> */}
                             <span>{`${Object.keys(dirtyFields).length} changed field${Object.keys(dirtyFields).length !== 1 ? 's' : ''}`}</span>
 
-                            {/* <Button
+                            <Button
                                 type="button"
                                 onClick={() => {
-                                    console.log(defaultValues)
-                                    console.log(getValues())
+                                    //console.log(defaultValues)
+                                    console.log(JSON.stringify(getValues()))
                                     console.log(defaultValues === getValues())
                                 }}
                             >
                                 Log
-                            </Button> */}
+                            </Button>
                             <Button
                                 type="submit"
                                 className="bg-purple-500 hover:bg-purple-600"
@@ -552,6 +548,7 @@ export default function ReportTable({
                         </div>
                     }
                 </form>
+                <DevTool control={control} />
             </Form>
         </>
     )

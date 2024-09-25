@@ -171,6 +171,15 @@ export const productDailyRevenue = createTable(
                 onDelete: 'cascade',
             })
             .notNull(),
+        conventionId: integer('conventionId').references(() => conventions.id, {
+            onDelete: 'cascade',
+        }),
+        categoryId: integer('categoryId')
+            .default(-1)
+            .notNull()
+            .references(() => productCategories.id, {
+                onDelete: 'set default',
+            }),
         date: timestamp('date', {
             mode: 'date',
             withTimezone: true,

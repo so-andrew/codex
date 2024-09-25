@@ -72,7 +72,7 @@ export type ProductsByCategory = {
 }
 
 export type defaultValues = Record<
-    number,
+    string,
     {
         id: number
         key: Date
