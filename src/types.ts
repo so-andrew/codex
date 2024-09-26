@@ -85,3 +85,11 @@ export type SalesReportFormData = {
     cashSales: number | undefined
     cardSales: number | undefined
 }
+
+export type TopSellingVariations = {
+    reportId: number
+    variationName: string | undefined
+    productName: string
+    totalSales: number
+    totalRevenue: number
+}

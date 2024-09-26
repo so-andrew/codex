@@ -1,7 +1,12 @@
 import { Navbar } from '@/app/_components/navigation/Navbar'
 import Sidebar from '@/app/_components/navigation/Sidebar'
+import { type Metadata } from 'next'
 
-export default function ProductLayout({
+export const metadata: Metadata = {
+    title: 'Dashboard - Codex',
+}
+
+export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode

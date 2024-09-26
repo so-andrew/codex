@@ -18,3 +18,12 @@ export function dirtyValues(
         ]),
     )
 }
+
+export const moneyFormat = Intl.NumberFormat('en-US', {
+    currency: 'USD',
+    currencyDisplay: 'symbol',
+    currencySign: 'standard',
+    style: 'currency',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+})

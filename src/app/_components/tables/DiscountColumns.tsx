@@ -1,17 +1,10 @@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { type CategoryTableRow } from '@/types'
-import { type ColumnDef } from '@tanstack/react-table'
-import {
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
-    ChevronDown,
-    ChevronUp,
-} from 'lucide-react'
-import CategoryTableRowActions from './CategoryTableRowActions'
+import { Discount } from '@/server/db/schema'
+import { ColumnDef } from '@tanstack/react-table'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 
-export const columns: ColumnDef<CategoryTableRow>[] = [
+export const columns: ColumnDef<Discount>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -41,8 +34,7 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
         maxSize: 15,
     },
     {
-        accessorFn: (row) => row.category.name,
-        id: 'name',
+        accessorKey: 'name',
         header: ({ column }) => {
             return (
                 <>
@@ -52,7 +44,7 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
                         onClick={() =>
                             column.toggleSorting(column.getIsSorted() === 'asc')
                         }
-                        className="ml-6 font-semibold"
+                        className="font-semibold"
                     >
                         Name
                         {column.getIsSorted() === 'asc' ? (
@@ -66,45 +58,10 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
                 </>
             )
         },
-        cell: ({ row }) => {
-            const category = row.original.category
-            return (
-                <div
-                    className="flex items-center font-medium"
-                    style={{
-                        paddingLeft: `${row.depth * 2}rem`,
-                    }}
-                >
-                    {row.getCanExpand() ? (
-                        <Button
-                            variant="ghost"
-                            className="ml-[-1rem] mr-2 px-2 focus:outline-none"
-                            onClick={row.getToggleExpandedHandler()}
-                        >
-                            {row.getIsExpanded() ? (
-                                <ChevronUp className="h-4 w-4 text-purple-500" />
-                            ) : (
-                                <ChevronDown className="h-4 w-4 text-purple-500" />
-                            )}
-                        </Button>
-                    ) : (
-                        <span className="mr-2 h-4 w-4"></span>
-                    )}
-                    {category.name}
-                </div>
-                // row.depth === 0 ? (
-                //     <Link href={`/dashboard/products/${product.id}`}>
-                //         {product.name} {row.depth}
-                //     </Link>
-                // ) : (
-                //     <span className="ml-4">{product.name}</span>
-                // )
-            )
-        },
+        cell: (info) => info.getValue(),
     },
     {
-        accessorFn: (row) => row.category.productCount,
-        id: 'count',
+        accessorKey: 'amount',
         header: ({ column }) => {
             return (
                 <>
@@ -114,9 +71,9 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
                         onClick={() =>
                             column.toggleSorting(column.getIsSorted() === 'asc')
                         }
-                        className="text-right font-semibold"
+                        className="font-semibold"
                     >
-                        Items
+                        Amount
                         {column.getIsSorted() === 'asc' ? (
                             <ArrowUp className="ml-2 h-4 w-4" />
                         ) : column.getIsSorted() === 'desc' ? (
@@ -129,18 +86,13 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
             )
         },
         cell: ({ row }) => {
-            const category = row.original.category
-            return <div className="pl-12">{category.productCount}</div>
+            const amount = parseFloat(row.original.amount)
+            const formatted = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+            }).format(amount)
+
+            return <div className="font-medium">{formatted}</div>
         },
-        minSize: 20,
-        maxSize: 20,
-        size: 20,
-    },
-    {
-        id: 'actions',
-        cell: ({ row }) => <CategoryTableRowActions row={row} />,
-        minSize: 35,
-        maxSize: 35,
-        size: 35,
     },
 ]

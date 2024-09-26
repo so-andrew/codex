@@ -7,7 +7,7 @@ export default async function Dashboard() {
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
             <h1 className="text-2xl font-semibold">{`Welcome back, ${user!.firstName}.`}</h1>
-            <section className="border-b pb-8">
+            <div className="border-b pb-8">
                 <div className="flex flex-row gap-6">
                     <Button className="bg-purple-500 hover:bg-purple-600">
                         Add Convention
@@ -16,7 +16,7 @@ export default async function Dashboard() {
                         Add Product
                     </Button>
                 </div>
-            </section>
+            </div>
         </section>
     )
 }

@@ -1,13 +1,18 @@
 import { db } from '@/server/db'
-import { type CategoryTableRow, type ProductTableRow } from '@/types'
+import {
+    type CategoryTableRow,
+    type ProductTableRow,
+    TopSellingVariations,
+} from '@/types'
 import { auth } from '@clerk/nextjs/server'
 import { eachDayOfInterval } from 'date-fns'
-import { and, asc, count, eq, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm'
 import 'server-only'
 import {
     type Category,
     conventionProductReports,
     conventions,
+    discounts,
     type Product,
     productCategories,
     productDailyRevenue,
@@ -33,6 +38,13 @@ const getProducts = db
     .where(eq(products.creatorId, sql.placeholder('userId')))
     .orderBy(productCategories.name)
     .prepare('get-products')
+
+const getDiscounts = db
+    .select()
+    .from(discounts)
+    .where(eq(discounts.creatorId, sql.placeholder('userId')))
+    .orderBy(discounts.name)
+    .prepare('get-discounts')
 
 const getCategories = db
     .select({
@@ -145,6 +157,12 @@ function constructProductHierarchy({
     })
 
     return Array.from(productMap.values())
+}
+
+export async function getUserDiscounts() {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+    return await getDiscounts.execute({ userId: user.userId })
 }
 
 export async function getUserConventions() {
@@ -365,6 +383,9 @@ export async function getConventionRevenue(conventionId: number) {
 }
 
 async function getConventionDateRange(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+
     const query = await db
         .select({
             startDate: conventions.startDate,
@@ -379,4 +400,53 @@ async function getConventionDateRange(conventionId: number) {
               end: query[0].endDate,
           })
         : undefined
+}
+
+export async function getTopSellingVariations(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+
+    const revenueQuery = db
+        .select({
+            reportId: productDailyRevenue.reportId,
+            totalSales:
+                sql<number>`cast(sum(${productDailyRevenue.cardSales})+sum(${productDailyRevenue.cashSales}) as int)`.as(
+                    'totalSales',
+                ),
+            totalRevenue:
+                sql<number>`cast(${conventionProductReports.price}*(sum(${productDailyRevenue.cardSales})+sum(${productDailyRevenue.cashSales})) as float)`.as(
+                    'totalRevenue',
+                ),
+        })
+        .from(productDailyRevenue)
+        .where(eq(productDailyRevenue.conventionId, conventionId))
+        .leftJoin(
+            conventionProductReports,
+            eq(conventionProductReports.id, productDailyRevenue.reportId),
+        )
+        .groupBy(productDailyRevenue.reportId, conventionProductReports.price)
+        .as('rq')
+
+    const query = (await db
+        .select({
+            reportId: revenueQuery.reportId,
+            variationName: productVariations.name,
+            productName: conventionProductReports.productName,
+            totalSales: revenueQuery.totalSales,
+            totalRevenue: revenueQuery.totalRevenue,
+        })
+        .from(revenueQuery)
+        .leftJoin(
+            conventionProductReports,
+            eq(conventionProductReports.id, revenueQuery.reportId),
+        )
+        .leftJoin(
+            productVariations,
+            eq(
+                productVariations.id,
+                conventionProductReports.productVariationId,
+            ),
+        )
+        .orderBy(desc(revenueQuery.totalRevenue))) as TopSellingVariations[]
+    return query
 }

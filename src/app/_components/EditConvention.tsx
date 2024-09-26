@@ -112,7 +112,7 @@ export default function EditConvention({
             setIsOpen(false)
             toast({
                 title: 'Success',
-                description: 'Successfully edited product.',
+                description: 'Successfully edited convention.',
             })
         } catch (e) {
             const error = e as Error

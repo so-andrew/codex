@@ -8,9 +8,10 @@ import {
     FormLabel,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { moneyFormat } from '@/lib/utils'
 import { type Product } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type Dispatch, type SetStateAction } from 'react'
+import { useReducer, type Dispatch, type SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -41,6 +42,12 @@ export default function CreateVariationForm({
     data: Product
     setIsOpen: Dispatch<SetStateAction<boolean>>
 }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [value, setValue] = useReducer((_: any, next: string) => {
+        const digits = next.replace(/\D/g, '')
+        return moneyFormat.format(Number(digits) / 100)
+    }, '$0.00')
+
     const form = useForm<z.infer<typeof variationSchema>>({
         resolver: zodResolver(variationSchema),
         defaultValues: {
@@ -53,6 +60,13 @@ export default function CreateVariationForm({
 
     const { formState } = form
     const { isSubmitting } = formState
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    function handleChange(change: Function, formatted: string) {
+        const digits = formatted.replace(/\D/g, '')
+        const value = Number(digits) / 100
+        change(value)
+    }
 
     async function onSubmit(data: z.infer<typeof variationSchema>) {
         console.log(data)
@@ -78,33 +92,46 @@ export default function CreateVariationForm({
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Price</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Enter price" {...field} />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="sku"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>SKU</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="Enter SKU (optional)"
-                                    {...field}
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
+                <div className="flex flex-row gap-4 justify-between w-full">
+                    <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem className="w-40">
+                                <FormLabel>Price</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="$0.00"
+                                        {...field}
+                                        onChange={(event) => {
+                                            setValue(event.target.value)
+                                            handleChange(
+                                                field.onChange,
+                                                event.target.value,
+                                            )
+                                        }}
+                                        value={value}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="sku"
+                        render={({ field }) => (
+                            <FormItem className="flex-grow">
+                                <FormLabel>SKU</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Enter SKU (optional)"
+                                        {...field}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <FormField
                     control={form.control}
                     name="productId"

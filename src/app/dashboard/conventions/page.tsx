@@ -1,6 +1,11 @@
 import CreateConvention from '@/app/_components/CreateConvention'
 import ConventionTable from '@/app/_components/tables/ConventionTable'
 import { getUserConventions } from '@/server/queries'
+import { type Metadata } from 'next'
+
+export const metadata: Metadata = {
+    title: 'Conventions - Codex',
+}
 
 export default async function Conventions() {
     const userConventions = await getUserConventions()

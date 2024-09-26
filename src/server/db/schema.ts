@@ -75,6 +75,22 @@ export const productVariations = createTable('productVariations', {
 })
 export type ProductVariation = typeof productVariations.$inferSelect
 
+export const discounts = createTable('discounts', {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar('name', { length: 256 }).notNull(),
+    amount: numeric('amount').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+        .default(sql`CURRENT_TIMESTAMP`)
+        .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).$onUpdate(
+        () => new Date(),
+    ),
+    creatorId: varchar('creatorId', { length: 256 })
+        .references(() => users.id, { onDelete: 'cascade' })
+        .notNull(),
+})
+export type Discount = typeof discounts.$inferSelect
+
 export const productCategories = createTable('productCategories', {
     id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     name: varchar('name', { length: 256 }).notNull(),

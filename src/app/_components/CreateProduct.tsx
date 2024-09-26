@@ -1,5 +1,4 @@
 'use client'
-
 import { createProduct } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,11 +31,11 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 import { toast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
+import { cn, moneyFormat } from '@/lib/utils'
 import { type Category } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useState } from 'react'
+import { useReducer, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -75,6 +74,11 @@ export default function CreateProduct({
     const [isOpen, setIsOpen] = useState(false)
     const [isComboboxOpen, setIsComboboxOpen] = useState(false)
     const [variationCount, setVariationCount] = useState(0)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [value, setValue] = useReducer((_: any, next: string) => {
+        const digits = next.replace(/\D/g, '')
+        return moneyFormat.format(Number(digits) / 100)
+    }, '$0.00')
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -102,6 +106,13 @@ export default function CreateProduct({
     function removeVariation(index: number) {
         setVariationCount((variationCount) => Math.max(0, variationCount - 1))
         remove(index)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    function handleChange(change: Function, formatted: string) {
+        const digits = formatted.replace(/\D/g, '')
+        const value = Number(digits) / 100
+        change(value)
     }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
@@ -134,7 +145,7 @@ export default function CreateProduct({
                     </Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-[800px]"
+                    className="sm:max-w-lg"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
@@ -211,23 +222,10 @@ export default function CreateProduct({
                                                                             value={
                                                                                 category.name
                                                                             }
-                                                                            onSelect={(
-                                                                                currentValue,
-                                                                            ) => {
+                                                                            onSelect={() => {
                                                                                 form.setValue(
                                                                                     'category',
                                                                                     category.id,
-                                                                                )
-                                                                                console.log(
-                                                                                    'field.value = ',
-                                                                                    field.value,
-                                                                                )
-                                                                                console.log(
-                                                                                    'Current value = ',
-                                                                                    currentValue,
-                                                                                )
-                                                                                console.log(
-                                                                                    form.getValues(),
                                                                                 )
                                                                                 setIsComboboxOpen(
                                                                                     false,
@@ -267,8 +265,19 @@ export default function CreateProduct({
                                             <FormLabel>Price</FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="0.00"
+                                                    placeholder="$0.00"
+                                                    className="w-40"
                                                     {...field}
+                                                    onChange={(event) => {
+                                                        setValue(
+                                                            event.target.value,
+                                                        )
+                                                        handleChange(
+                                                            field.onChange,
+                                                            event.target.value,
+                                                        )
+                                                    }}
+                                                    value={value}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -305,7 +314,24 @@ export default function CreateProduct({
                                                 <FormItem>
                                                     <FormLabel>Price</FormLabel>
                                                     <FormControl>
-                                                        <Input {...field} />
+                                                        <Input
+                                                            placeholder="$0.00"
+                                                            {...field}
+                                                            onChange={(
+                                                                event,
+                                                            ) => {
+                                                                setValue(
+                                                                    event.target
+                                                                        .value,
+                                                                )
+                                                                handleChange(
+                                                                    field.onChange,
+                                                                    event.target
+                                                                        .value,
+                                                                )
+                                                            }}
+                                                            value={value}
+                                                        />
                                                     </FormControl>
                                                 </FormItem>
                                             )}

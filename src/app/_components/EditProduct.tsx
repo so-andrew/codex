@@ -70,13 +70,6 @@ export default function EditProduct({ product, categories }: EditProductProps) {
 
     const { reset, formState } = form
     const { isDirty, isSubmitting } = formState
-
-    // useEffect(() => {
-    //     console.log('isDirty:', isDirty)
-    //     console.log('dirtyFields:', dirtyFields)
-    //     console.log('touchedFields:', touchedFields)
-    // }, [dirtyFields, formState, isDirty, touchedFields])
-
     const { toast } = useToast()
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
@@ -107,7 +100,7 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                     </Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-[800px]"
+                    className="sm:max-w-lg"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
@@ -217,40 +210,6 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                     </FormItem>
                                 )}
                             />
-                            {/* <FormField
-                                control={form.control}
-                                name="category"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Category</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Uncategorized"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            /> */}
-                            {/* {variationCount === 1 && (
-                                <FormField
-                                    control={form.control}
-                                    name="price"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Price</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="0.00"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            )} */}
                             <FormField
                                 control={form.control}
                                 name="id"
@@ -264,46 +223,6 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                     </FormControl>
                                 )}
                             />
-                            {/* {variationCount > 0 &&
-                        fields.map((field, index) => (
-                            <div
-                                key={field.id}
-                                className="flex flex-row items-end gap-8"
-                            >
-                                <FormField
-                                    control={form.control}
-                                    key={index}
-                                    name={`variations.${index}.name`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Variation Name</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    key={index + 1}
-                                    name={`variations.${index}.price`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Price</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button
-                                    type="button"
-                                    onClick={() => removeVariation(index)}
-                                >
-                                    Remove
-                                </Button>
-                            </div>
-                        ))} */}
                             <div className="flex flex-row gap-4 pt-4">
                                 <Button
                                     type="submit"

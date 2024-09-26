@@ -65,17 +65,13 @@ export default function CreateConvention() {
             name: 'New Convention',
             location: 'N/A',
             dateRange: {
-                from: undefined,
+                from: new Date(),
                 to: undefined,
             },
         },
     })
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
-        console.log(data.dateRange.from.toISOString())
-        console.log(data.dateRange.from.toUTCString())
-        console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
         await createConvention(data)
         setIsOpen(false)
     }
@@ -89,7 +85,7 @@ export default function CreateConvention() {
                     </Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-[800px]"
+                    className="sm:max-w-lg"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
@@ -98,7 +94,7 @@ export default function CreateConvention() {
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(onSubmit)}
-                            className="space-y-8"
+                            className="space-y-6"
                         >
                             <FormField
                                 control={form.control}
@@ -138,9 +134,9 @@ export default function CreateConvention() {
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
                                         <FormLabel>Dates</FormLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
+                                        <FormControl>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
                                                     <Button
                                                         id="date"
                                                         variant={'outline'}
@@ -181,24 +177,26 @@ export default function CreateConvention() {
                                                         )}
                                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                     </Button>
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent
-                                                className="w-auto p-0"
-                                                align="start"
-                                            >
-                                                <Calendar
-                                                    initialFocus
-                                                    mode="range"
-                                                    defaultMonth={
-                                                        field.value?.from
-                                                    }
-                                                    selected={field.value}
-                                                    onSelect={field.onChange}
-                                                    numberOfMonths={2}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                    className="w-auto p-0"
+                                                    align="start"
+                                                >
+                                                    <Calendar
+                                                        initialFocus
+                                                        mode="range"
+                                                        defaultMonth={
+                                                            field.value?.from
+                                                        }
+                                                        selected={field.value}
+                                                        onSelect={
+                                                            field.onChange
+                                                        }
+                                                        numberOfMonths={2}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}

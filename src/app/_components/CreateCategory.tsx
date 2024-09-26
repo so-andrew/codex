@@ -81,7 +81,7 @@ export default function CreateCategory({
                     </Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-[800px]"
+                    className="sm:max-w-lg"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>

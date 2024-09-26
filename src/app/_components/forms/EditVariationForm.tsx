@@ -10,8 +10,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { moneyFormat } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type Dispatch, type SetStateAction } from 'react'
+import { useReducer, type Dispatch, type SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -53,7 +54,11 @@ export default function EditVariationForm({
     sku: string | undefined
     setIsOpen: (() => void) | Dispatch<SetStateAction<boolean>>
 }) {
-    const { toast } = useToast()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [value, setValue] = useReducer((_: any, next: string) => {
+        const digits = next.replace(/\D/g, '')
+        return moneyFormat.format(Number(digits) / 100)
+    }, moneyFormat.format(price))
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -63,12 +68,20 @@ export default function EditVariationForm({
             creatorId: creatorId,
             name: name,
             price: price,
-            sku: sku,
+            sku: sku ?? '',
         },
     })
 
     const { formState, reset } = form
     const { isDirty, isSubmitting } = formState
+    const { toast } = useToast()
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    function handleChange(change: Function, formatted: string) {
+        const digits = formatted.replace(/\D/g, '')
+        const value = Number(digits) / 100
+        change(value)
+    }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
@@ -119,7 +132,18 @@ export default function EditVariationForm({
                         <FormItem>
                             <FormLabel>Price</FormLabel>
                             <FormControl>
-                                <Input placeholder="0.00" {...field} />
+                                <Input
+                                    placeholder="$0.00"
+                                    {...field}
+                                    onChange={(event) => {
+                                        setValue(event.target.value)
+                                        handleChange(
+                                            field.onChange,
+                                            event.target.value,
+                                        )
+                                    }}
+                                    value={value}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

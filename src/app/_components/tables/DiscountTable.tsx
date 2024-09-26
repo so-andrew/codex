@@ -1,4 +1,5 @@
 'use client'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -9,13 +10,11 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { type CategoryTableRow } from '@/types'
+import { type Discount } from '@/server/db/schema'
 import {
     type ColumnFiltersState,
-    type ExpandedState,
     flexRender,
     getCoreRowModel,
-    getExpandedRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
@@ -23,52 +22,41 @@ import {
     useReactTable,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import { columns } from './CategoryColumns'
+import { columns } from './DiscountColumns'
 
-export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
+export default function DiscountTable({ data }: { data: Discount[] }) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
-    const [expanded, setExpanded] = useState<ExpandedState>({})
 
     const table = useReactTable({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        getExpandedRowModel: getExpandedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
-        filterFromLeafRows: true,
         onRowSelectionChange: setRowSelection,
-        onExpandedChange: setExpanded,
-        getSubRows: (originalRow: CategoryTableRow) => {
-            return originalRow.subcategories
-        },
         state: {
             sorting,
             columnFilters,
             rowSelection,
-            expanded,
         },
     })
 
     const selectedRowsCount = Object.keys(rowSelection).length
-
-    const getSelectedCategories = () => {
+    const getSelectedDiscounts = () => {
         const selectedRows = table.getSelectedRowModel().flatRows
-        return selectedRows.map((row) => row.original.category)
+        return selectedRows.map((row) => row.original)
     }
-
-    //console.log(data[0])
 
     return (
         <div>
             <div className="flex items-center py-4">
                 <Input
-                    placeholder="Filter categories..."
+                    placeholder="Filter discounts..."
                     value={
                         (table.getColumn('name')?.getFilterValue() as string) ??
                         ''
@@ -119,26 +107,11 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
                                     data-state={
                                         row.getIsSelected() && 'selected'
                                     }
-                                    //className={`pl-[${row.depth * 2}rem]`}
-                                    style={{
-                                        paddingLeft: `${row.depth * 2}rem`,
-                                    }}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
                                             key={cell.id}
                                             className="pl-6"
-                                            style={{
-                                                minWidth:
-                                                    cell.column.columnDef
-                                                        .minSize,
-                                                maxWidth:
-                                                    cell.column.columnDef
-                                                        .maxSize,
-                                            }}
-                                            // style={{
-                                            //     width: 'min-content',
-                                            // }}
                                         >
                                             {flexRender(
                                                 cell.column.columnDef.cell,

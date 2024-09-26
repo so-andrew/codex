@@ -20,7 +20,6 @@ import {
 import { DevTool } from '@hookform/devtools'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { isEqual } from 'date-fns'
-import { formatInTimeZone } from 'date-fns-tz'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -49,15 +48,14 @@ export default function ReportTable({
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
     )
+    const { toast } = useToast()
 
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const dayString = useRef<string>(
-        formatInTimeZone(day, timeZone, 'EEE, MMM d'),
-    )
+    // const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    // const dayString = useRef<string>(
+    //     formatInTimeZone(day, timeZone, 'EEE, MMM d'),
+    // )
 
     const def = useRef<defaultValues>({})
-
-    //const formDefaults: defaultValues =
     const startingRowExpandedState: Record<number, boolean> = {}
 
     for (const category of data) {
@@ -79,13 +77,9 @@ export default function ReportTable({
         }
     }
 
-    //console.log(def.current)
-
     const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>(
         startingRowExpandedState,
     )
-
-    const { toast } = useToast()
 
     const form = useForm<defaultValues>({
         resolver: zodResolver(formSchema),
@@ -93,8 +87,7 @@ export default function ReportTable({
     })
 
     const { formState, reset, getValues, control, getFieldState } = form
-    const { isDirty, dirtyFields, isSubmitSuccessful, defaultValues } =
-        formState
+    const { dirtyFields, isSubmitSuccessful, defaultValues } = formState
 
     const toggleRow = (productId: number) => {
         setExpandedRows((prev) => ({
@@ -267,30 +260,11 @@ export default function ReportTable({
                                                                                     <Input
                                                                                         type="number"
                                                                                         min="0"
-                                                                                        className="w-20"
-                                                                                        // defaultValue={
-                                                                                        //     entry
-                                                                                        //         .reports[0]!
-                                                                                        //         .reportSalesFigures[
-                                                                                        //         entry
-                                                                                        //             .reports[0]!
-                                                                                        //             .key
-                                                                                        //     ]
-                                                                                        //         ?.cashSales ??
-                                                                                        //     0
-                                                                                        // }
+                                                                                        className={`w-20 ${getFieldState(`${product.reports[0]!.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                         {...field}
                                                                                         onChange={(
                                                                                             e,
                                                                                         ) => {
-                                                                                            console.log(
-                                                                                                product
-                                                                                                    .reports[0]!
-                                                                                                    .name,
-                                                                                                e
-                                                                                                    .target
-                                                                                                    .value,
-                                                                                            )
                                                                                             field.onChange(
                                                                                                 Number(
                                                                                                     e
@@ -319,30 +293,11 @@ export default function ReportTable({
                                                                                     <Input
                                                                                         type="number"
                                                                                         min="0"
-                                                                                        className="w-20"
-                                                                                        // defaultValue={
-                                                                                        //     entry
-                                                                                        //         .reports[0]!
-                                                                                        //         .reportSalesFigures[
-                                                                                        //         entry
-                                                                                        //             .reports[0]!
-                                                                                        //             .key
-                                                                                        //     ]
-                                                                                        //         ?.cardSales ??
-                                                                                        //     0
-                                                                                        // }
+                                                                                        className={`w-20 ${getFieldState(`${product.reports[0]!.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                         {...field}
                                                                                         onChange={(
                                                                                             e,
                                                                                         ) => {
-                                                                                            console.log(
-                                                                                                product
-                                                                                                    .reports[0]!
-                                                                                                    .name,
-                                                                                                e
-                                                                                                    .target
-                                                                                                    .value,
-                                                                                            )
                                                                                             field.onChange(
                                                                                                 Number(
                                                                                                     e
@@ -416,12 +371,6 @@ export default function ReportTable({
                                                                                                 onChange={(
                                                                                                     e,
                                                                                                 ) => {
-                                                                                                    console.log(
-                                                                                                        report.name,
-                                                                                                        e
-                                                                                                            .target
-                                                                                                            .value,
-                                                                                                    )
                                                                                                     field.onChange(
                                                                                                         Number(
                                                                                                             e
@@ -451,25 +400,10 @@ export default function ReportTable({
                                                                                                 type="number"
                                                                                                 min="0"
                                                                                                 className={`w-20 ${getFieldState(`${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
-                                                                                                // defaultValue={
-                                                                                                //     report
-                                                                                                //         .reportSalesFigures[
-                                                                                                //         report
-                                                                                                //             .key
-                                                                                                //     ]
-                                                                                                //         ?.cardSales ??
-                                                                                                //     0
-                                                                                                // }
                                                                                                 {...field}
                                                                                                 onChange={(
                                                                                                     e,
                                                                                                 ) => {
-                                                                                                    console.log(
-                                                                                                        report.name,
-                                                                                                        e
-                                                                                                            .target
-                                                                                                            .value,
-                                                                                                    )
                                                                                                     field.onChange(
                                                                                                         Number(
                                                                                                             e

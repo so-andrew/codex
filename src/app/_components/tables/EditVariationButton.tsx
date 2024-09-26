@@ -34,7 +34,7 @@ export default function EditVariationButton<TData extends ProductVariation>({
             </GenericDialog>
             <Button
                 variant="ghost"
-                className="p-0"
+                className="hover:bg-transparent p-0 text-blue-500"
                 onClick={() => setIsEditOpen(!isEditOpen)}
             >
                 {row.getValue('name')}

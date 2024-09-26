@@ -10,9 +10,10 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { moneyFormat } from '@/lib/utils'
 import { type ProductVariation } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type Dispatch, type SetStateAction } from 'react'
+import { useReducer, type Dispatch, type SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -39,6 +40,12 @@ export default function BulkEditVariationPriceForm({
     data: ProductVariation[]
     setIsOpen: Dispatch<SetStateAction<boolean>>
 }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [value, setValue] = useReducer((_: any, next: string) => {
+        const digits = next.replace(/\D/g, '')
+        return moneyFormat.format(Number(digits) / 100)
+    }, '$0.00')
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -51,9 +58,14 @@ export default function BulkEditVariationPriceForm({
     const { formState, reset } = form
     const { isDirty, isSubmitting } = formState
 
-    async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    function handleChange(change: Function, formatted: string) {
+        const digits = formatted.replace(/\D/g, '')
+        const value = Number(digits) / 100
+        change(value)
+    }
 
+    async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
             await bulkEditVariation(data)
             reset({}, { keepValues: true })
@@ -75,7 +87,7 @@ export default function BulkEditVariationPriceForm({
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col space-y-4"
+                className="flex flex-col space-y-6"
             >
                 <FormField
                     control={form.control}
@@ -84,7 +96,18 @@ export default function BulkEditVariationPriceForm({
                         <FormItem>
                             <FormLabel>Price</FormLabel>
                             <FormControl>
-                                <Input placeholder="0.00" {...field} />
+                                <Input
+                                    placeholder="$0.00"
+                                    {...field}
+                                    onChange={(event) => {
+                                        setValue(event.target.value)
+                                        handleChange(
+                                            field.onChange,
+                                            event.target.value,
+                                        )
+                                    }}
+                                    value={value}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

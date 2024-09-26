@@ -8,7 +8,24 @@ import {
     getUserCategories,
     getUserProductVariations,
 } from '@/server/queries'
+import { type Metadata, type ResolvingMetadata } from 'next'
 import { redirect } from 'next/navigation'
+
+type Props = {
+    params: { id: string }
+}
+
+export async function generateMetadata(
+    { params }: Props,
+    parent: ResolvingMetadata,
+): Promise<Metadata> {
+    const id = parseInt(params.id)
+    const product = await getProductById(id)
+
+    return {
+        title: product ? `${product.name} - Codex` : '',
+    }
+}
 
 export default async function page({ params }: { params: { id: string } }) {
     const product = (await getProductById(parseInt(params.id))) as Product

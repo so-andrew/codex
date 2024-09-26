@@ -1,5 +1,15 @@
-import { DialogHeader } from '@/components/ui/dialog'
+'use client'
+
+import { Button } from '@/components/ui/button'
 import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+    Form,
     FormControl,
     FormField,
     FormItem,
@@ -7,23 +17,19 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useToast } from '@/hooks/use-toast'
 import { moneyFormat } from '@/lib/utils'
-import { type ProductVariation } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog'
-import { useReducer } from 'react'
-import { Button } from 'react-day-picker'
-import { Form, useForm } from 'react-hook-form'
+import { useReducer, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { createDiscount } from '../actions'
 
 const formSchema = z.object({
-    id: z.number(),
     name: z
         .string()
         .min(2, { message: 'Must be at least 2 characters long' })
         .max(100, { message: 'Must be less than 100 characters long' }),
-    price: z.coerce
+    amount: z.coerce
         .number({
             required_error: 'Price is required',
             invalid_type_error: 'Price must be a number',
@@ -31,34 +37,21 @@ const formSchema = z.object({
         .nonnegative(),
 })
 
-export default function EditVariation({
-    variation,
-    isOpen,
-    onOpenChange,
-}: {
-    variation: ProductVariation
-    isOpen: boolean
-    onOpenChange: () => void
-}) {
+export default function CreateDiscount() {
+    const [isOpen, setIsOpen] = useState(false)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
         const digits = next.replace(/\D/g, '')
         return moneyFormat.format(Number(digits) / 100)
-    }, `\$${variation.price}`)
+    }, '$0.00')
 
     const form = useForm<z.infer<typeof formSchema>>({
-        mode: 'onChange',
         resolver: zodResolver(formSchema),
         defaultValues: {
-            id: variation.productId,
-            name: variation.name,
-            price: parseInt(variation.price),
+            name: 'New Discount',
+            amount: 0,
         },
     })
-
-    const { reset, formState } = form
-    const { isDirty, isSubmitting } = formState
-    const { toast } = useToast()
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     function handleChange(change: Function, formatted: string) {
@@ -68,49 +61,41 @@ export default function EditVariation({
     }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
-        try {
-            //await EditVariation(data)
-            reset({}, { keepValues: true })
-            toast({
-                title: 'Success',
-                description: 'Successfully edited variation.',
-            })
-        } catch (e) {
-            const error = e as Error
-            toast({
-                title: error.name,
-                description: error.message,
-            })
-        }
+        await createDiscount(data)
+        setIsOpen(false)
     }
 
     return (
-        <div className="flex flex-row gap-4">
-            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <div className="flex flex-row gap-6">
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogTrigger asChild>
+                    <Button className="bg-purple-500 hover:bg-purple-600">
+                        Add Discount
+                    </Button>
+                </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-[800px]"
+                    className="sm:max-w-lg"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
-                        <DialogTitle>Edit Variation</DialogTitle>
+                        <DialogTitle>Add Discount</DialogTitle>
                     </DialogHeader>
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(onSubmit)}
-                            className="flex flex-col space-y-4"
+                            className="space-y-6"
                         >
                             <FormField
                                 control={form.control}
                                 name="name"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="flex flex-col gap-2">
                                         <FormLabel>Name</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Enter product name"
+                                                placeholder="Enter discount name"
                                                 {...field}
-                                            />
+                                            ></Input>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -118,13 +103,14 @@ export default function EditVariation({
                             />
                             <FormField
                                 control={form.control}
-                                name="price"
+                                name="amount"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Price</FormLabel>
                                         <FormControl>
                                             <Input
                                                 placeholder="$0.00"
+                                                className="w-40"
                                                 {...field}
                                                 onChange={(event) => {
                                                     setValue(event.target.value)
@@ -140,28 +126,7 @@ export default function EditVariation({
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="id"
-                                render={({ field }) => (
-                                    <FormControl>
-                                        <Input
-                                            type="hidden"
-                                            {...field}
-                                            value={variation.productId}
-                                        />
-                                    </FormControl>
-                                )}
-                            />
-                            <div className="flex flex-row gap-4 pt-4">
-                                <Button
-                                    type="submit"
-                                    className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600"
-                                    disabled={!isDirty || isSubmitting}
-                                >
-                                    Save
-                                </Button>
-                            </div>
+                            <Button type="submit">Create</Button>
                         </form>
                     </Form>
                 </DialogContent>
