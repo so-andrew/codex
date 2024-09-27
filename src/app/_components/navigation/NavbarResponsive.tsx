@@ -50,10 +50,8 @@ const sidebarItems = {
 }
 
 export default function NavbarResponsive() {
-    const nameString = 'test'
-
     return (
-        <nav className="sticky lg:fixed lg:bottom-[calc(100vh-theme(spacing.16))] max-md:top-0 w-full h-16 z-50 border-b bg-white">
+        <nav className="sticky lg:fixed lg:bottom-[calc(100vh-theme(spacing.16))] max-lg:top-0 w-full h-16 z-50 border-b bg-white">
             <div className="flex flex-row justify-between items-center px-6 lg:px-12 py-2 h-full">
                 <Image
                     src={Logo}
@@ -114,11 +112,18 @@ export default function NavbarResponsive() {
                             </div>
                             <div className="absolute w-full bottom-4 px-6 pb-1 left-0">
                                 <Separator className="absolute -top-6 left-0 w-full" />
-                                <div className="flex flex-row gap-4 items-center">
-                                    <UserButton />
-                                    <span className="font-semibold">
-                                        {nameString}
-                                    </span>
+                                <div className="flex flex-row gap-4 items-center font-semibold">
+                                    <UserButton
+                                        showName={true}
+                                        appearance={{
+                                            elements: {
+                                                userButtonBox: {
+                                                    flexDirection:
+                                                        'row-reverse',
+                                                },
+                                            },
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>

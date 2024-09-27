@@ -169,7 +169,7 @@ export default async function page({ params }: { params: { id: string } }) {
                 <Collapsible>
                     <div className="flex flex-row justify-between px-6">
                         <div className="flex flex-row flex-wrap justify-start items-stretch gap-4">
-                            <Card>
+                            <Card className="w-full md:w-fit">
                                 <CardHeader>
                                     <CardTitle className="flex flex-row gap-4 justify-between items-center text-2xl font-semibold">
                                         {convention.name}
@@ -189,7 +189,7 @@ export default async function page({ params }: { params: { id: string } }) {
                                     </h2>
                                 </CardContent>
                             </Card>
-                            <Card>
+                            <Card className="flex flex-row w-full justify-between md:flex-col items-end md:items-start md:w-fit">
                                 <CardHeader>
                                     <CardTitle className="flex flex-col">
                                         <span className="text-lg text-gray-500">
@@ -201,17 +201,15 @@ export default async function page({ params }: { params: { id: string } }) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="flex flex-col">
-                                        <CollapsibleTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                className="flex flex-row gap-2 justify-center items-center px-2"
-                                            >
-                                                <Info />
-                                                <span>More Stats</span>
-                                            </Button>
-                                        </CollapsibleTrigger>
-                                    </div>
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            className="flex flex-row gap-2 justify-center items-center px-2"
+                                        >
+                                            <Info />
+                                            <span>More Stats</span>
+                                        </Button>
+                                    </CollapsibleTrigger>
                                 </CardContent>
                             </Card>
                         </div>

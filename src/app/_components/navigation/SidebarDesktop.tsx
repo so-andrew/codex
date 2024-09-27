@@ -31,11 +31,20 @@ export default function SidebarDesktop(props: SidebarDesktopProps) {
                             </Link>
                         ))}
                         <div className="fixed bottom-8">
-                            <div className="flex flex-row gap-4 px-4 items-center">
-                                <UserButton />
-                                <span className="font-semibold">
+                            <div className="flex flex-row gap-4 px-4 items-center font-semibold">
+                                <UserButton
+                                    showName={true}
+                                    appearance={{
+                                        elements: {
+                                            userButtonBox: {
+                                                flexDirection: 'row-reverse',
+                                            },
+                                        },
+                                    }}
+                                />
+                                {/* <span className="font-semibold">
                                     {nameString}
-                                </span>
+                                </span> */}
                             </div>
                         </div>
                     </div>

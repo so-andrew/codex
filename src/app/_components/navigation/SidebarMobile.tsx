@@ -78,8 +78,17 @@ export default function SidebarMobile(props: SidebarMobileProps) {
                     <div className="absolute w-full bottom-4 px-6 pb-1 left-0">
                         <Separator className="absolute -top-6 left-0 w-full" />
                         <div className="flex flex-row gap-4 items-center">
-                            <UserButton />
-                            <span className="font-semibold">{nameString}</span>
+                            <UserButton
+                                showName={true}
+                                appearance={{
+                                    elements: {
+                                        userButtonBox: {
+                                            flexDirection: 'row-reverse',
+                                        },
+                                    },
+                                }}
+                            />
+                            {/* <span className="font-semibold">{nameString}</span> */}
                         </div>
                     </div>
                 </div>
