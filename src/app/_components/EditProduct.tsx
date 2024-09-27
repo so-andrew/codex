@@ -95,9 +95,7 @@ export default function EditProduct({ product, categories }: EditProductProps) {
         <div className="flex flex-row gap-4">
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
-                    <Button className="bg-purple-500 hover:bg-purple-600">
-                        Edit Product
-                    </Button>
+                    <Button variant="outline">Edit</Button>
                 </DialogTrigger>
                 <DialogContent
                     className="sm:max-w-lg"

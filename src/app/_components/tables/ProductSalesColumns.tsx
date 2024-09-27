@@ -38,7 +38,7 @@ export const columns: ColumnDef<TopSellingVariations>[] = [
             return variationName ? (
                 <div className="font-medium">
                     {variationName}{' '}
-                    <span className="text-sm font-normal text-gray-500">{`(${productName})`}</span>
+                    <span className="max-sm:hidden text-sm font-normal text-gray-500">{`(${productName})`}</span>
                 </div>
             ) : (
                 <div className="font-medium">{productName}</div>

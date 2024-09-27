@@ -1,10 +1,16 @@
+'use client'
 import Logo from '@/../public/codexlogo.png'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useMediaQuery } from 'usehooks-ts'
 
 export const Navbar = () => {
-    return (
+    const isDesktop = useMediaQuery('(min-width:1024px)', {
+        initializeWithValue: false,
+    })
+
+    return isDesktop ? (
         <nav className="flex w-full justify-between border-b px-10 py-5">
             <Link
                 className="flex flex-row items-center justify-center gap-4"
@@ -31,5 +37,5 @@ export const Navbar = () => {
                 </SignedIn>
             </div>
         </nav>
-    )
+    ) : undefined
 }

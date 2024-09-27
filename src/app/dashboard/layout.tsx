@@ -14,9 +14,9 @@ export default function DashboardLayout({
     return (
         <>
             <Navbar />
-            <section className="flex flex-row">
+            <section className="flex flex-row w-full">
                 <Sidebar />
-                <main className="mt-3 w-full">{children}</main>
+                <main className="mt-16 lg:mt-4 w-full">{children}</main>
             </section>
         </>
     )

@@ -1,6 +1,7 @@
 import { db } from '@/server/db'
 import {
     type CategoryTableRow,
+    DailyRevenueReport,
     type ProductTableRow,
     TopSellingVariations,
 } from '@/types'
@@ -354,23 +355,34 @@ export async function getConventionRevenue(conventionId: number) {
 
     const datesInRange = await getConventionDateRange(conventionId)
     if (!datesInRange) throw new Error('Invalid dates')
-    const revenueDateMap = new Map<string, Record<number, number>>(
+    const revenueDateMap = new Map<string, Record<number, DailyRevenueReport>>(
         datesInRange.map((date) => {
-            return [date.toISOString(), {} as Record<number, number>]
+            return [
+                date.toISOString(),
+                {} as Record<number, DailyRevenueReport>,
+            ]
         }),
     )
     for (const revenue of itemized) {
         if (!revenueDateMap.has(revenue.date.toISOString())) {
             revenueDateMap.set(
                 revenue.date.toISOString(),
-                {} as Record<number, number>,
+                {} as Record<number, DailyRevenueReport>,
             )
         }
         const dailyRecord = revenueDateMap.get(revenue.date.toISOString())
         if (!dailyRecord![revenue.categoryId]) {
-            dailyRecord![revenue.categoryId] = 0
+            dailyRecord![revenue.categoryId] = {
+                totalRevenue: 0,
+                cashRevenue: 0,
+                cardRevenue: 0,
+            }
         }
-        dailyRecord![revenue.categoryId]! +=
+        dailyRecord![revenue.categoryId]!.cashRevenue +=
+            revenue.price * revenue.cashSales
+        dailyRecord![revenue.categoryId]!.cardRevenue +=
+            revenue.price * revenue.cardSales
+        dailyRecord![revenue.categoryId]!.totalRevenue +=
             revenue.price * (revenue.cardSales + revenue.cashSales)
         revenueDateMap.set(revenue.date.toISOString(), dailyRecord!)
     }
@@ -382,7 +394,7 @@ export async function getConventionRevenue(conventionId: number) {
     }
 }
 
-async function getConventionDateRange(conventionId: number) {
+export async function getConventionDateRange(conventionId: number) {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
 

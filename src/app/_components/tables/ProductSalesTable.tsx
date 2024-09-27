@@ -26,10 +26,14 @@ export default function ProductSalesTable({
 }: {
     data: TopSellingVariations[]
 }) {
+    // const isDesktop = useMediaQuery('(min-width:1024px)', {
+    //     initializeWithValue: false,
+    // })
+
     const [sorting, setSorting] = useState<SortingState>([])
     const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: 0,
-        pageSize: 10,
+        pageSize: 5,
     })
 
     const table = useReactTable({

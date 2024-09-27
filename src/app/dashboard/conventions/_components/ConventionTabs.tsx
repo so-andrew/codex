@@ -12,9 +12,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { type ProductsByCategory } from '@/types'
+import { DailyRevenueReport, type ProductsByCategory } from '@/types'
 import { formatInTimeZone } from 'date-fns-tz'
 import { useState } from 'react'
 
@@ -25,7 +24,7 @@ export default function ConventionTabs({
 }: {
     data: ProductsByCategory[]
     range: Date[]
-    revenue: Map<string, Record<number, number>>
+    revenue: Map<string, Record<number, DailyRevenueReport>>
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -64,7 +63,7 @@ export default function ConventionTabs({
     return (
         <>
             <Tabs value={tab} onValueChange={onTabChange} className="w-full">
-                <TabsList className={`flex w-fit flex-row justify-start mb-4`}>
+                <TabsList className={`flex w-fit flex-row justify-start ml-6`}>
                     {range.map((day) => {
                         const dateString = formatInTimeZone(
                             day,
@@ -85,8 +84,12 @@ export default function ConventionTabs({
                         'EEE, MMM d',
                     )
                     return (
-                        <TabsContent key={index} value={dateString}>
-                            <Card className="pb-16">
+                        <TabsContent
+                            key={index}
+                            value={dateString}
+                            className="mb-16"
+                        >
+                            {/* <Card className="pb-16 mx-0 lg:mx-6">
                                 <CardContent className="flex flex-col gap-4">
                                     <ReportTable
                                         data={data}
@@ -96,7 +99,12 @@ export default function ConventionTabs({
                                         }
                                     />
                                 </CardContent>
-                            </Card>
+                            </Card> */}
+                            <ReportTable
+                                data={data}
+                                day={day}
+                                revenue={revenue.get(day.toISOString())!}
+                            />
                         </TabsContent>
                     )
                 })}

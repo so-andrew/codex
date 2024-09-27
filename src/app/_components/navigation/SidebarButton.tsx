@@ -1,4 +1,5 @@
 import { Button, type ButtonProps } from '@/components/ui/button'
+import { SheetClose } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { type LucideIcon } from 'lucide-react'
 
@@ -16,13 +17,21 @@ export default function SidebarButton({
         <Button
             variant="ghost"
             className={cn(
-                'items-center justify-start gap-2 hover:bg-purple-500/20',
+                'items-center justify-start gap-3 hover:bg-purple-500/20',
                 className,
             )}
             {...props}
         >
-            {Icon && <Icon size={20} />}
+            {Icon && <Icon size={24} />}
             <span>{children}</span>
         </Button>
+    )
+}
+
+export function SidebarButtonSheet(props: SidebarButtonProps) {
+    return (
+        <SheetClose asChild>
+            <SidebarButton {...props} />
+        </SheetClose>
     )
 }

@@ -16,7 +16,7 @@ export default function SidebarDesktop(props: SidebarDesktopProps) {
                             <Link key={index} href={link.href}>
                                 <SidebarButton
                                     icon={link.icon}
-                                    className="text-md w-full font-semibold"
+                                    className="text-lg w-full font-semibold"
                                 >
                                     {link.label}
                                 </SidebarButton>

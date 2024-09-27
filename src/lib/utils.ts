@@ -27,3 +27,19 @@ export const moneyFormat = Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
 })
+
+export function getColor(index: number) {
+    return getRandomColor()
+}
+
+function getRandomColor() {
+    return (
+        'hsl(' +
+        360 * Math.random() +
+        ',' +
+        (25 + 70 * Math.random()) +
+        '%,' +
+        (85 + 10 * Math.random()) +
+        '%)'
+    )
+}

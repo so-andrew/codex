@@ -69,20 +69,14 @@ export default async function page({ params }: { params: { id: string } }) {
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
             <section className="flex flex-row justify-between border-b pb-8">
-                {/* <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl font-semibold">{product?.name}</h1>
-                    <span className="text-lg text-gray-500">
-                        {product?.category}
-                    </span>
-                    <span className="text-lg text-gray-500">
-                        {formattedAmount}
-                    </span>
-                </div> */}
-
                 <Card>
                     <CardHeader>
-                        <CardTitle className="px-2 text-2xl">
-                            {product?.name}
+                        <CardTitle className=" flex flex-row gap-4 px-2 text-2xl">
+                            <span>{product?.name}</span>
+                            <EditProduct
+                                product={product}
+                                categories={categories}
+                            />
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -98,10 +92,9 @@ export default async function page({ params }: { params: { id: string } }) {
                         </div>
                     </CardContent>
                 </Card>
-                <EditProduct product={product} categories={categories} />
             </section>
             <section>
-                <div className="flex flex-row justify-between">
+                <div className="flex flex-row justify-between items-center">
                     <h2 className="text-xl font-bold">Variations</h2>
                     <CreateVariation product={product} />
                 </div>

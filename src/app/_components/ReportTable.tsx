@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -13,6 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { dirtyValues } from '@/lib/utils'
 import {
+    DailyRevenueReport,
     type defaultValues,
     type ProductsByCategory,
     type SalesReportFormData,
@@ -20,6 +22,7 @@ import {
 import { DevTool } from '@hookform/devtools'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { isEqual } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -43,17 +46,17 @@ export default function ReportTable({
 }: {
     data: ProductsByCategory[]
     day: Date
-    revenue: Record<number, number>
+    revenue: Record<number, DailyRevenueReport>
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
     )
     const { toast } = useToast()
 
-    // const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    // const dayString = useRef<string>(
-    //     formatInTimeZone(day, timeZone, 'EEE, MMM d'),
-    // )
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const dayString = useRef<string>(
+        formatInTimeZone(day, timeZone, 'EEE, MMM d'),
+    )
 
     const def = useRef<defaultValues>({})
     const startingRowExpandedState: Record<number, boolean> = {}
@@ -151,11 +154,19 @@ export default function ReportTable({
                         return (
                             <div
                                 key={category.categoryId}
-                                className="flex flex-col gap-4 pt-4"
+                                className="flex flex-col gap-4 pt-4 px-6"
                             >
-                                <h1 className="p-2 text-lg font-semibold">
-                                    {category.categoryName}
-                                </h1>
+                                <div className="flex flex-row items-center gap-4">
+                                    <h1 className="p-2 text-lg font-semibold">
+                                        {category.categoryName}
+                                    </h1>
+                                    <Badge
+                                        variant="secondary"
+                                        className="py-1 rounded-xl"
+                                    >
+                                        {dayString.current}
+                                    </Badge>
+                                </div>
                                 <Table className="rounded-md border">
                                     <TableHeader>
                                         <TableRow>
@@ -260,7 +271,7 @@ export default function ReportTable({
                                                                                     <Input
                                                                                         type="number"
                                                                                         min="0"
-                                                                                        className={`w-20 ${getFieldState(`${product.reports[0]!.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                        className={`w-16 lg:w-20 ${getFieldState(`${product.reports[0]!.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                         {...field}
                                                                                         onChange={(
                                                                                             e,
@@ -293,7 +304,7 @@ export default function ReportTable({
                                                                                     <Input
                                                                                         type="number"
                                                                                         min="0"
-                                                                                        className={`w-20 ${getFieldState(`${product.reports[0]!.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                        className={`w-16 lg:w-20 ${getFieldState(`${product.reports[0]!.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                         {...field}
                                                                                         onChange={(
                                                                                             e,
@@ -342,7 +353,7 @@ export default function ReportTable({
                                                                         }
                                                                         className="cursor-pointer even:bg-slate-200/40"
                                                                     >
-                                                                        <TableCell className="pl-20">
+                                                                        <TableCell className="pl-12 lg:pl-20">
                                                                             {
                                                                                 report.name
                                                                             }
@@ -366,7 +377,7 @@ export default function ReportTable({
                                                                                             <Input
                                                                                                 type="number"
                                                                                                 min="0"
-                                                                                                className={`w-20 ${getFieldState(`${report.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                className={`w-16 lg:w-20 ${getFieldState(`${report.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                                 {...field}
                                                                                                 onChange={(
                                                                                                     e,
@@ -399,7 +410,7 @@ export default function ReportTable({
                                                                                             <Input
                                                                                                 type="number"
                                                                                                 min="0"
-                                                                                                className={`w-20 ${getFieldState(`${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                className={`w-16 lg:w-20 ${getFieldState(`${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                                 {...field}
                                                                                                 onChange={(
                                                                                                     e,
@@ -444,7 +455,7 @@ export default function ReportTable({
                                                 ).format(
                                                     revenue[
                                                         category.categoryId
-                                                    ]!,
+                                                    ]!.totalRevenue,
                                                 )}
                                             </TableCell>
                                         </TableRow>
@@ -455,7 +466,7 @@ export default function ReportTable({
                     })}
                     {
                         <div
-                            className="fixed bottom-0 left-1/4 right-1/4 flex items-center justify-between rounded-md border-t border-border bg-background p-4 shadow-lg transition-all duration-300 ease-in-out"
+                            className="fixed bottom-0 left-4 right-4 lg:left-1/4 lg:right-1/4 flex items-center justify-between rounded-md border-t border-border bg-background p-4 shadow-lg transition-all duration-300 ease-in-out"
                             style={{
                                 transform: `translateY(${Object.keys(dirtyFields).length > 0 ? '0' : '100%'})`,
                             }}
@@ -463,7 +474,7 @@ export default function ReportTable({
                             {/* <span>{`isDirty: ${isDirty}, getValues() === defaultValues = ${getValues() === defaultValues}, number of changes: ${Object.keys(dirtyFields).length}`}</span> */}
                             <span>{`${Object.keys(dirtyFields).length} changed field${Object.keys(dirtyFields).length !== 1 ? 's' : ''}`}</span>
 
-                            <Button
+                            {/* <Button
                                 type="button"
                                 onClick={() => {
                                     //console.log(defaultValues)
@@ -472,7 +483,7 @@ export default function ReportTable({
                                 }}
                             >
                                 Log
-                            </Button>
+                            </Button> */}
                             <Button
                                 type="submit"
                                 className="bg-purple-500 hover:bg-purple-600"

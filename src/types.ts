@@ -86,10 +86,27 @@ export type SalesReportFormData = {
     cardSales: number | undefined
 }
 
+export type DailyRevenueReport = {
+    totalRevenue: number
+    cashRevenue: number
+    cardRevenue: number
+}
+
 export type TopSellingVariations = {
     reportId: number
     variationName: string | undefined
     productName: string
     totalSales: number
     totalRevenue: number
+}
+
+export type Dataset = {
+    label: string
+    data: number[]
+    backgroundColor?: string[]
+}
+
+export type ChartData = {
+    labels: string[]
+    datasets: Dataset[]
 }

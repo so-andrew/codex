@@ -127,12 +127,13 @@ export default function EditConvention({
         <div className="flex flex-row gap-6">
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
-                    <Button className="bg-purple-500 hover:bg-purple-600">
-                        Edit Convention
-                    </Button>
+                    {/* <Button className="bg-purple-500 hover:bg-purple-600">
+                        Edit
+                    </Button> */}
+                    <Button variant="outline">Edit</Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-[800px]"
+                    className="sm:max-w-lg"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
