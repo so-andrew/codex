@@ -4,6 +4,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMediaQuery } from 'usehooks-ts'
+import NavbarMobile from './NavbarMobile'
 
 export const Navbar = () => {
     const isDesktop = useMediaQuery('(min-width:1024px)', {
@@ -37,5 +38,7 @@ export const Navbar = () => {
                 </SignedIn>
             </div>
         </nav>
-    ) : undefined
+    ) : (
+        <NavbarMobile />
+    )
 }

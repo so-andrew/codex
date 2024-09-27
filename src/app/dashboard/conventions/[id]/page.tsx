@@ -217,7 +217,7 @@ export default async function page({ params }: { params: { id: string } }) {
                         </div>
                     </div>
                     <CollapsibleContent>
-                        <Carousel className="px-6 mt-4">
+                        <Carousel className="sm:hidden px-6 mt-4">
                             <CarouselContent className="-ml-10 flex flex-row items-stretch">
                                 <CarouselItem className="pl-10">
                                     <ProductSalesStatsCard data={query} />
@@ -225,19 +225,20 @@ export default async function page({ params }: { params: { id: string } }) {
                                 <CarouselItem className="pl-10">
                                     <DailyRevenueStatsCard
                                         pieChartData={pieChartData}
-                                        className="h-full"
+                                        className="max-sm:h-full max-sm:w-full"
                                     />
                                 </CarouselItem>
                                 <CarouselItem className="pl-10">
                                     <RevenueTypeStatsCard
                                         barChartData={barChartData}
+                                        className="max-sm:h-full max-sm:w-full"
                                     />
                                 </CarouselItem>
                             </CarouselContent>
                             <CarouselPrevious />
                             <CarouselNext />
                         </Carousel>
-                        <div className="px-6 mt-4 hidden sm:flex flex-row gap-4">
+                        <div className="px-6 mt-4 hidden sm:flex flex-row flex-wrap justify-start items-stretch gap-4">
                             <ProductSalesStatsCard data={query} />
                             <DailyRevenueStatsCard
                                 pieChartData={pieChartData}

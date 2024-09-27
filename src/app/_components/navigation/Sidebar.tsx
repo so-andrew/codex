@@ -3,7 +3,6 @@
 import { Calendar, Home, Percent, ScanBarcode, Tags } from 'lucide-react'
 import { useMediaQuery } from 'usehooks-ts'
 import SidebarDesktop from './SidebarDesktop'
-import SidebarMobile from './SidebarMobile'
 
 const sidebarItems = {
     links: [
@@ -37,7 +36,6 @@ export default function Sidebar() {
     })
     return isDesktop ? (
         <SidebarDesktop sidebarItems={sidebarItems} />
-    ) : (
-        <SidebarMobile sidebarItems={sidebarItems} />
-    )
+    ) : // <SidebarMobile sidebarItems={sidebarItems} />
+    undefined
 }

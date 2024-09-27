@@ -1,4 +1,6 @@
+'use client'
 import { type SidebarItems } from '@/types'
+import { UserButton, useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import SidebarButton from './SidebarButton'
 
@@ -7,8 +9,14 @@ interface SidebarDesktopProps {
 }
 
 export default function SidebarDesktop(props: SidebarDesktopProps) {
+    const { user } = useUser()
+    const nameString = user?.fullName
+        ? user?.fullName
+        : user?.username
+          ? user.username
+          : 'User'
     return (
-        <aside className="w=[270px] left-0 top-0 z-40 h-screen max-w-xs border-r bg-white">
+        <aside className="sticky w=[270px] left-0 top-16 z-40 h-[calc(100vh-theme(spacing.16))] max-w-xs border-r bg-white">
             <div className="h-full px-8 py-4">
                 <div className="mt-5">
                     <div className="flex w-full flex-col gap-2">
@@ -22,7 +30,17 @@ export default function SidebarDesktop(props: SidebarDesktopProps) {
                                 </SidebarButton>
                             </Link>
                         ))}
+                        <div className="fixed bottom-8">
+                            <div className="flex flex-row gap-4 px-4 items-center">
+                                <UserButton />
+                                <span className="font-semibold">
+                                    {nameString}
+                                </span>
+                            </div>
+                        </div>
                     </div>
+
+                    {/* <div className="absolute w-full bottom-4 px-6 pb-1 left-0"></div> */}
                 </div>
             </div>
         </aside>

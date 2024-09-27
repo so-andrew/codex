@@ -31,56 +31,34 @@ export default function RevenueTypeStatsCard({
 }) {
     console.log(barChartData)
     return (
-        <div className={cn('flex grow h-auto space-x-4', className)}>
+        <div
+            className={cn(
+                'flex max-sm:grow max-sm:h-auto space-x-4',
+                className,
+            )}
+        >
             <Card className="flex flex-col justify-start">
                 <CardHeader>
                     <CardTitle className="text-lg">Revenue By Type</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-col justify-between gap-4">
-                        <Bar
-                            data={barChartData}
-                            options={{
-                                responsive: true,
-                                scales: {
-                                    x: {
-                                        stacked: true,
-                                    },
-                                    y: {
-                                        stacked: true,
-                                    },
+                    <Bar
+                        data={barChartData}
+                        options={{
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    stacked: true,
                                 },
-                                plugins: {
-                                    legend: { position: 'bottom' },
+                                y: {
+                                    stacked: true,
                                 },
-                            }}
-                            // style={{
-                            //     position: 'relative',
-                            //     //height: '100vh',
-                            // }}
-                        />
-                        {/* <div>
-                            {barChartData.labels.map((label, index) => {
-                                const cashRevenue = moneyFormat.format(
-                                    barChartData.datasets[0]!.data[index]!,
-                                )
-                                const cardRevenue = moneyFormat.format(
-                                    barChartData.datasets[1]!.data[index]!,
-                                )
-
-                                return (
-                                    <h2 key={index}>
-                                        <span className="text-gray-500">
-                                            {label}
-                                        </span>
-                                        <span className="font-semibold">
-                                            {`${cashRevenue}, ${cardRevenue}`}
-                                        </span>
-                                    </h2>
-                                )
-                            })}
-                        </div> */}
-                    </div>
+                            },
+                            plugins: {
+                                legend: { position: 'bottom' },
+                            },
+                        }}
+                    />
                 </CardContent>
             </Card>
         </div>
