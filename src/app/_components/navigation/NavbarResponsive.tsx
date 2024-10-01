@@ -51,7 +51,7 @@ const sidebarItems = {
 
 export default function NavbarResponsive() {
     return (
-        <nav className="sticky lg:fixed lg:bottom-[calc(100vh-theme(spacing.16))] max-lg:top-0 w-full h-16 z-50 border-b bg-white">
+        <nav className="sticky lg:fixed lg:bottom-[calc(100vh-theme(spacing.16))] max-lg:top-0 w-full h-16 z-50 border-b bg-white max-sm:shadow-md">
             <div className="flex flex-row justify-between items-center px-6 lg:px-12 py-2 h-full">
                 <Image
                     src={Logo}

@@ -81,9 +81,16 @@ const bulkProductDeleteScheme = z.object({
 })
 
 // Discount schemas
-const createDiscountScheme = z.object({
+const discountCreateScheme = z.object({
     name: z.string().min(2).max(100),
     amount: z.coerce.number().nonnegative(),
+})
+
+const discountEditScheme = z.object({
+    id: z.number(),
+    name: z.string().min(2).max(100),
+    amount: z.coerce.number().nonnegative(),
+    creatorId: z.string(),
 })
 
 // Category schemas
@@ -334,7 +341,7 @@ export async function bulkDeleteProduct(
 
 // Create discounts
 export async function createDiscount(
-    data: z.infer<typeof createDiscountScheme>,
+    data: z.infer<typeof discountCreateScheme>,
 ) {
     const user = auth()
 
@@ -344,7 +351,7 @@ export async function createDiscount(
     }
 
     try {
-        const parse = createDiscountScheme.parse({
+        const parse = discountCreateScheme.parse({
             name: data.name,
             amount: data.amount,
         })
@@ -354,9 +361,69 @@ export async function createDiscount(
             amount: parse.amount.toString(),
             creatorId: user.userId,
         })
-    } catch (error) {
+    } catch (e) {
+        const error = e as Error
         console.error(error)
+        throw error
     }
+    revalidatePath('/dashboard/discounts')
+}
+
+export async function editDiscount(data: z.infer<typeof discountEditScheme>) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = discountEditScheme.parse({
+            id: data.id,
+            name: data.name,
+            amount: data.amount,
+            creatorId: data.creatorId,
+        })
+
+        await db
+            .update(discounts)
+            .set({
+                name: parse.name,
+                amount: parse.amount.toString(),
+            })
+            .where(
+                and(
+                    eq(discounts.id, parse.id),
+                    eq(discounts.creatorId, parse.creatorId),
+                ),
+            )
+        revalidatePath('/dashboard/discounts')
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+}
+
+export async function deleteDiscount(data: z.infer<typeof generalItemSchema>) {
+    const user = auth()
+
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    const parse = generalItemSchema.parse({
+        id: data.id,
+        creatorId: data.creatorId,
+    })
+
+    if (user.userId !== parse.creatorId) {
+        const error = new Error('User does not have permission to delete.')
+        throw error
+    }
+
+    await db.delete(discounts).where(eq(discounts.id, parse.id))
     revalidatePath('/dashboard/discounts')
 }
 
@@ -479,6 +546,23 @@ export async function createVariation(
             creatorId: user.userId,
             sku: parse.sku,
         })
+
+        const getAllVariations = await db
+            .select()
+            .from(productVariations)
+            .where(eq(productVariations.productId, parse.productId))
+
+        if (getAllVariations.length > 1) {
+            await db
+                .update(products)
+                .set({ price: null })
+                .where(
+                    and(
+                        eq(products.id, parse.productId),
+                        eq(products.creatorId, user.userId),
+                    ),
+                )
+        }
     } catch (error) {
         console.error(error)
     }
@@ -502,6 +586,10 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
             sku: data.sku,
         })
 
+        const product = await db.query.products.findFirst({
+            where: eq(products.id, parse.productId),
+        })
+
         const getAllVariations = await db
             .select()
             .from(productVariations)
@@ -517,6 +605,7 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
             .set({
                 name: parse.name,
                 price: parse.price.toString(),
+                sku: parse.sku,
             })
             .where(
                 and(
@@ -525,19 +614,34 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
                 ),
             )
 
-        if (parse.sku) {
+        if (
+            getAllVariations.length <= 1 &&
+            parse.price.toString() !== product!.price
+        ) {
             await db
-                .update(productVariations)
-                .set({
-                    sku: parse.sku,
-                })
+                .update(products)
+                .set({ price: parse.price.toString() })
                 .where(
                     and(
-                        eq(productVariations.id, parse.id),
-                        eq(productVariations.creatorId, user.userId),
+                        eq(products.id, parse.productId),
+                        eq(products.creatorId, user.userId),
                     ),
                 )
         }
+
+        // if (parse.sku) {
+        //     await db
+        //         .update(productVariations)
+        //         .set({
+        //             sku: parse.sku,
+        //         })
+        //         .where(
+        //             and(
+        //                 eq(productVariations.id, parse.id),
+        //                 eq(productVariations.creatorId, user.userId),
+        //             ),
+        //         )
+        // }
     } catch (e) {
         const error = e as Error
         console.error(error)
@@ -592,7 +696,7 @@ export async function deleteVariation({
 }) {
     const user = auth()
 
-    if (!user || user.userId) {
+    if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }

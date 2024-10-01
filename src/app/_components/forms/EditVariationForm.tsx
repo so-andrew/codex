@@ -68,7 +68,7 @@ export default function EditVariationForm({
             creatorId: creatorId,
             name: name,
             price: price,
-            sku: sku ?? '',
+            sku: sku ?? undefined,
         },
     })
 

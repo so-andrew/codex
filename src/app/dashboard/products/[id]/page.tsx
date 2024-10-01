@@ -39,10 +39,14 @@ export default async function page({ params }: { params: { id: string } }) {
         product.id,
     )) as ProductVariation[]
 
+    console.log(variations)
+
     let formattedAmount = ''
 
     if (variations.length > 1) {
-        const prices = variations.map((variation) => parseInt(variation.price))
+        const prices = variations.map((variation) =>
+            parseFloat(variation.price),
+        )
         if (Math.max(...prices) === Math.min(...prices)) {
             formattedAmount = new Intl.NumberFormat('en-US', {
                 style: 'currency',

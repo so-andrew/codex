@@ -3,13 +3,6 @@ import { FormStoreProvider } from '@/app/providers/form-store-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from '@/components/ui/carousel'
-import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
@@ -36,6 +29,7 @@ import ConventionTabs from '../_components/ConventionTabs'
 import DailyRevenueStatsCard from '../_components/DailyRevenueStatsCard'
 import ProductSalesStatsCard from '../_components/ProductSalesStatsCard'
 import RevenueTypeStatsCard from '../_components/RevenueTypeStatsCard'
+import StatsCarousel from '../_components/StatsCarousel'
 
 type Props = {
     params: { id: string }
@@ -167,76 +161,65 @@ export default async function page({ params }: { params: { id: string } }) {
         <FormStoreProvider>
             <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 lg:px-20">
                 <Collapsible>
-                    <div className="flex flex-row justify-between px-6">
-                        <div className="flex flex-row flex-wrap justify-start items-stretch gap-4">
-                            <Card className="w-full md:w-fit">
-                                <CardHeader>
-                                    <CardTitle className="flex flex-row gap-4 justify-between items-center text-2xl font-semibold">
-                                        {convention.name}
-                                        {convention && (
-                                            <EditConvention
-                                                convention={convention}
-                                            />
-                                        )}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <h2 className="text-lg text-gray-500">
-                                        {convention?.location}
-                                    </h2>
-                                    <h2 className="text-lg text-gray-500">
-                                        {startDateString} - {endDateString}
-                                    </h2>
-                                </CardContent>
-                            </Card>
-                            <Card className="flex flex-row w-full justify-between md:flex-col items-end md:items-start md:w-fit">
-                                <CardHeader>
-                                    <CardTitle className="flex flex-col">
-                                        <span className="text-lg text-gray-500">
-                                            Total Revenue
-                                        </span>
-                                        <span className="text-2xl font-bold">
-                                            {totalRevenueString}
-                                        </span>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <CollapsibleTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            className="flex flex-row gap-2 justify-center items-center px-2"
-                                        >
-                                            <Info />
-                                            <span>More Stats</span>
-                                        </Button>
-                                    </CollapsibleTrigger>
-                                </CardContent>
-                            </Card>
-                        </div>
+                    <div className="flex flex-row flex-wrap justify-start items-stretch gap-4 px-6">
+                        <Card className="w-full md:w-fit">
+                            <CardHeader>
+                                <CardTitle className="flex flex-row gap-4 justify-between items-center text-2xl font-semibold">
+                                    {convention.name}
+                                    {convention && (
+                                        <EditConvention
+                                            convention={convention}
+                                        />
+                                    )}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <h2 className="text-lg text-gray-500">
+                                    {convention?.location}
+                                </h2>
+                                <h2 className="text-lg text-gray-500">
+                                    {startDateString} - {endDateString}
+                                </h2>
+                            </CardContent>
+                        </Card>
+                        <Card className="flex flex-row w-full justify-between md:flex-col items-end md:items-start md:w-fit">
+                            <CardHeader>
+                                <CardTitle className="flex flex-col">
+                                    <span className="text-lg text-gray-500">
+                                        Total Revenue
+                                    </span>
+                                    <span className="text-2xl font-bold">
+                                        {totalRevenueString}
+                                    </span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="flex flex-row gap-2 justify-center items-center px-2"
+                                    >
+                                        <Info />
+                                        <span>More Stats</span>
+                                    </Button>
+                                </CollapsibleTrigger>
+                            </CardContent>
+                        </Card>
                     </div>
+
                     <CollapsibleContent>
-                        <Carousel className="sm:hidden px-6 mt-4">
-                            <CarouselContent className="-ml-10 flex flex-row items-stretch">
-                                <CarouselItem className="pl-10">
-                                    <ProductSalesStatsCard data={query} />
-                                </CarouselItem>
-                                <CarouselItem className="pl-10">
-                                    <DailyRevenueStatsCard
-                                        pieChartData={pieChartData}
-                                        className="max-sm:h-full max-sm:w-full"
-                                    />
-                                </CarouselItem>
-                                <CarouselItem className="pl-10">
-                                    <RevenueTypeStatsCard
-                                        barChartData={barChartData}
-                                        className="max-sm:h-full max-sm:w-full"
-                                    />
-                                </CarouselItem>
-                            </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
-                        </Carousel>
-                        <div className="px-6 mt-4 hidden sm:flex flex-row flex-wrap justify-start items-stretch gap-4">
+                        <StatsCarousel className="sm:hidden mt-4">
+                            <ProductSalesStatsCard data={query} />
+                            <DailyRevenueStatsCard
+                                pieChartData={pieChartData}
+                                className="max-sm:h-full max-sm:w-full"
+                            />
+                            <RevenueTypeStatsCard
+                                barChartData={barChartData}
+                                className="max-sm:h-full max-sm:w-full"
+                            />
+                        </StatsCarousel>
+                        <div className="px-6 mt-4 hidden sm:flex flex-row flex-wrap justify-start gap-4">
                             <ProductSalesStatsCard data={query} />
                             <DailyRevenueStatsCard
                                 pieChartData={pieChartData}

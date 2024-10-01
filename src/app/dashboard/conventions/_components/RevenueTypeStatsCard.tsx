@@ -29,7 +29,6 @@ export default function RevenueTypeStatsCard({
     barChartData: ChartData
     className?: string
 }) {
-    console.log(barChartData)
     return (
         <div
             className={cn(
@@ -37,15 +36,17 @@ export default function RevenueTypeStatsCard({
                 className,
             )}
         >
-            <Card className="flex flex-col justify-start">
+            <Card className="flex flex-col justify-start max-sm:w-full">
                 <CardHeader>
                     <CardTitle className="text-lg">Revenue By Type</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="h-full">
                     <Bar
                         data={barChartData}
                         options={{
+                            indexAxis: 'y',
                             responsive: true,
+                            maintainAspectRatio: false,
                             scales: {
                                 x: {
                                     stacked: true,
@@ -56,6 +57,28 @@ export default function RevenueTypeStatsCard({
                             },
                             plugins: {
                                 legend: { position: 'bottom' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            let label =
+                                                context.dataset.label ?? ''
+
+                                            if (label) {
+                                                label += ': '
+                                            }
+                                            if (context.parsed.x !== null) {
+                                                label += new Intl.NumberFormat(
+                                                    'en-US',
+                                                    {
+                                                        style: 'currency',
+                                                        currency: 'USD',
+                                                    },
+                                                ).format(context.parsed.x)
+                                            }
+                                            return label
+                                        },
+                                    },
+                                },
                             },
                         }}
                     />

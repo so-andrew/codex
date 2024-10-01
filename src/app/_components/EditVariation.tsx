@@ -86,7 +86,7 @@ export default function EditVariation({
     }
 
     return (
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-row gap-6">
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent
                     className="sm:max-w-[800px]"

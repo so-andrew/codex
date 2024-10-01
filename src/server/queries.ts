@@ -1,9 +1,9 @@
 import { db } from '@/server/db'
 import {
     type CategoryTableRow,
-    DailyRevenueReport,
+    type DailyRevenueReport,
     type ProductTableRow,
-    TopSellingVariations,
+    type TopSellingVariations,
 } from '@/types'
 import { auth } from '@clerk/nextjs/server'
 import { eachDayOfInterval } from 'date-fns'
@@ -323,6 +323,7 @@ export async function getConventionRevenue(conventionId: number) {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
 
+    // Returns sales information for each product variation on a per-date basis
     const itemized = await db
         .select({
             date: productDailyRevenue.date,
@@ -349,12 +350,15 @@ export async function getConventionRevenue(conventionId: number) {
         )
         .where(eq(productDailyRevenue.conventionId, conventionId))
 
+    // Calculates total revenue over all dates and products
     const conventionTotalRevenue = itemized.reduce((acc, element) => {
         return +acc + +element.totalRevenue
     }, 0)
 
     const datesInRange = await getConventionDateRange(conventionId)
     if (!datesInRange) throw new Error('Invalid dates')
+
+    // Construct a map whose keys are string representations of dates, and whose values are a Record that maps report ID to revenue reports
     const revenueDateMap = new Map<string, Record<number, DailyRevenueReport>>(
         datesInRange.map((date) => {
             return [
@@ -394,6 +398,7 @@ export async function getConventionRevenue(conventionId: number) {
     }
 }
 
+// Returns array of Date objects from start date to end date inclusive
 export async function getConventionDateRange(conventionId: number) {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
@@ -418,6 +423,7 @@ export async function getTopSellingVariations(conventionId: number) {
     const user = auth()
     if (!user.userId) throw new Error('Unauthorized')
 
+    // Returns total sales/revenue for each product variation
     const revenueQuery = db
         .select({
             reportId: productDailyRevenue.reportId,
@@ -439,6 +445,7 @@ export async function getTopSellingVariations(conventionId: number) {
         .groupBy(productDailyRevenue.reportId, conventionProductReports.price)
         .as('rq')
 
+    // Returns total sales/revenue plus product and variation name
     const query = (await db
         .select({
             reportId: revenueQuery.reportId,
