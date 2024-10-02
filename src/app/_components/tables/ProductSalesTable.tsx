@@ -18,7 +18,8 @@ import {
     type SortingState,
     useReactTable,
 } from '@tanstack/react-table'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useMediaQuery } from 'usehooks-ts'
 import { columns } from './ProductSalesColumns'
 
 export default function ProductSalesTable({
@@ -26,9 +27,9 @@ export default function ProductSalesTable({
 }: {
     data: TopSellingVariations[]
 }) {
-    // const isDesktop = useMediaQuery('(min-width:1024px)', {
-    //     initializeWithValue: false,
-    // })
+    const isTablet = useMediaQuery('(min-width:768px)', {
+        initializeWithValue: false,
+    })
 
     const [sorting, setSorting] = useState<SortingState>([])
     const [pagination, setPagination] = useState<PaginationState>({
@@ -53,8 +54,15 @@ export default function ProductSalesTable({
         },
     })
 
+    useEffect(() => {
+        setPagination({
+            pageIndex: pagination.pageIndex,
+            pageSize: isTablet ? 8 : 5,
+        })
+    }, [isTablet, pagination.pageIndex])
+
     return (
-        <div>
+        <>
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -121,6 +129,6 @@ export default function ProductSalesTable({
                     Next
                 </Button>
             </div>
-        </div>
+        </>
     )
 }

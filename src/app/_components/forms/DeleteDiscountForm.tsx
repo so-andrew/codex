@@ -1,4 +1,4 @@
-import { deleteVariation } from '@/app/actions'
+import { deleteDiscount } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
@@ -9,11 +9,10 @@ import { z } from 'zod'
 
 const formSchema = z.object({
     id: z.number(),
-    productId: z.number(),
     creatorId: z.string(),
 })
 
-export default function DeleteVariationForm({
+export default function DeleteDiscountForm({
     data,
     setIsOpen,
 }: {
@@ -25,7 +24,6 @@ export default function DeleteVariationForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             id: data.id,
-            productId: data.productId,
             creatorId: data.creatorId,
         },
     })
@@ -35,7 +33,7 @@ export default function DeleteVariationForm({
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
-            await deleteVariation(data)
+            await deleteDiscount(data)
             reset({}, { keepValues: true })
             toast({
                 title: 'Success',

@@ -57,7 +57,7 @@ export default function ConventionTable({ data }: { data: Convention[] }) {
     }
 
     return (
-        <div>
+        <>
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Filter conventions..."
@@ -235,6 +235,6 @@ export default function ConventionTable({ data }: { data: Convention[] }) {
                     toggleAllRowsSelected={table.toggleAllRowsSelected}
                 />
             </GenericDialog>
-        </div>
+        </>
     )
 }

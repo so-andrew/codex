@@ -33,11 +33,20 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { cn, moneyFormat } from '@/lib/utils'
 import { type Category } from '@/server/db/schema'
+import { DevTool } from '@hookform/devtools'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useReducer, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
+
+type Action = {
+    type: 'set_value' | 'remove_value'
+    index: number
+    value?: string
+}
+
+type State = string[]
 
 const variationSchema = z.object({
     name: z
@@ -74,10 +83,55 @@ export default function CreateProduct({
     const [isOpen, setIsOpen] = useState(false)
     const [isComboboxOpen, setIsComboboxOpen] = useState(false)
     const [variationCount, setVariationCount] = useState(0)
+    const [displayValues, dispatch] = useReducer(reducer, [] as State)
+
+    function reducer(state: State, action: Action): State {
+        //console.log(action)
+        switch (action.type) {
+            case 'set_value':
+                //console.log('slice1:', ...state.slice(0, action.index))
+                //console.log('slice2:', ...state.slice(action.index + 1))
+
+                const newArr = [
+                    ...state.slice(0, action.index),
+                    formatAsCurrency(action.value!),
+                    ...state.slice(action.index + 1),
+                ]
+                console.log('newArr', newArr)
+                return newArr
+            case 'remove_value':
+                return [
+                    ...state.slice(0, action.index),
+                    ...state.slice(action.index + 1),
+                ]
+        }
+    }
+
+    function setDisplayValue({
+        index,
+        target,
+    }: {
+        index: number
+        target: EventTarget & HTMLInputElement
+    }) {
+        dispatch({ type: 'set_value', index: index, value: target.value })
+    }
+
+    function removeDisplayValue(index: number) {
+        dispatch({
+            type: 'remove_value',
+            index: index,
+        })
+    }
+
+    function formatAsCurrency(current: string) {
+        const digits = current.replace(/\D/g, '')
+        return moneyFormat.format(Number(digits) / 100)
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
-        const digits = next.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
+        return formatAsCurrency(next)
     }, '$0.00')
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -190,7 +244,7 @@ export default function CreateProduct({
                                                         aria-expanded={
                                                             isComboboxOpen
                                                         }
-                                                        className="w=[200px] justify-between"
+                                                        className="w-[200px] justify-between"
                                                     >
                                                         {field.value
                                                             ? categories.find(
@@ -202,7 +256,7 @@ export default function CreateProduct({
                                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                     </Button>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w=[200px] p-0">
+                                                <PopoverContent className="w-[200px] p-0">
                                                     <Command>
                                                         <CommandInput placeholder="Search category..." />
                                                         <CommandList>
@@ -320,9 +374,18 @@ export default function CreateProduct({
                                                             onChange={(
                                                                 event,
                                                             ) => {
-                                                                setValue(
-                                                                    event.target
-                                                                        .value,
+                                                                // console.log(
+                                                                //     event.target
+                                                                //         .name,
+                                                                //     event.target
+                                                                //         .value,
+                                                                // )
+
+                                                                setDisplayValue(
+                                                                    {
+                                                                        index: index,
+                                                                        target: event.target,
+                                                                    },
                                                                 )
                                                                 handleChange(
                                                                     field.onChange,
@@ -330,7 +393,11 @@ export default function CreateProduct({
                                                                         .value,
                                                                 )
                                                             }}
-                                                            value={value}
+                                                            value={
+                                                                displayValues[
+                                                                    index
+                                                                ]
+                                                            }
                                                         />
                                                     </FormControl>
                                                 </FormItem>
@@ -338,9 +405,10 @@ export default function CreateProduct({
                                         />
                                         <Button
                                             type="button"
-                                            onClick={() =>
+                                            onClick={() => {
+                                                removeDisplayValue(index)
                                                 removeVariation(index)
-                                            }
+                                            }}
                                         >
                                             Remove
                                         </Button>
@@ -359,6 +427,7 @@ export default function CreateProduct({
                                 </Button>
                             </div>
                         </form>
+                        <DevTool control={form.control} />
                     </Form>
                 </DialogContent>
             </Dialog>

@@ -66,7 +66,7 @@ export default function NavbarResponsive() {
                         <Button
                             size="icon"
                             variant="ghost"
-                            className="lg:hidden"
+                            className="xl:hidden"
                         >
                             <Menu size={20} />
                         </Button>

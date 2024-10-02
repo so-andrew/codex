@@ -102,7 +102,7 @@ const categoryCreateScheme = z.object({
 const categoryEditScheme = z.object({
     id: z.number(),
     name: z.string().min(2).max(100),
-    parentId: z.number().optional(),
+    parentId: z.number().nullable(),
     creatorId: z.string(),
 })
 

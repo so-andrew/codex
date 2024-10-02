@@ -8,8 +8,8 @@ import {
     getUserCategories,
     getUserProductVariations,
 } from '@/server/queries'
-import { type Metadata, type ResolvingMetadata } from 'next'
 import { redirect } from 'next/navigation'
+import type { Metadata, ResolvingMetadata } from 'next/types'
 
 type Props = {
     params: { id: string }
@@ -39,10 +39,7 @@ export default async function page({ params }: { params: { id: string } }) {
         product.id,
     )) as ProductVariation[]
 
-    console.log(variations)
-
     let formattedAmount = ''
-
     if (variations.length > 1) {
         const prices = variations.map((variation) =>
             parseFloat(variation.price),
@@ -75,7 +72,7 @@ export default async function page({ params }: { params: { id: string } }) {
             <section className="flex flex-row justify-between border-b pb-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle className=" flex flex-row gap-4 px-2 text-2xl">
+                        <CardTitle className="flex flex-row justify-between gap-4 px-2 text-2xl">
                             <span>{product?.name}</span>
                             <EditProduct
                                 product={product}
@@ -84,7 +81,7 @@ export default async function page({ params }: { params: { id: string } }) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-row justify-between gap-2 px-2">
+                        <div className="flex flex-col justify-between px-2">
                             <span className="text-lg text-gray-500">
                                 {product
                                     ? (categoryMap.get(product.category) ?? '')

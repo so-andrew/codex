@@ -52,8 +52,12 @@ export default function DiscountTable({ data }: { data: Discount[] }) {
         return selectedRows.map((row) => row.original)
     }
 
+    // const test = ['4', '5', '6', '10']
+    // console.log(test.sort())
+    // console.log(data)
+
     return (
-        <div>
+        <>
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Filter discounts..."
@@ -112,6 +116,14 @@ export default function DiscountTable({ data }: { data: Discount[] }) {
                                         <TableCell
                                             key={cell.id}
                                             className="pl-6"
+                                            style={{
+                                                minWidth:
+                                                    cell.column.columnDef
+                                                        .minSize,
+                                                maxWidth:
+                                                    cell.column.columnDef
+                                                        .maxSize,
+                                            }}
                                         >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
@@ -200,6 +212,6 @@ export default function DiscountTable({ data }: { data: Discount[] }) {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     )
 }

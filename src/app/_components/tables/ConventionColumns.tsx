@@ -60,7 +60,7 @@ export const columns: ColumnDef<Convention>[] = [
             return (
                 <Link
                     href={`/dashboard/conventions/${convention.id}`}
-                    className="text-blue-500 font-meduim"
+                    className="text-blue-500 font-medium"
                 >
                     {row.getValue('name')}
                 </Link>

@@ -9,6 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import { type Category } from '@/server/db/schema'
 import { type CategoryTableRow } from '@/types'
 import {
     type ColumnFiltersState,
@@ -25,7 +26,13 @@ import {
 import { useState } from 'react'
 import { columns } from './CategoryColumns'
 
-export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
+export default function CategoryTable({
+    data,
+    categories,
+}: {
+    data: CategoryTableRow[]
+    categories: Category[]
+}) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
@@ -53,6 +60,9 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
             rowSelection,
             expanded,
         },
+        meta: {
+            categories: categories,
+        },
     })
 
     const selectedRowsCount = Object.keys(rowSelection).length
@@ -62,10 +72,8 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
         return selectedRows.map((row) => row.original.category)
     }
 
-    //console.log(data[0])
-
     return (
-        <div>
+        <>
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Filter categories..."
@@ -227,6 +235,6 @@ export default function CategoryTable({ data }: { data: CategoryTableRow[] }) {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     )
 }

@@ -10,6 +10,7 @@ import {
     ChevronUp,
 } from 'lucide-react'
 import CategoryTableRowActions from './CategoryTableRowActions'
+import EditCategoryButton from './EditCategoryButton'
 
 export const columns: ColumnDef<CategoryTableRow>[] = [
     {
@@ -45,29 +46,26 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
         id: 'name',
         header: ({ column }) => {
             return (
-                <>
-                    {/* <span className="mr-6 h-4 w-4"></span> */}
-                    <Button
-                        variant="ghost"
-                        onClick={() =>
-                            column.toggleSorting(column.getIsSorted() === 'asc')
-                        }
-                        className="ml-6 font-semibold"
-                    >
-                        Name
-                        {column.getIsSorted() === 'asc' ? (
-                            <ArrowUp className="ml-2 h-4 w-4" />
-                        ) : column.getIsSorted() === 'desc' ? (
-                            <ArrowDown className="ml-2 h-4 w-4" />
-                        ) : (
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                    </Button>
-                </>
+                <Button
+                    variant="ghost"
+                    onClick={() =>
+                        column.toggleSorting(column.getIsSorted() === 'asc')
+                    }
+                    className="ml-6 font-semibold"
+                >
+                    Name
+                    {column.getIsSorted() === 'asc' ? (
+                        <ArrowUp className="ml-2 h-4 w-4" />
+                    ) : column.getIsSorted() === 'desc' ? (
+                        <ArrowDown className="ml-2 h-4 w-4" />
+                    ) : (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
+                </Button>
             )
         },
-        cell: ({ row }) => {
-            const category = row.original.category
+        cell: ({ row, table }) => {
+            //const category = row.original.category
             return (
                 <div
                     className="flex items-center font-medium"
@@ -90,7 +88,7 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
                     ) : (
                         <span className="mr-2 h-4 w-4"></span>
                     )}
-                    {category.name}
+                    <EditCategoryButton row={row} meta={table.options.meta!} />
                 </div>
                 // row.depth === 0 ? (
                 //     <Link href={`/dashboard/products/${product.id}`}>

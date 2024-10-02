@@ -1,22 +1,21 @@
-import GenericDialog from '@/app/_components/dialogs/GenericDialog'
-import EditVariationForm from '@/app/_components/forms/EditVariationForm'
 import { Button } from '@/components/ui/button'
-import { type ProductVariation } from '@/server/db/schema'
+import { type Discount } from '@/server/db/schema'
 import { type Row } from '@tanstack/react-table'
 import { useState } from 'react'
+import GenericDialog from '../dialogs/GenericDialog'
+import EditDiscountForm from '../forms/EditDiscountForm'
 
-interface EditVariationButtonProps<TData extends ProductVariation> {
+interface EditDiscountButtonProps<TData extends Discount> {
     row: Row<TData>
 }
 
-export default function EditVariationButton<TData extends ProductVariation>({
+export default function EditDiscountButton<TData extends Discount>({
     row,
-}: EditVariationButtonProps<TData>) {
+}: EditDiscountButtonProps<TData>) {
     const [isEditOpen, setIsEditOpen] = useState(false)
-    const variation = {
+    const discount = {
         ...row.original,
-        price: parseFloat(row.original.price),
-        sku: row.original.sku ?? undefined,
+        amount: parseFloat(row.original.amount),
     }
 
     return (
@@ -24,9 +23,9 @@ export default function EditVariationButton<TData extends ProductVariation>({
             <GenericDialog
                 isOpen={isEditOpen}
                 setIsOpen={setIsEditOpen}
-                title="Edit Variation"
+                title="Edit Discount"
             >
-                <EditVariationForm data={variation} setIsOpen={setIsEditOpen} />
+                <EditDiscountForm data={discount} setIsOpen={setIsEditOpen} />
             </GenericDialog>
             <Button
                 variant="ghost"

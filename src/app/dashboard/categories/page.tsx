@@ -1,7 +1,7 @@
 import CreateCategory from '@/app/_components/CreateCategory'
 import CategoryTable from '@/app/_components/tables/CategoryTable'
 import { getCategoryHierarchy, getUserCategories } from '@/server/queries'
-import { type Metadata } from 'next'
+import { type Metadata } from 'next/types'
 
 export const metadata: Metadata = {
     title: 'Categories - Codex',
@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 
 export default async function page() {
     const hierarchy = await getCategoryHierarchy()
-    //console.log(hierarchy)
     const filteredHierarchy = hierarchy.filter((row) => row.category.id !== -1)
     const { categories } = await getUserCategories()
 
@@ -20,7 +19,10 @@ export default async function page() {
                 <CreateCategory categories={categories} />
             </section>
             <div>
-                <CategoryTable data={filteredHierarchy} />
+                <CategoryTable
+                    data={filteredHierarchy}
+                    categories={categories}
+                />
             </div>
         </div>
     )

@@ -31,7 +31,7 @@ const sidebarItems = {
 }
 
 export default function Sidebar() {
-    const isDesktop = useMediaQuery('(min-width:1024px)', {
+    const isDesktop = useMediaQuery('(min-width:1280px)', {
         initializeWithValue: false,
     })
     return isDesktop ? (

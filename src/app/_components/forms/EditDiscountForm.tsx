@@ -1,4 +1,4 @@
-import { editVariation } from '@/app/actions'
+import { editDiscount } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import {
     Form,
@@ -12,53 +12,45 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { moneyFormat } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useReducer, type Dispatch, type SetStateAction } from 'react'
+import { type Dispatch, type SetStateAction, useReducer } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 const formSchema = z.object({
     id: z.number(),
-    productId: z.number(),
     creatorId: z.string(),
     name: z
         .string()
         .min(2, { message: 'Must be at least 2 characters long' })
         .max(100, { message: 'Must be less than 100 characters long' }),
-    price: z.coerce
+    amount: z.coerce
         .number({
-            required_error: 'Price is required',
-            invalid_type_error: 'Price must be a number',
+            required_error: 'Amount is required',
+            invalid_type_error: 'Amount must be a number',
         })
         .nonnegative(),
-    sku: z
-        .string()
-        .min(4, { message: 'Must be at least 4 characters long' })
-        .max(25, { message: 'Must be less that 25 characters long' })
-        .optional(),
 })
 
-export default function EditVariationForm({
+export default function EditDiscountForm({
     data,
     setIsOpen,
 }: {
     data: z.infer<typeof formSchema>
-    setIsOpen: (() => void) | Dispatch<SetStateAction<boolean>>
+    setIsOpen: Dispatch<SetStateAction<boolean>>
 }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
         const digits = next.replace(/\D/g, '')
         return moneyFormat.format(Number(digits) / 100)
-    }, moneyFormat.format(data.price))
+    }, moneyFormat.format(data.amount))
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             id: data.id,
-            productId: data.productId,
             creatorId: data.creatorId,
             name: data.name,
-            price: data.price,
-            sku: data.sku ?? undefined,
+            amount: data.amount,
         },
     })
 
@@ -75,14 +67,12 @@ export default function EditVariationForm({
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
-            await editVariation(data)
+            await editDiscount(data)
             reset({}, { keepValues: true })
-            if (typeof setIsOpen === 'function') {
-                setIsOpen(false)
-            }
+
             toast({
                 title: 'Success',
-                description: 'Successfully edited product.',
+                description: 'Successfully edited discount.',
             })
         } catch (e) {
             const error = e as Error
@@ -91,6 +81,7 @@ export default function EditVariationForm({
                 description: error.message,
             })
         }
+        setIsOpen(false)
     }
 
     return (
@@ -107,7 +98,7 @@ export default function EditVariationForm({
                             <FormLabel>Name</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Enter product name"
+                                    placeholder="Enter discount name"
                                     {...field}
                                 />
                             </FormControl>
@@ -117,10 +108,10 @@ export default function EditVariationForm({
                 />
                 <FormField
                     control={form.control}
-                    name="price"
+                    name="amount"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Price</FormLabel>
+                            <FormLabel>Amount</FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="$0.00"
@@ -139,31 +130,6 @@ export default function EditVariationForm({
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="sku"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>SKU</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="Enter SKU (optional)"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                {/* <FormField
-                    control={form.control}
-                    name="id"
-                    render={({ field }) => (
-                        <FormControl>
-                            <Input type="hidden" {...field} value={productId} />
-                        </FormControl>
-                    )}
-                /> */}
                 <div className="flex flex-row gap-4 pt-4">
                     <Button
                         type="submit"

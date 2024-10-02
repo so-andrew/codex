@@ -23,8 +23,8 @@ import {
 import { eachDayOfInterval } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 import { Info } from 'lucide-react'
-import { type Metadata, type ResolvingMetadata } from 'next'
 import { redirect } from 'next/navigation'
+import { type Metadata, type ResolvingMetadata } from 'next/types'
 import ConventionTabs from '../_components/ConventionTabs'
 import DailyRevenueStatsCard from '../_components/DailyRevenueStatsCard'
 import ProductSalesStatsCard from '../_components/ProductSalesStatsCard'
@@ -53,6 +53,7 @@ export default async function page({ params }: { params: { id: string } }) {
 
     if (!convention) {
         redirect('/dashboard/conventions')
+        return
     }
 
     const reports = await getConventionReports(conventionId)
@@ -108,10 +109,7 @@ export default async function page({ params }: { params: { id: string } }) {
         ],
     }
 
-    //console.log(barChartData)
-
     const query = await getTopSellingVariations(conventionId)
-    //console.log('query', query)
 
     const totalRevenueString = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -219,12 +217,20 @@ export default async function page({ params }: { params: { id: string } }) {
                                 className="max-sm:h-full max-sm:w-full"
                             />
                         </StatsCarousel>
-                        <div className="px-6 mt-4 hidden sm:flex flex-row flex-wrap justify-start gap-4">
-                            <ProductSalesStatsCard data={query} />
-                            <DailyRevenueStatsCard
-                                pieChartData={pieChartData}
-                            />
-                            <RevenueTypeStatsCard barChartData={barChartData} />
+                        <div className="px-6 mt-4 hidden sm:grid grid-cols-6 grid-flow-row gap-4">
+                            <div className="col-span-4 row-span-2">
+                                <ProductSalesStatsCard data={query} />
+                            </div>
+                            <div className="col-span-2">
+                                <DailyRevenueStatsCard
+                                    pieChartData={pieChartData}
+                                />
+                            </div>
+                            <div className="col-span-2">
+                                <RevenueTypeStatsCard
+                                    barChartData={barChartData}
+                                />
+                            </div>
                         </div>
                     </CollapsibleContent>
                 </Collapsible>

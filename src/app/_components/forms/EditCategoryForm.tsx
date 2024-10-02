@@ -38,7 +38,7 @@ const formSchema = z.object({
         .string()
         .min(2, { message: 'Must be at least 2 characters long' })
         .max(100, { message: 'Must be less than 100 characters long' }),
-    parentId: z.number().optional(),
+    parentId: z.number().nullable(),
 })
 
 export default function EditCategoryForm({
@@ -139,8 +139,13 @@ export default function EditCategoryForm({
                                                     No category found.
                                                 </CommandEmpty>
                                                 <CommandGroup>
-                                                    {categories.map(
-                                                        (category) => (
+                                                    {categories
+                                                        .filter(
+                                                            (category) =>
+                                                                category.id !==
+                                                                data.id,
+                                                        )
+                                                        .map((category) => (
                                                             <CommandItem
                                                                 key={
                                                                     category.id
@@ -168,8 +173,7 @@ export default function EditCategoryForm({
                                                                 />
                                                                 {category.name}
                                                             </CommandItem>
-                                                        ),
-                                                    )}
+                                                        ))}
                                                 </CommandGroup>
                                             </CommandList>
                                         </Command>

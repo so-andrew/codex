@@ -14,7 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { dirtyValues } from '@/lib/utils'
 import {
-    DailyRevenueReport,
+    type DailyRevenueReport,
     type defaultValues,
     type ProductsByCategory,
     type SalesReportFormData,

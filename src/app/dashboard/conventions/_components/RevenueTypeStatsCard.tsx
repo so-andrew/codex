@@ -36,11 +36,11 @@ export default function RevenueTypeStatsCard({
                 className,
             )}
         >
-            <Card className="flex flex-col justify-start max-sm:w-full">
+            <Card className="flex flex-col w-full">
                 <CardHeader>
                     <CardTitle className="text-lg">Revenue By Type</CardTitle>
                 </CardHeader>
-                <CardContent className="h-full">
+                <CardContent className="relative flex-1">
                     <Bar
                         data={barChartData}
                         options={{

@@ -1,7 +1,3 @@
-'use client'
-
-import GenericDialog from '@/app/_components/dialogs/GenericDialog'
-import DeleteVariationForm from '@/app/_components/forms/DeleteVariationForm'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -9,19 +5,22 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { type ProductVariation } from '@/server/db/schema'
+import { type Discount } from '@/server/db/schema'
 import { type Row } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
 import { useState } from 'react'
+import GenericDialog from '../dialogs/GenericDialog'
+import DeleteDiscountForm from '../forms/DeleteDiscountForm'
 
-interface VariationTableRowActionsProps<TData extends ProductVariation> {
+interface DiscountTableRowActionsProps<TData extends Discount> {
     row: Row<TData>
 }
 
-export default function VariationTableRowActions<
-    TData extends ProductVariation,
->({ row }: VariationTableRowActionsProps<TData>) {
+export default function DiscountTableRowActions<TData extends Discount>({
+    row,
+}: DiscountTableRowActionsProps<TData>) {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+    const discount = row.original
 
     return (
         <>
@@ -29,10 +28,10 @@ export default function VariationTableRowActions<
                 isOpen={isDeleteOpen}
                 setIsOpen={setIsDeleteOpen}
                 title="Delete"
-                description={`Are you sure you want to delete variation ${row.original.name}?`}
+                description={`Are you sure you want to delete discount ${discount.name}?`}
             >
-                <DeleteVariationForm
-                    data={row.original}
+                <DeleteDiscountForm
+                    data={discount}
                     setIsOpen={setIsDeleteOpen}
                 />
             </GenericDialog>

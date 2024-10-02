@@ -1,8 +1,10 @@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Discount } from '@/server/db/schema'
-import { ColumnDef } from '@tanstack/react-table'
+import { type Discount } from '@/server/db/schema'
+import { type ColumnDef } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import DiscountTableRowActions from './DiscountTableRowActions'
+import EditDiscountButton from './EditDiscountButton'
 
 export const columns: ColumnDef<Discount>[] = [
     {
@@ -58,10 +60,11 @@ export const columns: ColumnDef<Discount>[] = [
                 </>
             )
         },
-        cell: (info) => info.getValue(),
+        cell: ({ row }) => <EditDiscountButton row={row} />,
     },
     {
-        accessorKey: 'amount',
+        accessorFn: (row) => parseFloat(row.amount),
+        id: 'amount',
         header: ({ column }) => {
             return (
                 <>
@@ -94,5 +97,11 @@ export const columns: ColumnDef<Discount>[] = [
 
             return <div className="font-medium">{formatted}</div>
         },
+    },
+    {
+        id: 'actions',
+        cell: ({ row }) => <DiscountTableRowActions row={row} />,
+        minSize: 40,
+        maxSize: 40,
     },
 ]

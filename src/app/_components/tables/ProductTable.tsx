@@ -75,7 +75,7 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
     }
 
     return (
-        <div>
+        <>
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Filter products..."
@@ -251,6 +251,6 @@ export default function ProductTable({ data }: { data: ProductTableRow[] }) {
                     toggleAllRowsSelected={table.toggleAllRowsSelected}
                 />
             </GenericDialog>
-        </div>
+        </>
     )
 }

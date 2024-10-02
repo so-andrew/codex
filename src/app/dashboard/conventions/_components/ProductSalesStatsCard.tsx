@@ -8,12 +8,12 @@ export default function ProductSalesStatsCard({
     data: TopSellingVariations[]
 }) {
     return (
-        <div className="flex max-sm:h-full space-x-4">
+        <div className="flex h-full space-x-4">
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="text-lg">Top Selling Items</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative h-auto lg:h-full">
                     <ProductSalesTable data={data} />
                 </CardContent>
             </Card>
