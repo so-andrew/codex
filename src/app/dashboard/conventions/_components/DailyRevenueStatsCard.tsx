@@ -26,6 +26,8 @@ export default function DailyRevenueStatsCard({
         legendPositionRef.current = isDesktop ? 'bottom' : 'right'
     }, [isDesktop])
 
+    console.log(pieChartData)
+
     return (
         <div className={cn('flex max-sm:grow h-auto space-x-4', className)}>
             <Card className="flex flex-col w-full">

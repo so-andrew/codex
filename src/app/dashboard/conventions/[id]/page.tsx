@@ -26,7 +26,7 @@ import { Info } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { type Metadata, type ResolvingMetadata } from 'next/types'
 import ConventionTabs from '../_components/ConventionTabs'
-import DailyRevenueStatsCard from '../_components/DailyRevenueStatsCard'
+import DailyRevenueStatsCard2 from '../_components/DailyRevenueStatsCard2'
 import ProductSalesStatsCard from '../_components/ProductSalesStatsCard'
 import RevenueTypeStatsCard from '../_components/RevenueTypeStatsCard'
 import StatsCarousel from '../_components/StatsCarousel'
@@ -53,7 +53,6 @@ export default async function page({ params }: { params: { id: string } }) {
 
     if (!convention) {
         redirect('/dashboard/conventions')
-        return
     }
 
     const reports = await getConventionReports(conventionId)
@@ -98,6 +97,16 @@ export default async function page({ params }: { params: { id: string } }) {
         ),
         datasets: [dataset],
     }
+
+    const pieChartData2 = daysInRange.map((date, index) => {
+        return {
+            day: formatInTimeZone(date, timeZone, 'EEE, MMM d'),
+            revenue: Object.values(revenueByDay)[index]!,
+            fill: `hsl(var(--chart-${index + 1}))`,
+        }
+    })
+
+    //console.log(pieChartData2)
 
     const barChartData: ChartData = {
         labels: daysInRange.map((date) =>
@@ -205,12 +214,17 @@ export default async function page({ params }: { params: { id: string } }) {
                         </Card>
                     </div>
 
+                    {/* <DailyRevenueStatsCard2 pieChartData={pieChartData2} /> */}
+
                     <CollapsibleContent>
                         <StatsCarousel className="sm:hidden mt-4">
                             <ProductSalesStatsCard data={query} />
-                            <DailyRevenueStatsCard
+                            {/* <DailyRevenueStatsCard
                                 pieChartData={pieChartData}
                                 className="max-sm:h-full max-sm:w-full"
+                            /> */}
+                            <DailyRevenueStatsCard2
+                                pieChartData={pieChartData2}
                             />
                             <RevenueTypeStatsCard
                                 barChartData={barChartData}
@@ -222,8 +236,11 @@ export default async function page({ params }: { params: { id: string } }) {
                                 <ProductSalesStatsCard data={query} />
                             </div>
                             <div className="col-span-2">
-                                <DailyRevenueStatsCard
+                                {/* <DailyRevenueStatsCard
                                     pieChartData={pieChartData}
+                                /> */}
+                                <DailyRevenueStatsCard2
+                                    pieChartData={pieChartData2}
                                 />
                             </div>
                             <div className="col-span-2">

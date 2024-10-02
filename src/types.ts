@@ -110,3 +110,9 @@ export type ChartData = {
     labels: string[]
     datasets: Dataset[]
 }
+
+export type DailyRevenueChartData = {
+    day: string
+    revenue: number
+    fill?: string
+}
