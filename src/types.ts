@@ -112,6 +112,7 @@ export type ChartData = {
 }
 
 export type DailyRevenueChartData = {
+    key: string
     day: string
     revenue: number
     fill?: string

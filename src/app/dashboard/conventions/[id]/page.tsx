@@ -100,13 +100,14 @@ export default async function page({ params }: { params: { id: string } }) {
 
     const pieChartData2 = daysInRange.map((date, index) => {
         return {
-            day: formatInTimeZone(date, timeZone, 'EEE, MMM d'),
+            key: `day${index + 1}`,
+            day: formatInTimeZone(date, timeZone, 'EEEE'),
             revenue: Object.values(revenueByDay)[index]!,
             fill: `hsl(var(--chart-${index + 1}))`,
         }
     })
 
-    //console.log(pieChartData2)
+    console.log(pieChartData2)
 
     const barChartData: ChartData = {
         labels: daysInRange.map((date) =>
