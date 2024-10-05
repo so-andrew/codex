@@ -15,8 +15,8 @@ import {
     getTopSellingVariations,
 } from '@/server/queries'
 import {
-    type ChartData,
-    type Dataset,
+    DailyRevenueChartData,
+    RevenueTypeChartData,
     type ProductsByCategory,
     type ReportsByProduct,
 } from '@/types'
@@ -26,7 +26,7 @@ import { Info } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { type Metadata, type ResolvingMetadata } from 'next/types'
 import ConventionTabs from '../_components/ConventionTabs'
-import DailyRevenueStatsCard2 from '../_components/DailyRevenueStatsCard2'
+import DailyRevenueStatsCard from '../_components/DailyRevenueStatsCard'
 import ProductSalesStatsCard from '../_components/ProductSalesStatsCard'
 import RevenueTypeStatsCard from '../_components/RevenueTypeStatsCard'
 import StatsCarousel from '../_components/StatsCarousel'
@@ -59,7 +59,6 @@ export default async function page({ params }: { params: { id: string } }) {
     const { itemizedRevenue, totalRevenue, revenueByCategory } =
         await getConventionRevenue(conventionId)
 
-    //console.log(revenueByCategory)
     const revenueByDay: Record<string, number> = {}
     const revenueByType: {
         cashRevenue: number[]
@@ -85,41 +84,53 @@ export default async function page({ params }: { params: { id: string } }) {
         end: convention.endDate,
     })
 
-    const dataset: Dataset = {
-        label: 'Total Revenue',
-        data: Object.values(revenueByDay),
-        //backgroundColor: daysInRange.map(() => getColor(1)),
-    }
+    // const dataset: Dataset = {
+    //     label: 'Total Revenue',
+    //     data: Object.values(revenueByDay),
+    //     //backgroundColor: daysInRange.map(() => getColor(1)),
+    // }
 
-    const pieChartData: ChartData = {
-        labels: daysInRange.map((date) =>
-            formatInTimeZone(date, timeZone, 'EEE, MMM d'),
-        ),
-        datasets: [dataset],
-    }
+    // const pieChartData: ChartData = {
+    //     labels: daysInRange.map((date) =>
+    //         formatInTimeZone(date, timeZone, 'EEE, MMM d'),
+    //     ),
+    //     datasets: [dataset],
+    // }
 
-    const pieChartData2 = daysInRange.map((date, index) => {
-        return {
-            key: `day${index + 1}`,
-            day: formatInTimeZone(date, timeZone, 'EEEE'),
-            revenue: Object.values(revenueByDay)[index]!,
-            fill: `hsl(var(--chart-${index + 1}))`,
-        }
-    })
+    const pieChartData: DailyRevenueChartData[] = daysInRange.map(
+        (date, index) => {
+            return {
+                key: `day${index + 1}`,
+                day: formatInTimeZone(date, timeZone, 'EEEE'),
+                revenue: Object.values(revenueByDay)[index]!,
+                fill: `hsl(var(--chart-${index + 1}))`,
+            }
+        },
+    )
 
-    console.log(pieChartData2)
+    const barChartData: RevenueTypeChartData[] = daysInRange.map(
+        (date, index) => {
+            return {
+                key: `day${index + 1}`,
+                day: formatInTimeZone(date, timeZone, 'EEEE'),
+                cashRevenue: revenueByType.cashRevenue[index]!,
+                cardRevenue: revenueByType.cardRevenue[index]!,
+                //fill: `hsl(var(--chart-${index + 1}))`,
+            }
+        },
+    )
 
-    const barChartData: ChartData = {
-        labels: daysInRange.map((date) =>
-            formatInTimeZone(date, timeZone, 'EEE, MMM d'),
-        ),
-        datasets: [
-            { label: 'Cash Sales', data: revenueByType.cashRevenue },
-            { label: 'Card Sales', data: revenueByType.cardRevenue },
-        ],
-    }
+    // const barChartDataOld: ChartData = {
+    //     labels: daysInRange.map((date) =>
+    //         formatInTimeZone(date, timeZone, 'EEE, MMM d'),
+    //     ),
+    //     datasets: [
+    //         { label: 'Cash Sales', data: revenueByType.cashRevenue },
+    //         { label: 'Card Sales', data: revenueByType.cardRevenue },
+    //     ],
+    // }
 
-    const query = await getTopSellingVariations(conventionId)
+    const productSalesData = await getTopSellingVariations(conventionId)
 
     const totalRevenueString = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -215,39 +226,30 @@ export default async function page({ params }: { params: { id: string } }) {
                         </Card>
                     </div>
 
-                    {/* <DailyRevenueStatsCard2 pieChartData={pieChartData2} /> */}
-
                     <CollapsibleContent>
                         <StatsCarousel className="sm:hidden mt-4">
-                            <ProductSalesStatsCard data={query} />
-                            {/* <DailyRevenueStatsCard
-                                pieChartData={pieChartData}
+                            <ProductSalesStatsCard data={productSalesData} />
+                            <DailyRevenueStatsCard data={pieChartData} />
+                            <RevenueTypeStatsCard data={barChartData} />
+                            {/* <RevenueTypeStatsCardOld
+                                barChartData={barChartDataOld}
                                 className="max-sm:h-full max-sm:w-full"
                             /> */}
-                            <DailyRevenueStatsCard2
-                                pieChartData={pieChartData2}
-                            />
-                            <RevenueTypeStatsCard
-                                barChartData={barChartData}
-                                className="max-sm:h-full max-sm:w-full"
-                            />
                         </StatsCarousel>
                         <div className="px-6 mt-4 hidden sm:grid grid-cols-6 grid-flow-row gap-4">
                             <div className="col-span-4 row-span-2">
-                                <ProductSalesStatsCard data={query} />
+                                <ProductSalesStatsCard
+                                    data={productSalesData}
+                                />
                             </div>
                             <div className="col-span-2">
-                                {/* <DailyRevenueStatsCard
-                                    pieChartData={pieChartData}
+                                <DailyRevenueStatsCard data={pieChartData} />
+                            </div>
+                            <div className="col-span-2">
+                                <RevenueTypeStatsCard data={barChartData} />
+                                {/* <RevenueTypeStatsCardOld
+                                    barChartData={barChartDataOld}
                                 /> */}
-                                <DailyRevenueStatsCard2
-                                    pieChartData={pieChartData2}
-                                />
-                            </div>
-                            <div className="col-span-2">
-                                <RevenueTypeStatsCard
-                                    barChartData={barChartData}
-                                />
                             </div>
                         </div>
                     </CollapsibleContent>

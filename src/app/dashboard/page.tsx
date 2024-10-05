@@ -9,12 +9,8 @@ export default async function Dashboard() {
             <h1 className="text-2xl font-semibold">{`Welcome back, ${user!.firstName}.`}</h1>
             <div className="border-b pb-8">
                 <div className="flex flex-row gap-6">
-                    <Button className="bg-purple-500 hover:bg-purple-600">
-                        Add Convention
-                    </Button>
-                    <Button className="bg-gray-100 text-purple-500 hover:bg-purple-100">
-                        Add Product
-                    </Button>
+                    <Button className="">Add Convention</Button>
+                    <Button variant="secondary">Add Product</Button>
                 </div>
             </div>
         </section>

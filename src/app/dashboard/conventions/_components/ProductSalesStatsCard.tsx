@@ -13,7 +13,7 @@ export default function ProductSalesStatsCard({
                 <CardHeader>
                     <CardTitle className="text-lg">Top Selling Items</CardTitle>
                 </CardHeader>
-                <CardContent className="relative h-auto lg:h-full">
+                <CardContent className="relative h-auto">
                     <ProductSalesTable data={data} />
                 </CardContent>
             </Card>

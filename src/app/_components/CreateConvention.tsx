@@ -80,9 +80,7 @@ export default function CreateConvention() {
         <div className="flex flex-row gap-6">
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
-                    <Button className="bg-purple-500 hover:bg-purple-600">
-                        Add Convention
-                    </Button>
+                    <Button className="">Add Convention</Button>
                 </DialogTrigger>
                 <DialogContent
                     className="sm:max-w-lg"

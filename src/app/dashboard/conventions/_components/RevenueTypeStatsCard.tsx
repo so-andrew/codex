@@ -1,89 +1,73 @@
 'use client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
-import { type ChartData } from '@/types'
-import {
-    BarElement,
-    CategoryScale,
-    Chart as ChartJS,
-    Colors,
-    Legend,
-    LinearScale,
-    Tooltip,
-} from 'chart.js'
-import { Bar } from 'react-chartjs-2'
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Tooltip,
-    Legend,
-    Colors,
-)
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+    ChartConfig,
+    ChartContainer,
+    ChartLegend,
+    ChartLegendContent,
+    ChartTooltip,
+    ChartTooltipContent,
+} from '@/components/ui/chart'
+import { type RevenueTypeChartData } from '@/types'
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
+
+// const chartConfig = (pieChartData: RevenueTypeChartData[]) => {
+//     const config: Config = {
+//         cardRenue: { label: 'Card' },
+//     } satisfies ChartConfig
+//     for (const data of pieChartData) {
+//         config[data.key] = { label: data.day, fill: data.fill }
+//     }
+//     return config
+// }
+
+const chartConfig = {
+    cashRevenue: {
+        label: 'Cash',
+        color: 'hsl(var(--chart-1))',
+    },
+    cardRevenue: {
+        label: 'Card',
+        color: 'hsl(var(--chart-2))',
+    },
+} satisfies ChartConfig
 
 export default function RevenueTypeStatsCard({
-    barChartData,
-    className,
+    data,
 }: {
-    barChartData: ChartData
-    className?: string
+    data: RevenueTypeChartData[]
 }) {
     return (
-        <div
-            className={cn(
-                'flex max-sm:grow max-sm:h-auto space-x-4',
-                className,
-            )}
-        >
-            <Card className="flex flex-col w-full">
-                <CardHeader>
-                    <CardTitle className="text-lg">Revenue By Type</CardTitle>
-                </CardHeader>
-                <CardContent className="relative flex-1">
-                    <Bar
-                        data={barChartData}
-                        options={{
-                            indexAxis: 'y',
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                x: {
-                                    stacked: true,
-                                },
-                                y: {
-                                    stacked: true,
-                                },
-                            },
-                            plugins: {
-                                legend: { position: 'bottom' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function (context) {
-                                            let label =
-                                                context.dataset.label ?? ''
-
-                                            if (label) {
-                                                label += ': '
-                                            }
-                                            if (context.parsed.x !== null) {
-                                                label += new Intl.NumberFormat(
-                                                    'en-US',
-                                                    {
-                                                        style: 'currency',
-                                                        currency: 'USD',
-                                                    },
-                                                ).format(context.parsed.x)
-                                            }
-                                            return label
-                                        },
-                                    },
-                                },
-                            },
-                        }}
-                    />
-                </CardContent>
-            </Card>
-        </div>
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-lg">Revenue By Type</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1">
+                <ChartContainer
+                    config={chartConfig}
+                    className="mx-auto max-sm:min-h-[325px] min-h-[150px] w-full"
+                >
+                    <BarChart accessibilityLayer data={data}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis type="category" dataKey="day" />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        <Bar
+                            dataKey="cashRevenue"
+                            //stackId="a"
+                            fill="var(--color-cashRevenue)"
+                            radius={4}
+                        />
+                        <Bar
+                            dataKey="cardRevenue"
+                            //stackId="a"
+                            fill="var(--color-cardRevenue)"
+                            radius={4}
+                        />
+                    </BarChart>
+                </ChartContainer>
+            </CardContent>
+        </Card>
     )
 }

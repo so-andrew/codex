@@ -117,3 +117,21 @@ export type DailyRevenueChartData = {
     revenue: number
     fill?: string
 }
+
+export type RevenueTypeChartData = {
+    key: string
+    day: string
+    cashRevenue: number
+    cardRevenue: number
+    fill?: string
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+export type Config = {
+    [x: string]: ConfigEntry
+}
+
+export type ConfigEntry = {
+    label: string
+    fill?: string
+}

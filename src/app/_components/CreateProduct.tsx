@@ -405,6 +405,7 @@ export default function CreateProduct({
                                         />
                                         <Button
                                             type="button"
+                                            variant="secondary"
                                             onClick={() => {
                                                 removeDisplayValue(index)
                                                 removeVariation(index)
@@ -415,12 +416,16 @@ export default function CreateProduct({
                                     </div>
                                 ))}
                             <div className="flex flex-row gap-4 pt-4">
-                                <Button type="button" onClick={addVariation}>
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={addVariation}
+                                >
                                     Add Variation
                                 </Button>
                                 <Button
                                     type="submit"
-                                    className="bg-purple-500 hover:bg-purple-600"
+                                    className=""
                                     disabled={isSubmitting}
                                 >
                                     Create
