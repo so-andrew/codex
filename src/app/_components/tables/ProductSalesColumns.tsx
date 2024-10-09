@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { moneyFormat } from '@/lib/utils'
 import { type TopSellingVariations } from '@/types'
 import { type ColumnDef } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
@@ -35,7 +36,7 @@ export const columns: ColumnDef<TopSellingVariations>[] = [
             const variationName = row.original.variationName
             const productName = row.original.productName
 
-            return variationName ? (
+            return variationName && variationName !== 'Default' ? (
                 <div className="font-medium">
                     {variationName}{' '}
                     <span className="max-xl:hidden text-sm font-normal text-gray-500">{`(${productName})`}</span>
@@ -95,10 +96,7 @@ export const columns: ColumnDef<TopSellingVariations>[] = [
         },
         cell: ({ row }) => {
             const amount = row.original.totalRevenue
-            const formatted = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-            }).format(amount)
+            const formatted = moneyFormat.format(amount)
 
             return <div className="font-medium">{formatted}</div>
         },

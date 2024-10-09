@@ -7,8 +7,10 @@ import { revalidatePath } from 'next/cache'
 //import { cookies } from 'next/headers'
 import { db } from '@/server/db'
 import {
+    conventionDiscountReports,
     conventionProductReports,
     conventions,
+    discountDaily,
     discounts,
     productCategories,
     productDailyRevenue,
@@ -159,13 +161,35 @@ const bulkConventionDeleteScheme = z.object({
 
 // Record schema
 const reportScheme = z.object({
-    id: z.coerce.number(),
-    key: z.date(),
+    reportId: z.coerce.number(),
+    date: z.date(),
+    type: z.literal('product'),
     cashSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
     cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
 })
 
-const reportFormScheme = z.array(reportScheme)
+const discountScheme = z.object({
+    reportId: z.coerce.number(),
+    date: z.date(),
+    type: z.literal('discount'),
+    cashDiscounts: z
+        .number()
+        .int()
+        .min(0, 'Number must be nonnegative')
+        .optional(),
+    cardDiscounts: z
+        .number()
+        .int()
+        .min(0, 'Number must be nonnegative')
+        .optional(),
+})
+
+const reportOrDiscount = z.discriminatedUnion('type', [
+    reportScheme,
+    discountScheme,
+])
+
+const reportFormScheme = z.array(reportOrDiscount)
 
 export async function createProduct(data: z.infer<typeof productCreateScheme>) {
     const user = auth()
@@ -853,10 +877,15 @@ export async function createConvention(
 
         const newConvention = newConventionQuery[0]
 
+        const daysInRange = eachDayOfInterval({
+            start: newConvention!.startDate,
+            end: newConvention!.endDate,
+        })
+
         // TODO: Throw error in case of failed db insert
 
         type NewReport = typeof conventionProductReports.$inferInsert
-        type newDailyRevenue = typeof productDailyRevenue.$inferInsert
+        type NewDailyRevenue = typeof productDailyRevenue.$inferInsert
 
         // Get all products
         // const allVariations = await db.query.productVariations.findMany({
@@ -901,19 +930,57 @@ export async function createConvention(
 
         // Generate all revenue entries for reports
         for (const report of reports) {
-            const daysInRange = eachDayOfInterval({
-                start: newConvention!.startDate,
-                end: newConvention!.endDate,
-            })
             for (const day of daysInRange) {
-                const dailyRevenue: newDailyRevenue = {
+                const dailyRevenue: NewDailyRevenue = {
                     reportId: report.id,
+                    conventionId: report.conventionId,
+                    categoryId: report.categoryId,
                     date: day,
                 }
                 dailyRevenues.push(dailyRevenue)
             }
         }
         await db.insert(productDailyRevenue).values(dailyRevenues)
+
+        type NewDiscountReport = typeof conventionDiscountReports.$inferInsert
+        type NewDailyDiscount = typeof discountDaily.$inferInsert
+
+        // Get all discounts
+        const allDiscounts = await db
+            .select()
+            .from(discounts)
+            .where(eq(discounts.creatorId, user.userId))
+
+        // Generate reports for all discounts
+        const map3 = allDiscounts.map((discount) => {
+            const newDiscountReport: NewDiscountReport = {
+                name: discount.name,
+                amount: discount.amount,
+                discountId: discount.id,
+                creatorId: discount.creatorId,
+                conventionId: newConvention!.id,
+            }
+            return newDiscountReport
+        })
+
+        const discountReports = await db
+            .insert(conventionDiscountReports)
+            .values(map3)
+            .returning()
+        const dailyDiscounts = []
+
+        // Generate all daily entries for discount reports
+        for (const report of discountReports) {
+            for (const day of daysInRange) {
+                const dailyDiscount: NewDailyDiscount = {
+                    reportId: report.id,
+                    conventionId: report.conventionId,
+                    date: day,
+                }
+                dailyDiscounts.push(dailyDiscount)
+            }
+        }
+        await db.insert(discountDaily).values(dailyDiscounts)
     } catch (e) {
         const error = e as Error
         console.error(error)
@@ -1033,24 +1100,49 @@ export async function editRecords(data: z.infer<typeof reportFormScheme>) {
         throw error
     }
 
-    console.log(data)
-    for (const report of data) {
-        const parse = reportScheme.parse({
-            id: report.id,
-            key: report.key,
-            cashSales: report.cashSales ?? undefined,
-            cardSales: report.cardSales ?? undefined,
-        })
-
-        await db
-            .update(productDailyRevenue)
-            .set({ cashSales: parse.cashSales, cardSales: parse.cardSales })
-            .where(
-                and(
-                    eq(productDailyRevenue.reportId, parse.id),
-                    eq(productDailyRevenue.date, parse.key),
-                ),
-            )
+    try {
+        for (const report of data) {
+            const parse = reportOrDiscount.parse(report)
+            switch (parse.type) {
+                case 'product': {
+                    await db
+                        .update(productDailyRevenue)
+                        .set({
+                            cashSales: parse.cashSales,
+                            cardSales: parse.cardSales,
+                        })
+                        .where(
+                            and(
+                                eq(
+                                    productDailyRevenue.reportId,
+                                    parse.reportId,
+                                ),
+                                eq(productDailyRevenue.date, parse.date),
+                            ),
+                        )
+                    break
+                }
+                case 'discount': {
+                    await db
+                        .update(discountDaily)
+                        .set({
+                            cashDiscounts: parse.cashDiscounts,
+                            cardDiscounts: parse.cardDiscounts,
+                        })
+                        .where(
+                            and(
+                                eq(discountDaily.reportId, parse.reportId),
+                                eq(discountDaily.date, parse.date),
+                            ),
+                        )
+                    break
+                }
+            }
+        }
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
     }
     revalidatePath('/dashboard/conventions')
 }

@@ -13,11 +13,13 @@ export interface SidebarItems {
     }>
 }
 
+// Helper type for product and its variations
 export type ProductWithVariations = {
     product: Product
     variations: ProductVariation[]
 }
 
+// Type for product table
 export type ProductTableRow = {
     product: Product | ProductVariation
     variations: ProductTableRow[]
@@ -25,7 +27,7 @@ export type ProductTableRow = {
 }
 
 export type CategoryWithCount = Category & {
-    productCount: number | undefined
+    productCount?: number
 }
 
 export type CategoryTableRow = {
@@ -37,7 +39,15 @@ export type CategoryWithSubcategories = Category & {
     subcategories: CategoryWithSubcategories[] | null
 }
 
-export type DailyRevenue = {
+export type DailyProductWithType = {
+    type: 'product'
+    reportId: number
+    date: Date
+    cashSales?: number
+    cardSales?: number
+}
+
+export type DailyProductReport = {
     reportId: number
     date: Date
     cashSales: number
@@ -52,7 +62,14 @@ export type ReportType = {
     productName: string
     categoryId: number | null
     categoryName: string | null
-    revenues: DailyRevenue[]
+    revenues: DailyProductReport[]
+}
+
+export type DiscountReport = {
+    id: number
+    name: string
+    amount: string
+    daily: DailyDiscount[]
 }
 
 export type ReportTableRow = ReportType & { key: string | undefined }
@@ -71,19 +88,13 @@ export type ProductsByCategory = {
     products: ReportsByProduct[]
 }
 
-export type defaultValues = Record<
-    string,
-    {
-        id: number
-        key: Date
-        cashSales: number
-        cardSales: number
-    }
->
+export type defaultValues = Record<string, DailyProductReport | DailyDiscount>
 
 export type SalesReportFormData = {
     cashSales: number | undefined
     cardSales: number | undefined
+    cashDiscounts: number | undefined
+    cardDiscounts: number | undefined
 }
 
 export type DailyRevenueReport = {
@@ -91,6 +102,23 @@ export type DailyRevenueReport = {
     cashRevenue: number
     cardRevenue: number
 }
+
+export type DailyDiscountWithType = {
+    type: 'discount'
+    reportId: number
+    date: Date
+    cashDiscounts?: number
+    cardDiscounts?: number
+}
+
+export type DailyDiscount = {
+    reportId: number
+    date: Date
+    cashDiscounts: number
+    cardDiscounts: number
+}
+
+export type ReportOrDiscount = DailyProductWithType | DailyDiscountWithType
 
 export type TopSellingVariations = {
     reportId: number

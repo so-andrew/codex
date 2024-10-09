@@ -5,7 +5,6 @@ import { relations, sql } from 'drizzle-orm'
 import {
     type AnyPgColumn,
     integer,
-    json,
     numeric,
     pgTableCreator,
     primaryKey,
@@ -143,7 +142,6 @@ export const conventionProductReports = createTable(
         }),
         productName: varchar('productName', { length: 256 }).notNull(),
         price: numeric('price').notNull(),
-        salesFigures: json('salesFigures').$type<salesFigures>(),
         createdAt: timestamp('created_at', { withTimezone: true })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -187,9 +185,11 @@ export const productDailyRevenue = createTable(
                 onDelete: 'cascade',
             })
             .notNull(),
-        conventionId: integer('conventionId').references(() => conventions.id, {
-            onDelete: 'cascade',
-        }),
+        conventionId: integer('conventionId')
+            .references(() => conventions.id, {
+                onDelete: 'cascade',
+            })
+            .notNull(),
         categoryId: integer('categoryId')
             .default(-1)
             .notNull()
@@ -214,5 +214,72 @@ export const revenueRelations = relations(productDailyRevenue, ({ one }) => ({
     revenue: one(conventionProductReports, {
         fields: [productDailyRevenue.reportId],
         references: [conventionProductReports.id],
+    }),
+}))
+
+export const conventionDiscountReports = createTable(
+    'conventionDiscountReports',
+    {
+        id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+        name: varchar('name', { length: 256 }).notNull(),
+        discountId: integer('discountId').references(() => discounts.id, {
+            onDelete: 'set null',
+        }),
+        amount: numeric('amount').notNull(),
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true }).$onUpdate(
+            () => new Date(),
+        ),
+        creatorId: varchar('creatorId', { length: 256 })
+            .references(() => users.id, { onDelete: 'cascade' })
+            .notNull(),
+        conventionId: integer('conventionId')
+            .references(() => conventions.id, { onDelete: 'cascade' })
+            .notNull(),
+    },
+)
+
+export type ConventionDiscountReport =
+    typeof conventionDiscountReports.$inferSelect
+
+export const discontRelations = relations(
+    conventionDiscountReports,
+    ({ many }) => ({
+        daily: many(discountDaily),
+    }),
+)
+
+export const discountDaily = createTable(
+    'discountDaily',
+    {
+        reportId: integer('reportId')
+            .references(() => conventionDiscountReports.id, {
+                onDelete: 'cascade',
+            })
+            .notNull(),
+        conventionId: integer('conventionId')
+            .references(() => conventions.id, {
+                onDelete: 'cascade',
+            })
+            .notNull(),
+        date: timestamp('date', { mode: 'date', withTimezone: true }).notNull(),
+        cashDiscounts: integer('cashDiscounts').default(0).notNull(),
+        cardDiscounts: integer('cardDiscounts').default(0).notNull(),
+    },
+    (table) => {
+        return {
+            pk: primaryKey({ columns: [table.reportId, table.date] }),
+        }
+    },
+)
+
+export type DiscountDaily = typeof discountDaily.$inferInsert
+
+export const discountDailyRelations = relations(discountDaily, ({ one }) => ({
+    daily: one(conventionDiscountReports, {
+        fields: [discountDaily.reportId],
+        references: [conventionDiscountReports.id],
     }),
 }))

@@ -11,8 +11,10 @@ import { and, asc, count, desc, eq, sql } from 'drizzle-orm'
 import 'server-only'
 import {
     type Category,
+    conventionDiscountReports,
     conventionProductReports,
     conventions,
+    discountDaily,
     discounts,
     type Product,
     productCategories,
@@ -395,6 +397,69 @@ export async function getConventionRevenue(conventionId: number) {
         itemizedRevenue: itemized,
         totalRevenue: conventionTotalRevenue,
         revenueByCategory: revenueDateMap,
+    }
+}
+
+export async function getConventionDiscounts(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+
+    const discounts = await db.query.conventionDiscountReports.findMany({
+        where: eq(conventionDiscountReports.conventionId, conventionId),
+        columns: {
+            id: true,
+            name: true,
+            amount: true,
+            discountId: true,
+            conventionId: true,
+        },
+        with: {
+            daily: true,
+        },
+    })
+    return discounts
+}
+
+export async function getConventionDiscountStats(conventionId: number) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+
+    const discountsWithRevenue = await db
+        .select({
+            date: discountDaily.date,
+            reportId: discountDaily.reportId,
+            cashDiscounts: discountDaily.cashDiscounts,
+            cardDiscounts: discountDaily.cardDiscounts,
+            amount: sql<number>`cast(${conventionDiscountReports.amount} as float)`,
+            totalDiscounts: sql<number>`cast(sum(${discountDaily.cashDiscounts})+sum(${discountDaily.cardDiscounts}) as int)`,
+            totalDiscountAmount: sql<number>`cast(${conventionDiscountReports.amount}*(sum(${discountDaily.cashDiscounts})+sum(${discountDaily.cardDiscounts})) as float)`,
+        })
+        .from(discountDaily)
+        .leftJoin(
+            conventionDiscountReports,
+            eq(discountDaily.reportId, conventionDiscountReports.id),
+        )
+        .groupBy(
+            discountDaily.date,
+            discountDaily.reportId,
+            conventionDiscountReports.amount,
+            discountDaily.cashDiscounts,
+            discountDaily.cardDiscounts,
+        )
+        .where(eq(discountDaily.conventionId, conventionId))
+
+    //console.log(discountsWithRevenue)
+
+    const conventionTotalDiscountAmount = discountsWithRevenue.reduce(
+        (acc, element) => {
+            return +acc + +element.totalDiscountAmount
+        },
+        0,
+    )
+
+    return {
+        discountsStats: discountsWithRevenue,
+        totalDiscountAmount: conventionTotalDiscountAmount,
     }
 }
 

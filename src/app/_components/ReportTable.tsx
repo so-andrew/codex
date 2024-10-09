@@ -12,11 +12,13 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import { dirtyValues } from '@/lib/utils'
+import { dirtyValues, moneyFormat } from '@/lib/utils'
 import {
     type DailyRevenueReport,
     type defaultValues,
+    type DiscountReport,
     type ProductsByCategory,
+    type ReportOrDiscount,
     type SalesReportFormData,
 } from '@/types'
 import { DevTool } from '@hookform/devtools'
@@ -31,22 +33,58 @@ import { editRecords } from '../actions'
 import { useFormStore } from '../providers/form-store-provider'
 
 const reportSchema = z.object({
-    id: z.coerce.number(),
-    key: z.date(),
+    reportId: z.coerce.number(),
+    date: z.date(),
+    type: z.literal('product'),
     cashSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
     cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
 })
 
-const formSchema = z.record(z.string(), reportSchema)
+const discountSchema = z.object({
+    reportId: z.coerce.number(),
+    date: z.date(),
+    type: z.literal('discount'),
+    cashDiscounts: z
+        .number()
+        .int()
+        .min(0, 'Number must be nonnegative')
+        .optional(),
+    cardDiscounts: z
+        .number()
+        .int()
+        .min(0, 'Number must be nonnegative')
+        .optional(),
+})
+
+const generalReportSchema = z.object({
+    reportId: z.coerce.number(),
+    date: z.date(),
+    cashSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
+    cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
+    cashDiscounts: z
+        .number()
+        .int()
+        .min(0, 'Number must be nonnegative')
+        .optional(),
+    cardDiscounts: z
+        .number()
+        .int()
+        .min(0, 'Number must be nonnegative')
+        .optional(),
+})
+
+const formSchema = z.record(z.string(), generalReportSchema)
 
 export default function ReportTable({
     data,
     day,
     revenue,
+    discounts,
 }: {
     data: ProductsByCategory[]
     day: Date
     revenue: Record<number, DailyRevenueReport>
+    discounts: DiscountReport[]
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -66,9 +104,9 @@ export default function ReportTable({
             startingRowExpandedState[product.productId] =
                 product.reports.length > 1
             for (const report of product.reports) {
-                def.current[report.id.toString()] = {
-                    id: report.id,
-                    key: day,
+                def.current[`prod${report.id.toString()}`] = {
+                    reportId: report.id,
+                    date: day,
                     cashSales: report.revenues.find((revenue) =>
                         isEqual(revenue.date, day),
                     )!.cashSales,
@@ -77,6 +115,19 @@ export default function ReportTable({
                     )!.cardSales,
                 }
             }
+        }
+    }
+
+    for (const discount of discounts) {
+        def.current[`disc${discount.id.toString()}`] = {
+            reportId: discount.id,
+            date: day,
+            cashDiscounts: discount.daily.find((daily) =>
+                isEqual(daily.date, day),
+            )!.cashDiscounts,
+            cardDiscounts: discount.daily.find((daily) =>
+                isEqual(daily.date, day),
+            )!.cardDiscounts,
         }
     }
 
@@ -100,31 +151,48 @@ export default function ReportTable({
     }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        //console.log(data)
+        //console.log('data', data)
         const updates = []
         const values = dirtyValues(dirtyFields, data)
-        for (const [productId, formData] of Object.entries(values)) {
+        for (const [id, formData] of Object.entries(values)) {
             try {
-                const parse = reportSchema.parse({
-                    id: productId,
-                    key: day,
-                    cashSales:
-                        (formData as SalesReportFormData).cashSales ??
-                        undefined,
-                    cardSales:
-                        (formData as SalesReportFormData).cardSales ??
-                        undefined,
-                })
+                let parse = {} as ReportOrDiscount
+                if (id.startsWith('prod')) {
+                    parse = reportSchema.parse({
+                        reportId: id.slice(4),
+                        date: day,
+                        type: 'product',
+                        cashSales:
+                            (formData as SalesReportFormData).cashSales ??
+                            undefined,
+                        cardSales:
+                            (formData as SalesReportFormData).cardSales ??
+                            undefined,
+                    })
+                } else if (id.startsWith('disc')) {
+                    parse = discountSchema.parse({
+                        reportId: id.slice(4),
+                        date: day,
+                        type: 'discount',
+                        cashDiscounts:
+                            (formData as SalesReportFormData).cashDiscounts ??
+                            undefined,
+                        cardDiscounts:
+                            (formData as SalesReportFormData).cardDiscounts ??
+                            undefined,
+                    })
+                } else return
                 updates.push(parse)
             } catch (e) {
                 const error = e as Error
+                console.error(error)
                 toast({
                     title: error.name,
                     description: error.message,
                 })
             }
         }
-        console.log(updates)
+        //console.log(updates)
         await editRecords(updates)
     }
 
@@ -262,7 +330,7 @@ export default function ReportTable({
                                                                         control={
                                                                             form.control
                                                                         }
-                                                                        name={`${product.reports[0]!.id}.cashSales`}
+                                                                        name={`prod${product.reports[0]!.id}.cashSales`}
                                                                         render={({
                                                                             field,
                                                                         }) => (
@@ -271,7 +339,7 @@ export default function ReportTable({
                                                                                     <Input
                                                                                         type="number"
                                                                                         min="0"
-                                                                                        className={`w-16 lg:w-20 ${getFieldState(`${product.reports[0]!.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                        className={`w-16 lg:w-20 ${getFieldState(`prod${product.reports[0]!.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                         {...field}
                                                                                         onChange={(
                                                                                             e,
@@ -295,7 +363,7 @@ export default function ReportTable({
                                                                         control={
                                                                             form.control
                                                                         }
-                                                                        name={`${product.reports[0]!.id}.cardSales`}
+                                                                        name={`prod${product.reports[0]!.id}.cardSales`}
                                                                         render={({
                                                                             field,
                                                                         }) => (
@@ -304,7 +372,7 @@ export default function ReportTable({
                                                                                     <Input
                                                                                         type="number"
                                                                                         min="0"
-                                                                                        className={`w-16 lg:w-20 ${getFieldState(`${product.reports[0]!.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                        className={`w-16 lg:w-20 ${getFieldState(`prod${product.reports[0]!.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                         {...field}
                                                                                         onChange={(
                                                                                             e,
@@ -368,7 +436,7 @@ export default function ReportTable({
                                                                                 control={
                                                                                     form.control
                                                                                 }
-                                                                                name={`${report.id}.cashSales`}
+                                                                                name={`prod${report.id}.cashSales`}
                                                                                 render={({
                                                                                     field,
                                                                                 }) => (
@@ -377,7 +445,7 @@ export default function ReportTable({
                                                                                             <Input
                                                                                                 type="number"
                                                                                                 min="0"
-                                                                                                className={`w-16 lg:w-20 ${getFieldState(`${report.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                className={`w-16 lg:w-20 ${getFieldState(`prod${report.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                                 {...field}
                                                                                                 onChange={(
                                                                                                     e,
@@ -401,7 +469,7 @@ export default function ReportTable({
                                                                                 control={
                                                                                     form.control
                                                                                 }
-                                                                                name={`${report.id}.cardSales`}
+                                                                                name={`prod${report.id}.cardSales`}
                                                                                 render={({
                                                                                     field,
                                                                                 }) => (
@@ -410,7 +478,7 @@ export default function ReportTable({
                                                                                             <Input
                                                                                                 type="number"
                                                                                                 min="0"
-                                                                                                className={`w-16 lg:w-20 ${getFieldState(`${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                className={`w-16 lg:w-20 ${getFieldState(`prod${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
                                                                                                 {...field}
                                                                                                 onChange={(
                                                                                                     e,
@@ -465,6 +533,136 @@ export default function ReportTable({
                         )
                     })}
                     {
+                        <div className="flex flex-col gap-4 pt-4 px-6">
+                            <div className="flex flex-row items-center gap-4">
+                                <h1 className="p-2 text-lg font-semibold">
+                                    Discounts
+                                </h1>
+                                <Badge
+                                    variant="secondary"
+                                    className="py-1 rounded-xl"
+                                >
+                                    {dayString.current}
+                                </Badge>
+                            </div>
+                            <Table className="rounded-md border">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead
+                                            className="pl-12"
+                                            style={{ width: '60%' }}
+                                        >
+                                            Discount
+                                        </TableHead>
+                                        <TableHead
+                                            style={{ width: 'min-content' }}
+                                        >
+                                            Amount
+                                        </TableHead>
+                                        <TableHead
+                                            style={{ width: 'min-content' }}
+                                        >
+                                            Cash Disc.
+                                        </TableHead>
+                                        <TableHead
+                                            style={{ width: 'min-content' }}
+                                        >
+                                            Card Disc.
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {discounts.map((discount) => {
+                                        return (
+                                            <React.Fragment key={discount.id}>
+                                                <TableRow className="cursor-pointer even:bg-gray-300/20">
+                                                    <TableCell>
+                                                        <span className="pl-10 font-medium">
+                                                            {discount.name}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {moneyFormat.format(
+                                                            parseFloat(
+                                                                discount.amount,
+                                                            ),
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <FormField
+                                                            control={
+                                                                form.control
+                                                            }
+                                                            name={`disc${discount.id}.cashDiscounts`}
+                                                            render={({
+                                                                field,
+                                                            }) => (
+                                                                <FormItem>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            className={`w-16 lg:w-20 ${getFieldState(`disc${discount.id}.cashDiscounts`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                            {...field}
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) => {
+                                                                                field.onChange(
+                                                                                    Number(
+                                                                                        e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    ),
+                                                                                )
+                                                                            }}
+                                                                        />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <FormField
+                                                            control={
+                                                                form.control
+                                                            }
+                                                            name={`disc${discount.id}.cardDiscounts`}
+                                                            render={({
+                                                                field,
+                                                            }) => (
+                                                                <FormItem>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            className={`w-16 lg:w-20 ${getFieldState(`disc${discount.id}.cardDiscounts`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                            {...field}
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) => {
+                                                                                field.onChange(
+                                                                                    Number(
+                                                                                        e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    ),
+                                                                                )
+                                                                            }}
+                                                                        />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </TableCell>
+                                                </TableRow>
+                                            </React.Fragment>
+                                        )
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    }
+                    {
                         <div
                             className="fixed bottom-0 left-4 right-4 lg:left-1/4 lg:right-1/4 flex items-center justify-between rounded-md border-t border-border bg-background p-4 shadow-lg transition-all duration-300 ease-in-out"
                             style={{
@@ -477,8 +675,11 @@ export default function ReportTable({
                             {/* <Button
                                 type="button"
                                 onClick={() => {
-                                    //console.log(defaultValues)
-                                    console.log(JSON.stringify(getValues()))
+                                    console.log('default', defaultValues)
+                                    console.log(
+                                        'curr',
+                                        JSON.stringify(getValues()),
+                                    )
                                     console.log(defaultValues === getValues())
                                 }}
                             >
@@ -486,7 +687,7 @@ export default function ReportTable({
                             </Button> */}
                             <Button
                                 type="submit"
-                                className="bg-purple-500 hover:bg-purple-600"
+                                className="hover:bg-purple-600"
                             >
                                 Save
                             </Button>

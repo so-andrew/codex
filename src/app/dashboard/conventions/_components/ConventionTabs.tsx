@@ -13,7 +13,11 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { type DailyRevenueReport, type ProductsByCategory } from '@/types'
+import {
+    DiscountReport,
+    type DailyRevenueReport,
+    type ProductsByCategory,
+} from '@/types'
 import { formatInTimeZone } from 'date-fns-tz'
 import { useState } from 'react'
 
@@ -21,10 +25,12 @@ export default function ConventionTabs({
     data,
     range,
     revenue,
+    discounts,
 }: {
     data: ProductsByCategory[]
     range: Date[]
     revenue: Map<string, Record<number, DailyRevenueReport>>
+    discounts: DiscountReport[]
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -104,6 +110,7 @@ export default function ConventionTabs({
                                 data={data}
                                 day={day}
                                 revenue={revenue.get(day.toISOString())!}
+                                discounts={discounts}
                             />
                         </TabsContent>
                     )

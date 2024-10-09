@@ -7,18 +7,27 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import { Separator } from '@/components/ui/separator'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+import { moneyFormat } from '@/lib/utils'
 import {
     getConventionById,
+    getConventionDiscounts,
+    getConventionDiscountStats,
     getConventionReports,
     getConventionRevenue,
     getTopSellingVariations,
 } from '@/server/queries'
 import {
-    DailyRevenueChartData,
-    RevenueTypeChartData,
+    type DailyRevenueChartData,
     type ProductsByCategory,
     type ReportsByProduct,
+    type RevenueTypeChartData,
 } from '@/types'
 import { eachDayOfInterval } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
@@ -52,12 +61,28 @@ export default async function page({ params }: { params: { id: string } }) {
     const convention = await getConventionById(conventionId)
 
     if (!convention) {
-        redirect('/dashboard/conventions')
+        return redirect('/dashboard/conventions')
     }
 
     const reports = await getConventionReports(conventionId)
-    const { itemizedRevenue, totalRevenue, revenueByCategory } =
-        await getConventionRevenue(conventionId)
+    const discounts = await getConventionDiscounts(conventionId)
+
+    //console.log('discounts:', discounts)
+    const {
+        itemizedRevenue,
+        totalRevenue: grossRevenue,
+        revenueByCategory,
+    } = await getConventionRevenue(conventionId)
+
+    const { discountsStats, totalDiscountAmount } =
+        await getConventionDiscountStats(conventionId)
+
+    // console.log('total disc:', totalDiscountAmount)
+    //console.log('stats:', discountsStats)
+
+    //console.log('itemized:', itemizedRevenue)
+    //console.log('total:', totalRevenue)
+    //console.log('rbc:', revenueByCategory)
 
     const revenueByDay: Record<string, number> = {}
     const revenueByType: {
@@ -135,7 +160,7 @@ export default async function page({ params }: { params: { id: string } }) {
     const totalRevenueString = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-    }).format(totalRevenue)
+    }).format(grossRevenue - totalDiscountAmount)
 
     const products: Record<number, ReportsByProduct> = {}
     reports.map((report) => {
@@ -184,7 +209,7 @@ export default async function page({ params }: { params: { id: string } }) {
                         <Card className="w-full md:w-fit">
                             <CardHeader>
                                 <CardTitle className="flex flex-row gap-4 justify-between items-center text-2xl font-semibold">
-                                    {convention.name}
+                                    {convention?.name}
                                     {convention && (
                                         <EditConvention
                                             convention={convention}
@@ -207,9 +232,70 @@ export default async function page({ params }: { params: { id: string } }) {
                                     <span className="text-lg text-gray-500">
                                         Total Revenue
                                     </span>
-                                    <span className="text-2xl font-bold">
-                                        {totalRevenueString}
-                                    </span>
+                                    <HoverCard>
+                                        <HoverCardTrigger>
+                                            <span className="text-2xl font-bold">
+                                                {totalRevenueString}
+                                            </span>
+                                        </HoverCardTrigger>
+                                        <HoverCardContent className="flex flex-col gap-4 p-6">
+                                            <h1 className="text-lg">Details</h1>
+                                            <div className="rounded-md border">
+                                                <Table>
+                                                    <TableBody>
+                                                        <TableRow>
+                                                            <TableCell className="font-medium text-gray-500">
+                                                                Gross Revenue
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {moneyFormat.format(
+                                                                    grossRevenue,
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell className="font-medium text-gray-500">
+                                                                Discounts
+                                                            </TableCell>
+                                                            <TableCell className="text-red-500 text-right">
+                                                                -
+                                                                {moneyFormat.format(
+                                                                    totalDiscountAmount,
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                        <TableRow className="bg-gray-300/20">
+                                                            <TableCell className="font-bold text-gray-500">
+                                                                Total
+                                                            </TableCell>
+                                                            <TableCell className="font-bold text-right">
+                                                                {moneyFormat.format(
+                                                                    grossRevenue -
+                                                                        totalDiscountAmount,
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                            {/* <p className="font-normal">
+                                                Gross Revenue:{' '}
+                                                <span className="font-semibold">
+                                                    {moneyFormat.format(
+                                                        grossRevenue,
+                                                    )}
+                                                </span>
+                                            </p>
+                                            <p className="font-normal">
+                                                Discounts:{' '}
+                                                <span className="font-semibold">
+                                                    {moneyFormat.format(
+                                                        totalDiscountAmount,
+                                                    )}
+                                                </span>
+                                            </p> */}
+                                        </HoverCardContent>
+                                    </HoverCard>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -231,10 +317,6 @@ export default async function page({ params }: { params: { id: string } }) {
                             <ProductSalesStatsCard data={productSalesData} />
                             <DailyRevenueStatsCard data={pieChartData} />
                             <RevenueTypeStatsCard data={barChartData} />
-                            {/* <RevenueTypeStatsCardOld
-                                barChartData={barChartDataOld}
-                                className="max-sm:h-full max-sm:w-full"
-                            /> */}
                         </StatsCarousel>
                         <div className="px-6 mt-4 hidden sm:grid grid-cols-6 grid-flow-row gap-4">
                             <div className="col-span-4 row-span-2">
@@ -247,9 +329,6 @@ export default async function page({ params }: { params: { id: string } }) {
                             </div>
                             <div className="col-span-2">
                                 <RevenueTypeStatsCard data={barChartData} />
-                                {/* <RevenueTypeStatsCardOld
-                                    barChartData={barChartDataOld}
-                                /> */}
                             </div>
                         </div>
                     </CollapsibleContent>
@@ -261,6 +340,7 @@ export default async function page({ params }: { params: { id: string } }) {
                     data={categorizedData}
                     range={daysInRange}
                     revenue={revenueByCategory}
+                    discounts={discounts}
                 />
             </section>
         </FormStoreProvider>

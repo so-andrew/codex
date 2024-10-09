@@ -9,14 +9,17 @@ export function dirtyValues(
     dirtyFields: object | boolean,
     allValues: object,
 ): object {
+    //console.log(dirtyFields, allValues, typeof allValues)
     if (dirtyFields === true || Array.isArray(dirtyFields)) return allValues
-    return Object.fromEntries(
+
+    const obj = Object.fromEntries(
         Object.keys(dirtyFields).map((key) => [
             key,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             dirtyValues(dirtyFields[key], allValues[key]),
         ]),
     )
+    return obj
 }
 
 export const moneyFormat = Intl.NumberFormat('en-US', {
