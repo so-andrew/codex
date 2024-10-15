@@ -1,5 +1,8 @@
 'use client'
 
+import CreateCustomDiscount from '@/app/_components/CreateCustomDiscount'
+import CreateCustomReport from '@/app/_components/CreateCustomReport'
+import CreateCustomReportDropdown from '@/app/_components/CreateCustomReportDropdown'
 import ReportTable from '@/app/_components/ReportTable'
 import { useFormStore } from '@/app/providers/form-store-provider'
 import {
@@ -26,11 +29,13 @@ export default function ConventionTabs({
     range,
     revenue,
     discounts,
+    conventionId,
 }: {
     data: ProductsByCategory[]
     range: Date[]
     revenue: Map<string, Record<number, DailyRevenueReport>>
     discounts: DiscountReport[]
+    conventionId: number
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -69,20 +74,34 @@ export default function ConventionTabs({
     return (
         <>
             <Tabs value={tab} onValueChange={onTabChange} className="w-full">
-                <TabsList className={`flex w-fit flex-row justify-start ml-6`}>
-                    {range.map((day) => {
-                        const dateString = formatInTimeZone(
-                            day,
-                            timeZone,
-                            'EEE, MMM d',
-                        )
-                        return (
-                            <TabsTrigger key={day.getDate()} value={dateString}>
-                                {dateString}
-                            </TabsTrigger>
-                        )
-                    })}
-                </TabsList>
+                <div className="flex flex-row justify-between mx-6 gap-4 flex-wrap">
+                    <TabsList className={`flex w-fit flex-row justify-start`}>
+                        {range.map((day) => {
+                            const dateString = formatInTimeZone(
+                                day,
+                                timeZone,
+                                'EEE, MMM d',
+                            )
+                            return (
+                                <TabsTrigger
+                                    key={day.getDate()}
+                                    value={dateString}
+                                >
+                                    {dateString}
+                                </TabsTrigger>
+                            )
+                        })}
+                    </TabsList>
+                    <div className="md:hidden">
+                        <CreateCustomReportDropdown
+                            conventionId={conventionId}
+                        />
+                    </div>
+                    <div className="hidden md:flex gap-4">
+                        <CreateCustomReport conventionId={conventionId} />
+                        <CreateCustomDiscount conventionId={conventionId} />
+                    </div>
+                </div>
                 {range.map((day, index) => {
                     const dateString = formatInTimeZone(
                         day,

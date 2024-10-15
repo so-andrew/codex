@@ -290,11 +290,14 @@ export async function getConventionReports(conventionId: number) {
                 id: true,
                 name: true,
                 productId: true,
+                originalProductId: true,
                 productName: true,
                 categoryId: true,
                 categoryName: true,
                 conventionId: true,
                 price: true,
+                custom: true,
+                deleted: true,
             },
             with: {
                 revenues: true,
@@ -412,6 +415,7 @@ export async function getConventionDiscounts(conventionId: number) {
             amount: true,
             discountId: true,
             conventionId: true,
+            custom: true,
         },
         with: {
             daily: true,

@@ -62,6 +62,8 @@ export type ReportType = {
     productName: string
     categoryId: number | null
     categoryName: string | null
+    conventionId: number
+    custom: boolean
     revenues: DailyProductReport[]
 }
 
@@ -69,6 +71,8 @@ export type DiscountReport = {
     id: number
     name: string
     amount: string
+    conventionId: number
+    custom: boolean
     daily: DailyDiscount[]
 }
 

@@ -31,7 +31,6 @@ import {
 } from '@/types'
 import { eachDayOfInterval } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
-import { Info } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { type Metadata, type ResolvingMetadata } from 'next/types'
 import ConventionTabs from '../_components/ConventionTabs'
@@ -163,24 +162,46 @@ export default async function page({ params }: { params: { id: string } }) {
     }).format(grossRevenue - totalDiscountAmount)
 
     const products: Record<number, ReportsByProduct> = {}
+    let customProductIndex = -1
     reports.map((report) => {
-        const productId = report.productId ?? -1
-        if (!products[productId]) {
+        const categoryId = report.categoryId
+        const effectiveProductId = report.productId
+            ? report.productId
+            : report.originalProductId
+              ? report.originalProductId
+              : ++customProductIndex
+
+        console.log(
+            report.name,
+            report.productName,
+            effectiveProductId,
+            categoryId,
+        )
+
+        if (!products[effectiveProductId]) {
             const reportByProduct: ReportsByProduct = {
-                productId: report.productId ?? -1,
+                productId:
+                    report.productId ??
+                    (report.originalProductId
+                        ? -1 * report.originalProductId
+                        : customProductIndex),
                 productName: report.productName,
                 categoryId: report.categoryId ?? -1,
                 categoryName: report.categoryName ?? 'Uncategorized',
                 reports: [],
             }
-            products[productId] = reportByProduct
+            products[effectiveProductId] = reportByProduct
         }
-        products[productId].reports.push(report)
+        products[effectiveProductId].reports.push(report)
     })
+
+    console.log('products:', products)
 
     const categories: Record<number, ProductsByCategory> = {}
     Object.values(products).map((product) => {
-        product.reports.sort((a, b) => a.id - b.id)
+        product.reports.sort((a, b) =>
+            a.productName.localeCompare(b.productName),
+        )
         if (!categories[product.categoryId]) {
             const productByCategory: ProductsByCategory = {
                 categoryId: product.categoryId,
@@ -192,6 +213,8 @@ export default async function page({ params }: { params: { id: string } }) {
         categories[product.categoryId]?.products.push(product)
     })
     const categorizedData = Object.values(categories)
+
+    console.log('categorized:', categorizedData)
 
     const startDateString = convention
         ? formatInTimeZone(convention.startDate, timeZone, 'EEEE, MMM d, yyyy')
@@ -304,7 +327,8 @@ export default async function page({ params }: { params: { id: string } }) {
                                         variant="ghost"
                                         className="flex flex-row gap-2 justify-center items-center px-2"
                                     >
-                                        <Info />
+                                        {/* <Ellipsis /> */}
+
                                         <span>More Stats</span>
                                     </Button>
                                 </CollapsibleTrigger>
@@ -341,6 +365,7 @@ export default async function page({ params }: { params: { id: string } }) {
                     range={daysInRange}
                     revenue={revenueByCategory}
                     discounts={discounts}
+                    conventionId={conventionId}
                 />
             </section>
         </FormStoreProvider>

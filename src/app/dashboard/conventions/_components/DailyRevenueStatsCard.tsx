@@ -38,7 +38,7 @@ export default function DailyRevenueStatsCard({
                     className="mx-auto max-sm:min-h-[325px] min-h-[200px] w-full"
                 >
                     <PieChart>
-                        <Pie data={data} dataKey="revenue" />
+                        <Pie data={data} dataKey="revenue" innerRadius={40} />
                         <ChartTooltip
                             cursor={false}
                             content={<ChartTooltipContent nameKey="key" />}

@@ -41,8 +41,8 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 type Action = {
-    type: 'set_value' | 'remove_value'
-    index: number
+    type: 'set_value' | 'remove_value' | 'reset_all'
+    index?: number
     value?: string
 }
 
@@ -91,6 +91,9 @@ export default function CreateProduct({
             case 'set_value':
                 //console.log('slice1:', ...state.slice(0, action.index))
                 //console.log('slice2:', ...state.slice(action.index + 1))
+                console.log(action.index)
+                if (typeof action.index === 'undefined')
+                    throw new Error('Index required')
 
                 const newArr = [
                     ...state.slice(0, action.index),
@@ -100,10 +103,14 @@ export default function CreateProduct({
                 console.log('newArr', newArr)
                 return newArr
             case 'remove_value':
+                if (typeof action.index === 'undefined')
+                    throw new Error('Index required')
                 return [
                     ...state.slice(0, action.index),
                     ...state.slice(action.index + 1),
                 ]
+            case 'reset_all':
+                return []
         }
     }
 
@@ -176,6 +183,7 @@ export default function CreateProduct({
             setVariationCount(0)
             remove()
             setIsOpen(false)
+            dispatch({ type: 'reset_all' })
             reset({}, { keepValues: false })
             toast({
                 title: 'Success',
@@ -199,7 +207,7 @@ export default function CreateProduct({
                     </Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-lg"
+                    className="sm:max-w-xl"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
@@ -339,82 +347,87 @@ export default function CreateProduct({
                                     )}
                                 />
                             )}
-                            {variationCount > 0 &&
-                                fields.map((field, index) => (
-                                    <div
-                                        key={field.id}
-                                        className="flex flex-row items-end gap-8"
-                                    >
-                                        <FormField
-                                            control={form.control}
-                                            key={index}
-                                            name={`variations.${index}.name`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>
-                                                        Variation Name
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input {...field} />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            key={index + 1}
-                                            name={`variations.${index}.price`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Price</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="$0.00"
-                                                            {...field}
-                                                            onChange={(
-                                                                event,
-                                                            ) => {
-                                                                // console.log(
-                                                                //     event.target
-                                                                //         .name,
-                                                                //     event.target
-                                                                //         .value,
-                                                                // )
-
-                                                                setDisplayValue(
-                                                                    {
-                                                                        index: index,
-                                                                        target: event.target,
-                                                                    },
-                                                                )
-                                                                handleChange(
-                                                                    field.onChange,
-                                                                    event.target
-                                                                        .value,
-                                                                )
-                                                            }}
-                                                            value={
-                                                                displayValues[
-                                                                    index
-                                                                ]
-                                                            }
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            onClick={() => {
-                                                removeDisplayValue(index)
-                                                removeVariation(index)
-                                            }}
+                            {variationCount > 0 && (
+                                <div className="flex flex-col gap-4 max-h-[33vh] overflow-y-auto pr-6 py-4">
+                                    {fields.map((field, index) => (
+                                        <div
+                                            key={field.id}
+                                            className="flex flex-row items-end gap-8"
                                         >
-                                            Remove
-                                        </Button>
-                                    </div>
-                                ))}
+                                            <FormField
+                                                control={form.control}
+                                                key={index}
+                                                name={`variations.${index}.name`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Variation Name
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input {...field} />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                key={index + 1}
+                                                name={`variations.${index}.price`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Price
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="$0.00"
+                                                                {...field}
+                                                                onChange={(
+                                                                    event,
+                                                                ) => {
+                                                                    // console.log(
+                                                                    //     event.target
+                                                                    //         .name,
+                                                                    //     event.target
+                                                                    //         .value,
+                                                                    // )
+                                                                    setDisplayValue(
+                                                                        {
+                                                                            index: index,
+                                                                            target: event.target,
+                                                                        },
+                                                                    )
+                                                                    handleChange(
+                                                                        field.onChange,
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    )
+                                                                }}
+                                                                value={
+                                                                    displayValues[
+                                                                        index
+                                                                    ]
+                                                                }
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                onClick={() => {
+                                                    removeDisplayValue(index)
+                                                    removeVariation(index)
+                                                }}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             <div className="flex flex-row gap-4 pt-4">
                                 <Button
                                     type="button"

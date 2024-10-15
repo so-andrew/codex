@@ -1,9 +1,10 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { relations, sql } from 'drizzle-orm'
+import { relations, SQL, sql } from 'drizzle-orm'
 import {
     type AnyPgColumn,
+    boolean,
     integer,
     numeric,
     pgTableCreator,
@@ -140,6 +141,7 @@ export const conventionProductReports = createTable(
         productId: integer('productId').references(() => products.id, {
             onDelete: 'set null',
         }),
+        originalProductId: integer('originalProductId'),
         productName: varchar('productName', { length: 256 }).notNull(),
         price: numeric('price').notNull(),
         createdAt: timestamp('created_at', { withTimezone: true })
@@ -165,6 +167,11 @@ export const conventionProductReports = createTable(
         conventionId: integer('conventionId')
             .references(() => conventions.id, { onDelete: 'cascade' })
             .notNull(),
+        custom: boolean('custom').default(false).notNull(),
+        deleted: boolean('deleted').generatedAlwaysAs(
+            (): SQL =>
+                sql`${conventionProductReports.productId} IS NULL AND ${conventionProductReports.originalProductId} IS NOT NULL`,
+        ),
     },
 )
 export type ConventionProductReport =
@@ -238,13 +245,14 @@ export const conventionDiscountReports = createTable(
         conventionId: integer('conventionId')
             .references(() => conventions.id, { onDelete: 'cascade' })
             .notNull(),
+        custom: boolean('custom').default(false).notNull(),
     },
 )
 
 export type ConventionDiscountReport =
     typeof conventionDiscountReports.$inferSelect
 
-export const discontRelations = relations(
+export const discountRelations = relations(
     conventionDiscountReports,
     ({ many }) => ({
         daily: many(discountDaily),

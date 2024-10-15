@@ -57,7 +57,7 @@ export default function ProductSalesTable({
     useEffect(() => {
         setPagination({
             pageIndex: pagination.pageIndex,
-            pageSize: isTablet ? 10 : 5,
+            pageSize: isTablet ? 8 : 5,
         })
     }, [isTablet, pagination.pageIndex])
 

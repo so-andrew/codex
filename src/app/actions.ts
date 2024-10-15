@@ -160,7 +160,7 @@ const bulkConventionDeleteScheme = z.object({
 })
 
 // Record schema
-const reportScheme = z.object({
+const productReportScheme = z.object({
     reportId: z.coerce.number(),
     date: z.date(),
     type: z.literal('product'),
@@ -168,7 +168,7 @@ const reportScheme = z.object({
     cardSales: z.number().int().min(0, 'Number must be nonnegative').optional(),
 })
 
-const discountScheme = z.object({
+const discountReportScheme = z.object({
     reportId: z.coerce.number(),
     date: z.date(),
     type: z.literal('discount'),
@@ -185,11 +185,42 @@ const discountScheme = z.object({
 })
 
 const reportOrDiscount = z.discriminatedUnion('type', [
-    reportScheme,
-    discountScheme,
+    productReportScheme,
+    discountReportScheme,
 ])
 
 const reportFormScheme = z.array(reportOrDiscount)
+
+const customReportCreateScheme = z.object({
+    name: z.string().min(2).max(100),
+    price: z.coerce.number().nonnegative(),
+    conventionId: z.number(),
+})
+
+const customReportEditScheme = z.object({
+    id: z.number(),
+    name: z.string().min(2).max(100),
+    price: z.coerce.number().nonnegative(),
+    conventionId: z.number(),
+})
+
+const customDiscountCreateScheme = z.object({
+    name: z.string().min(2).max(100),
+    amount: z.coerce.number().nonnegative(),
+    conventionId: z.number(),
+})
+
+const customDiscountEditScheme = z.object({
+    id: z.number(),
+    name: z.string().min(2).max(100),
+    amount: z.coerce.number().nonnegative(),
+    conventionId: z.number(),
+})
+
+type NewReport = typeof conventionProductReports.$inferInsert
+type NewDailyRevenue = typeof productDailyRevenue.$inferInsert
+type NewDiscountReport = typeof conventionDiscountReports.$inferInsert
+type NewDailyDiscount = typeof discountDaily.$inferInsert
 
 export async function createProduct(data: z.infer<typeof productCreateScheme>) {
     const user = auth()
@@ -876,16 +907,14 @@ export async function createConvention(
             .returning()
 
         const newConvention = newConventionQuery[0]
+        if (!newConvention) throw new Error('Convention not found')
 
         const daysInRange = eachDayOfInterval({
-            start: newConvention!.startDate,
-            end: newConvention!.endDate,
+            start: newConvention.startDate,
+            end: newConvention.endDate,
         })
 
         // TODO: Throw error in case of failed db insert
-
-        type NewReport = typeof conventionProductReports.$inferInsert
-        type NewDailyRevenue = typeof productDailyRevenue.$inferInsert
 
         // Get all products
         // const allVariations = await db.query.productVariations.findMany({
@@ -908,6 +937,7 @@ export async function createConvention(
             const newReport: NewReport = {
                 name: productVariations.name,
                 productId: productVariations.productId,
+                originalProductId: productVariations.productId,
                 productName: productVariations.baseProductName,
                 categoryId: product?.category ?? -1,
                 categoryName:
@@ -917,7 +947,7 @@ export async function createConvention(
                 price: productVariations.price,
                 creatorId: productVariations.creatorId,
                 productVariationId: productVariations.id,
-                conventionId: newConvention!.id,
+                conventionId: newConvention.id,
             }
             return newReport
         })
@@ -958,7 +988,7 @@ export async function createConvention(
                 amount: discount.amount,
                 discountId: discount.id,
                 creatorId: discount.creatorId,
-                conventionId: newConvention!.id,
+                conventionId: newConvention.id,
             }
             return newDiscountReport
         })
@@ -1139,6 +1169,173 @@ export async function editRecords(data: z.infer<typeof reportFormScheme>) {
                 }
             }
         }
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('/dashboard/conventions')
+}
+
+export async function addCustomReport(
+    data: z.infer<typeof customReportCreateScheme>,
+) {
+    const user = auth()
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        if (customReportCreateScheme.parse(data)) {
+            const newReport: NewReport = {
+                name: data.name,
+                productName: data.name,
+                price: data.price.toString(),
+                creatorId: user.userId,
+                conventionId: data.conventionId,
+                custom: true,
+            }
+
+            const convention = await db.query.conventions.findFirst({
+                where: eq(conventions.id, newReport.conventionId),
+            })
+            if (!convention) throw new Error('Convention not found')
+
+            const report = await db
+                .insert(conventionProductReports)
+                .values(newReport)
+                .returning()
+
+            const daysInRange = eachDayOfInterval({
+                start: convention.startDate,
+                end: convention.endDate,
+            })
+
+            const dailyRevenues = []
+            for (const day of daysInRange) {
+                const dailyRevenue: NewDailyRevenue = {
+                    reportId: report[0]!.id,
+                    conventionId: report[0]!.conventionId,
+                    categoryId: -1,
+                    date: day,
+                }
+                dailyRevenues.push(dailyRevenue)
+            }
+
+            await db.insert(productDailyRevenue).values(dailyRevenues)
+        }
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('/dashboard/conventions')
+}
+
+export async function editCustomReport(
+    data: z.infer<typeof customReportEditScheme>,
+) {
+    const user = auth()
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = customReportEditScheme.parse(data)
+        await db
+            .update(conventionProductReports)
+            .set({ name: parse.name, price: parse.price.toString() })
+            .where(
+                and(
+                    eq(conventionProductReports.id, parse.id),
+                    eq(conventionProductReports.creatorId, user.userId),
+                ),
+            )
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('/dashboard/conventions')
+}
+
+
+export async function addCustomDiscount(
+    data: z.infer<typeof customDiscountCreateScheme>,
+) {
+    const user = auth()
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        if (customDiscountCreateScheme.parse(data)) {
+            const newDiscount: NewDiscountReport = {
+                name: data.name,
+                amount: data.amount.toString(),
+                creatorId: user.userId,
+                conventionId: data.conventionId,
+                custom: true,
+            }
+
+            const convention = await db.query.conventions.findFirst({
+                where: eq(conventions.id, newDiscount.conventionId),
+            })
+            if (!convention) throw new Error('Convention not found')
+
+            const discount = await db
+                .insert(conventionDiscountReports)
+                .values(newDiscount)
+                .returning()
+
+            const daysInRange = eachDayOfInterval({
+                start: convention.startDate,
+                end: convention.endDate,
+            })
+
+            const dailyDiscounts = []
+            for (const day of daysInRange) {
+                const dailyDiscount: NewDailyDiscount = {
+                    reportId: discount[0]!.id,
+                    conventionId: discount[0]!.conventionId,
+                    date: day,
+                }
+                dailyDiscounts.push(dailyDiscount)
+            }
+
+            await db.insert(discountDaily).values(dailyDiscounts)
+        }
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
+    revalidatePath('/dashboard/conventions')
+}
+
+export async function editCustomDiscount(
+    data: z.infer<typeof customDiscountEditScheme>,
+) {
+    const user = auth()
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const parse = customDiscountEditScheme.parse(data)
+        await db
+            .update(conventionDiscountReports)
+            .set({ name: parse.name, amount: parse.amount.toString() })
+            .where(
+                and(
+                    eq(conventionDiscountReports.id, parse.id),
+                    eq(conventionDiscountReports.creatorId, user.userId),
+                ),
+            )
     } catch (e) {
         const error = e as Error
         console.error(error)

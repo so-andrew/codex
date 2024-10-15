@@ -130,22 +130,73 @@ export const columns: ColumnDef<ProductTableRow>[] = [
         },
     },
     {
-        accessorFn: (row) => row.product.price,
+        accessorFn: (row) => {
+            if (row.product.price) {
+                return row.product.price
+            } else {
+                const prices = row.variations.map((variation) =>
+                    parseFloat(variation.product.price!),
+                )
+                return Math.min(...prices)
+            }
+        },
         id: 'price',
-        header: () => <div className="text-right font-semibold">Price</div>,
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() =>
+                        column.toggleSorting(column.getIsSorted() === 'asc')
+                    }
+                    className="font-semibold"
+                >
+                    Price
+                    {column.getIsSorted() === 'asc' ? (
+                        <ArrowUp className="ml-2 h-4 w-4" />
+                    ) : column.getIsSorted() === 'desc' ? (
+                        <ArrowDown className="ml-2 h-4 w-4" />
+                    ) : (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
+                </Button>
+            )
+        },
         cell: ({ row }) => {
             const product = row.original.product
-            const amount = parseFloat(product.price!)
-            const formatted = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-            }).format(amount)
-
-            return (
-                <div className="text-right font-medium">
-                    {product.price ? formatted : 'Multiple'}
-                </div>
-            )
+            if (product.price) {
+                const amount = parseFloat(product.price)
+                const formatted = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                }).format(amount)
+                return <div className="font-medium">{formatted}</div>
+            } else {
+                const variations = row.originalSubRows
+                if (!variations) {
+                    return
+                }
+                const prices = variations.map((variation) =>
+                    parseFloat(variation.product.price!),
+                )
+                let formattedAmount = ''
+                if (Math.max(...prices) === Math.min(...prices)) {
+                    formattedAmount = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                    }).format(prices[0]!)
+                } else {
+                    const formattedMin = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                    }).format(Math.min(...prices))
+                    const formattedMax = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                    }).format(Math.max(...prices))
+                    formattedAmount = `${formattedMin} - ${formattedMax}`
+                }
+                return <div className="font-medium">{formattedAmount}</div>
+            }
         },
     },
     {

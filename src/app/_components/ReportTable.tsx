@@ -11,6 +11,12 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useToast } from '@/hooks/use-toast'
 import { dirtyValues, moneyFormat } from '@/lib/utils'
 import {
@@ -25,12 +31,14 @@ import { DevTool } from '@hookform/devtools'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { isEqual } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Info, TriangleAlert } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { editRecords } from '../actions'
 import { useFormStore } from '../providers/form-store-provider'
+import EditCustomDiscountButton from './tables/EditCustomDiscountButton'
+import EditCustomReportButton from './tables/EditCustomReportButton'
 
 const reportSchema = z.object({
     reportId: z.coerce.number(),
@@ -104,6 +112,7 @@ export default function ReportTable({
             startingRowExpandedState[product.productId] =
                 product.reports.length > 1
             for (const report of product.reports) {
+                //console.log(report)
                 def.current[`prod${report.id.toString()}`] = {
                     reportId: report.id,
                     date: day,
@@ -219,6 +228,7 @@ export default function ReportTable({
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     {/* Iterate over categories -> products -> variations */}
                     {data.map((category) => {
+                        console.log(category.products)
                         return (
                             <div
                                 key={category.categoryId}
@@ -276,48 +286,128 @@ export default function ReportTable({
                                                                     : 1
                                                             }
                                                         >
-                                                            {product.reports
-                                                                .length > 1 ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    className="px-2"
-                                                                    onClick={() =>
-                                                                        toggleRow(
-                                                                            product.productId,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {expandedRows[
-                                                                        product
-                                                                            .productId
-                                                                    ] ? (
-                                                                        <ChevronUp className="h-4 w-4 text-purple-500" />
+                                                            <div className="flex flex-row items-center">
+                                                                {product.reports
+                                                                    .length >
+                                                                1 ? (
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        className="px-2 mr-2"
+                                                                        onClick={() =>
+                                                                            toggleRow(
+                                                                                product.productId,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {expandedRows[
+                                                                            product
+                                                                                .productId
+                                                                        ] ? (
+                                                                            <ChevronUp className="h-4 w-4 text-purple-500" />
+                                                                        ) : (
+                                                                            <ChevronDown className="h-4 w-4 text-purple-500" />
+                                                                        )}
+                                                                    </Button>
+                                                                ) : (
+                                                                    <span className="pl-10" />
+                                                                )}
+                                                                <span className="font-medium">
+                                                                    {product
+                                                                        .reports
+                                                                        .length ===
+                                                                        1 &&
+                                                                    product
+                                                                        .reports[0]!
+                                                                        .custom ? (
+                                                                        <EditCustomReportButton
+                                                                            report={
+                                                                                product
+                                                                                    .reports[0]!
+                                                                            }
+                                                                        />
                                                                     ) : (
-                                                                        <ChevronDown className="h-4 w-4 text-purple-500" />
+                                                                        <span>
+                                                                            {
+                                                                                product.productName
+                                                                            }
+                                                                        </span>
                                                                     )}
-                                                                </Button>
-                                                            ) : (
-                                                                <span className="pl-8" />
-                                                            )}
-                                                            <span className="pl-2 font-medium">
-                                                                {
-                                                                    product.productName
-                                                                }
-                                                            </span>
+                                                                </span>
+                                                                {product.reports
+                                                                    .length ===
+                                                                    1 &&
+                                                                    product
+                                                                        .reports[0]!
+                                                                        .custom && (
+                                                                        <TooltipProvider>
+                                                                            <Tooltip>
+                                                                                <TooltipTrigger>
+                                                                                    <Info
+                                                                                        height={
+                                                                                            20
+                                                                                        }
+                                                                                        className="text-gray-500 ml-4"
+                                                                                    />
+                                                                                </TooltipTrigger>
+                                                                                <TooltipContent>
+                                                                                    <p className="text-base">
+                                                                                        Specific
+                                                                                        to
+                                                                                        this
+                                                                                        convention
+                                                                                        only
+                                                                                    </p>
+                                                                                </TooltipContent>
+                                                                            </Tooltip>
+                                                                        </TooltipProvider>
+                                                                    )}
+                                                                {product.productId <
+                                                                    -1 && (
+                                                                    <TooltipProvider>
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger>
+                                                                                <TriangleAlert
+                                                                                    height={
+                                                                                        20
+                                                                                    }
+                                                                                    className="text-red-400 ml-4"
+                                                                                />
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent>
+                                                                                <span className="text-base">
+                                                                                    <h1>
+                                                                                        This
+                                                                                        product
+                                                                                        is
+                                                                                        no
+                                                                                        longer
+                                                                                        in
+                                                                                        your
+                                                                                        Product
+                                                                                        Library.
+                                                                                    </h1>
+                                                                                    <p>
+                                                                                        Statistics
+                                                                                        will
+                                                                                        remain
+                                                                                        visible
+                                                                                        for
+                                                                                        this
+                                                                                        convention.
+                                                                                    </p>
+                                                                                </span>
+                                                                            </TooltipContent>
+                                                                        </Tooltip>
+                                                                    </TooltipProvider>
+                                                                )}
+                                                            </div>
                                                         </TableCell>
                                                         {product.reports
                                                             .length === 1 && (
                                                             <>
                                                                 <TableCell>
-                                                                    {new Intl.NumberFormat(
-                                                                        'en-US',
-                                                                        {
-                                                                            style: 'currency',
-                                                                            currency:
-                                                                                'USD',
-                                                                        },
-                                                                    ).format(
+                                                                    {moneyFormat.format(
                                                                         parseFloat(
                                                                             product
                                                                                 .reports[0]!
@@ -404,14 +494,7 @@ export default function ReportTable({
                                                                         report.price,
                                                                     )
                                                                 const formatted =
-                                                                    new Intl.NumberFormat(
-                                                                        'en-US',
-                                                                        {
-                                                                            style: 'currency',
-                                                                            currency:
-                                                                                'USD',
-                                                                        },
-                                                                    ).format(
+                                                                    moneyFormat.format(
                                                                         amount,
                                                                     )
                                                                 return (
@@ -419,7 +502,7 @@ export default function ReportTable({
                                                                         key={
                                                                             report.id
                                                                         }
-                                                                        className="cursor-pointer even:bg-slate-200/40"
+                                                                        className="cursor-pointer even:bg-gray-300/20"
                                                                     >
                                                                         <TableCell className="pl-12 lg:pl-20">
                                                                             {
@@ -514,13 +597,7 @@ export default function ReportTable({
                                                 Total
                                             </TableCell>
                                             <TableCell>
-                                                {new Intl.NumberFormat(
-                                                    'en-US',
-                                                    {
-                                                        style: 'currency',
-                                                        currency: 'USD',
-                                                    },
-                                                ).format(
+                                                {moneyFormat.format(
                                                     revenue[
                                                         category.categoryId
                                                     ]!.totalRevenue,
@@ -532,6 +609,49 @@ export default function ReportTable({
                             </div>
                         )
                     })}
+                    {/* {
+                        <div className="flex flex-col gap-4 pt-4 px-6">
+                            <div className="flex flex-row items-center gap-4">
+                                <h1 className="p-2 text-lg font-semibold">
+                                    Other
+                                </h1>
+                                <Badge
+                                    variant="secondary"
+                                    className="py-1 rounded-xl"
+                                >
+                                    {dayString.current}
+                                </Badge>
+                            </div>
+                            <Table className="rounded-md border">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead
+                                            className="pl-12"
+                                            style={{ width: '60%' }}
+                                        >
+                                            Product
+                                        </TableHead>
+                                        <TableHead
+                                            style={{ width: 'min-content' }}
+                                        >
+                                            Price
+                                        </TableHead>
+                                        <TableHead
+                                            style={{ width: 'min-content' }}
+                                        >
+                                            Cash Sales
+                                        </TableHead>
+                                        <TableHead
+                                            style={{ width: 'min-content' }}
+                                        >
+                                            Card Sales
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody></TableBody>
+                            </Table>
+                        </div>
+                    } */}
                     {
                         <div className="flex flex-col gap-4 pt-4 px-6">
                             <div className="flex flex-row items-center gap-4">
@@ -578,7 +698,19 @@ export default function ReportTable({
                                                 <TableRow className="cursor-pointer even:bg-gray-300/20">
                                                     <TableCell>
                                                         <span className="pl-10 font-medium">
-                                                            {discount.name}
+                                                            {discount.custom ? (
+                                                                <EditCustomDiscountButton
+                                                                    discount={
+                                                                        discount
+                                                                    }
+                                                                />
+                                                            ) : (
+                                                                <span>
+                                                                    {
+                                                                        discount.name
+                                                                    }
+                                                                </span>
+                                                            )}
                                                         </span>
                                                     </TableCell>
                                                     <TableCell>
