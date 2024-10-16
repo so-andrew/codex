@@ -27,7 +27,6 @@ import {
     type ReportOrDiscount,
     type SalesReportFormData,
 } from '@/types'
-import { DevTool } from '@hookform/devtools'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { isEqual } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
@@ -164,6 +163,7 @@ export default function ReportTable({
     async function onSubmit(data: z.infer<typeof formSchema>) {
         const updates = []
         const values = dirtyValues(dirtyFields, data)
+        console.log(values)
         for (const [id, formData] of Object.entries(values)) {
             try {
                 let parse = {} as ReportOrDiscount
@@ -343,7 +343,9 @@ export default function ReportTable({
                                                                         .custom && (
                                                                         <TooltipProvider>
                                                                             <Tooltip>
-                                                                                <TooltipTrigger>
+                                                                                <TooltipTrigger
+                                                                                    asChild
+                                                                                >
                                                                                     <Info
                                                                                         height={
                                                                                             20
@@ -367,7 +369,9 @@ export default function ReportTable({
                                                                     -1 && (
                                                                     <TooltipProvider>
                                                                         <Tooltip>
-                                                                            <TooltipTrigger>
+                                                                            <TooltipTrigger
+                                                                                asChild
+                                                                            >
                                                                                 <TriangleAlert
                                                                                     height={
                                                                                         20
@@ -429,7 +433,9 @@ export default function ReportTable({
                                                                                 <FormControl>
                                                                                     <TooltipProvider>
                                                                                         <Tooltip>
-                                                                                            <TooltipTrigger>
+                                                                                            <TooltipTrigger
+                                                                                                asChild
+                                                                                            >
                                                                                                 <Input
                                                                                                     type="number"
                                                                                                     min="0"
@@ -438,6 +444,9 @@ export default function ReportTable({
                                                                                                     onChange={(
                                                                                                         e,
                                                                                                     ) => {
+                                                                                                        console.log(
+                                                                                                            'hi',
+                                                                                                        )
                                                                                                         field.onChange(
                                                                                                             Number(
                                                                                                                 e
@@ -481,7 +490,9 @@ export default function ReportTable({
                                                                                 <FormControl>
                                                                                     <TooltipProvider>
                                                                                         <Tooltip>
-                                                                                            <TooltipTrigger>
+                                                                                            <TooltipTrigger
+                                                                                                asChild
+                                                                                            >
                                                                                                 <Input
                                                                                                     type="number"
                                                                                                     min="0"
@@ -566,7 +577,9 @@ export default function ReportTable({
                                                                                         <FormControl>
                                                                                             <TooltipProvider>
                                                                                                 <Tooltip>
-                                                                                                    <TooltipTrigger>
+                                                                                                    <TooltipTrigger
+                                                                                                        asChild
+                                                                                                    >
                                                                                                         <Input
                                                                                                             type="number"
                                                                                                             min="0"
@@ -618,7 +631,9 @@ export default function ReportTable({
                                                                                         <FormControl>
                                                                                             <TooltipProvider>
                                                                                                 <Tooltip>
-                                                                                                    <TooltipTrigger>
+                                                                                                    <TooltipTrigger
+                                                                                                        asChild
+                                                                                                    >
                                                                                                         <Input
                                                                                                             type="number"
                                                                                                             min="0"
@@ -810,7 +825,9 @@ export default function ReportTable({
                                                                     <FormControl>
                                                                         <TooltipProvider>
                                                                             <Tooltip>
-                                                                                <TooltipTrigger>
+                                                                                <TooltipTrigger
+                                                                                    asChild
+                                                                                >
                                                                                     <Input
                                                                                         type="number"
                                                                                         min="0"
@@ -941,7 +958,7 @@ export default function ReportTable({
                         </div>
                     }
                 </form>
-                <DevTool control={control} />
+                {/* <DevTool control={control} /> */}
             </Form>
         </>
     )

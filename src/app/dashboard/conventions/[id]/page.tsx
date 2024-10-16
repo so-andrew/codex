@@ -165,7 +165,6 @@ export default async function page({ params }: { params: { id: string } }) {
     const products: Record<number, ReportsByProduct> = {}
     let customProductIndex = -1
     reports.map((report) => {
-        const categoryId = report.categoryId
         const effectiveProductId = report.productId
             ? report.productId
             : report.originalProductId

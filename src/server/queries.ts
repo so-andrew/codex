@@ -538,3 +538,23 @@ export async function getTopSellingVariations(conventionId: number) {
         .orderBy(desc(revenueQuery.totalRevenue))) as TopSellingVariations[]
     return query
 }
+
+export async function getMonthlyRevenue() {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+
+    const query = await db
+        .select({
+            month: sql`DATE_TRUNC('month',${productDailyRevenue.date})`,
+            cashSales: productDailyRevenue.cashSales,
+            cardSales: productDailyRevenue.cardSales,
+        })
+        .from(productDailyRevenue)
+        .groupBy(
+            sql`DATE_TRUNC('month',${productDailyRevenue.date})`,
+            productDailyRevenue.cashSales,
+            productDailyRevenue.cardSales,
+        )
+
+    return query
+}

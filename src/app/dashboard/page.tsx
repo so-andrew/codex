@@ -1,8 +1,11 @@
 import { Button } from '@/components/ui/button'
+import { getMonthlyRevenue } from '@/server/queries'
 import { currentUser } from '@clerk/nextjs/server'
 
 export default async function Dashboard() {
     const user = await currentUser()
+    const test = await getMonthlyRevenue()
+    console.log(test)
 
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
@@ -13,6 +16,7 @@ export default async function Dashboard() {
                     <Button variant="secondary">Add Product</Button>
                 </div>
             </div>
+            <section></section>
         </section>
     )
 }
