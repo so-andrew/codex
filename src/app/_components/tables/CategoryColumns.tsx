@@ -128,7 +128,7 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
         },
         cell: ({ row }) => {
             const category = row.original.category
-            return <div className="pl-12">{category.productCount}</div>
+            return <span>{category.productCount}</span>
         },
         minSize: 20,
         maxSize: 20,

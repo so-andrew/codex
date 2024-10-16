@@ -6,9 +6,14 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { moneyFormat } from '@/lib/utils'
+import {
+    currencyDisplayHandleChange,
+    formatAsCurrency,
+    moneyFormat,
+} from '@/lib/utils'
 import { type Product } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useReducer, type Dispatch, type SetStateAction } from 'react'
@@ -44,9 +49,8 @@ export default function CreateVariationForm({
 }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
-        const digits = next.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
-    }, '$0.00')
+        return formatAsCurrency(next)
+    }, '')
 
     const form = useForm<z.infer<typeof variationSchema>>({
         resolver: zodResolver(variationSchema),
@@ -58,25 +62,21 @@ export default function CreateVariationForm({
         },
     })
 
-    const { formState } = form
+    const { reset, formState } = form
     const { isSubmitting } = formState
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    function handleChange(change: Function, formatted: string) {
-        const digits = formatted.replace(/\D/g, '')
-        const value = Number(digits) / 100
-        change(value)
-    }
-
     async function onSubmit(data: z.infer<typeof variationSchema>) {
-        console.log(data)
+        //console.log(data)
         await createVariation(data)
         setIsOpen(false)
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6 pt-2"
+            >
                 <FormField
                     control={form.control}
                     name="name"
@@ -89,10 +89,11 @@ export default function CreateVariationForm({
                                     {...field}
                                 />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
-                <div className="flex flex-row gap-4 justify-between w-full">
+                <div className="flex flex-row gap-8 justify-between">
                     <FormField
                         control={form.control}
                         name="price"
@@ -101,18 +102,30 @@ export default function CreateVariationForm({
                                 <FormLabel>Price</FormLabel>
                                 <FormControl>
                                     <Input
-                                        placeholder="$0.00"
+                                        placeholder="Enter price"
                                         {...field}
                                         onChange={(event) => {
                                             setValue(event.target.value)
-                                            handleChange(
+                                            currencyDisplayHandleChange(
                                                 field.onChange,
                                                 event.target.value,
                                             )
                                         }}
-                                        value={value}
+                                        onBlur={(event) => {
+                                            const digits = formatAsCurrency(
+                                                event.target.value,
+                                            )
+                                            const rounded = Number(
+                                                parseFloat(digits).toFixed(2),
+                                            )
+                                            setValue(
+                                                moneyFormat.format(rounded),
+                                            )
+                                        }}
+                                        value={`${value.length > 0 ? '$' : ''}${value}`}
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -128,29 +141,12 @@ export default function CreateVariationForm({
                                         {...field}
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />
                 </div>
-                <FormField
-                    control={form.control}
-                    name="productId"
-                    render={({ field }) => (
-                        <FormControl>
-                            <Input type="hidden" {...field} value={data.id} />
-                        </FormControl>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="baseProductName"
-                    render={({ field }) => (
-                        <FormControl>
-                            <Input type="hidden" {...field} value={data.name} />
-                        </FormControl>
-                    )}
-                />
-                <div className="flex flex-row gap-4 pt-4">
+                <div className="flex flex-row gap-4 pt-2">
                     <Button
                         type="submit"
                         className="bg-purple-500 hover:bg-purple-600"

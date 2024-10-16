@@ -27,6 +27,7 @@ export default function CreateCustomReportDropdown({
                 isOpen={isProductOpen}
                 setIsOpen={setIsProductOpen}
                 title="Add Custom Product"
+                className="sm:max-w-lg p-8"
             >
                 <CreateCustomReportForm
                     conventionId={conventionId}
@@ -37,6 +38,7 @@ export default function CreateCustomReportDropdown({
                 isOpen={isDiscountOpen}
                 setIsOpen={setIsDiscountOpen}
                 title="Add Custom Discount"
+                className="sm:max-w-lg p-8"
             >
                 <CreateCustomDiscountForm
                     conventionId={conventionId}

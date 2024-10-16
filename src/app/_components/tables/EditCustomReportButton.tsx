@@ -16,6 +16,7 @@ export default function EditCustomReportButton({
                 isOpen={isEditOpen}
                 setIsOpen={setIsEditOpen}
                 title="Edit Custom Report"
+                className="sm:max-w-lg p-8"
             >
                 <EditCustomReportForm
                     report={report}

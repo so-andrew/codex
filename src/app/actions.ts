@@ -153,6 +153,7 @@ const conventionEditScheme = z.object({
         from: z.date(),
         to: z.date().optional(),
     }),
+    protectEdits: z.boolean(),
 })
 
 const bulkConventionDeleteScheme = z.object({
@@ -1035,6 +1036,7 @@ export async function editConvention(
             name: data.name,
             location: data.location,
             dateRange: data.dateRange,
+            protectEdits: data.protectEdits,
         })
 
         await db
@@ -1044,6 +1046,7 @@ export async function editConvention(
                 location: parse.location,
                 startDate: parse.dateRange.from,
                 endDate: parse.dateRange.to,
+                protectEdits: parse.protectEdits,
             })
             .where(eq(conventions.id, parse.id))
         revalidatePath('/dashboard/conventions')
@@ -1260,7 +1263,6 @@ export async function editCustomReport(
     }
     revalidatePath('/dashboard/conventions')
 }
-
 
 export async function addCustomDiscount(
     data: z.infer<typeof customDiscountCreateScheme>,

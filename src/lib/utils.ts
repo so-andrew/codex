@@ -31,18 +31,16 @@ export const moneyFormat = Intl.NumberFormat('en-US', {
     maximumFractionDigits: 2,
 })
 
-export function getColor(index: number) {
-    return getRandomColor()
+export function formatAsCurrency(current: string) {
+    return current.replace(/[^\d\.]/g, '')
 }
 
-function getRandomColor() {
-    return (
-        'hsl(' +
-        360 * Math.random() +
-        ',' +
-        (25 + 70 * Math.random()) +
-        '%,' +
-        (85 + 10 * Math.random()) +
-        '%)'
-    )
+export function currencyDisplayHandleChange(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    change: Function,
+    formatted: string,
+) {
+    const digits = formatAsCurrency(formatted)
+    const value = Number(parseFloat(digits).toFixed(2))
+    change(value)
 }

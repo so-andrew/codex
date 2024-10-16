@@ -88,11 +88,13 @@ export default function ReportTable({
     day,
     revenue,
     discounts,
+    protectEdits,
 }: {
     data: ProductsByCategory[]
     day: Date
     revenue: Record<number, DailyRevenueReport>
     discounts: DiscountReport[]
+    protectEdits: boolean
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -160,7 +162,6 @@ export default function ReportTable({
     }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        //console.log('data', data)
         const updates = []
         const values = dirtyValues(dirtyFields, data)
         for (const [id, formData] of Object.entries(values)) {
@@ -228,7 +229,7 @@ export default function ReportTable({
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     {/* Iterate over categories -> products -> variations */}
                     {data.map((category) => {
-                        console.log(category.products)
+                        //console.log(category.products)
                         return (
                             <div
                                 key={category.categoryId}
@@ -426,23 +427,42 @@ export default function ReportTable({
                                                                         }) => (
                                                                             <FormItem>
                                                                                 <FormControl>
-                                                                                    <Input
-                                                                                        type="number"
-                                                                                        min="0"
-                                                                                        className={`w-16 lg:w-20 ${getFieldState(`prod${product.reports[0]!.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
-                                                                                        {...field}
-                                                                                        onChange={(
-                                                                                            e,
-                                                                                        ) => {
-                                                                                            field.onChange(
-                                                                                                Number(
-                                                                                                    e
-                                                                                                        .target
-                                                                                                        .value,
-                                                                                                ),
-                                                                                            )
-                                                                                        }}
-                                                                                    />
+                                                                                    <TooltipProvider>
+                                                                                        <Tooltip>
+                                                                                            <TooltipTrigger>
+                                                                                                <Input
+                                                                                                    type="number"
+                                                                                                    min="0"
+                                                                                                    className={`w-16 lg:w-20 ${getFieldState(`prod${product.reports[0]!.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                    {...field}
+                                                                                                    onChange={(
+                                                                                                        e,
+                                                                                                    ) => {
+                                                                                                        field.onChange(
+                                                                                                            Number(
+                                                                                                                e
+                                                                                                                    .target
+                                                                                                                    .value,
+                                                                                                            ),
+                                                                                                        )
+                                                                                                    }}
+                                                                                                    disabled={
+                                                                                                        protectEdits
+                                                                                                    }
+                                                                                                />
+                                                                                            </TooltipTrigger>
+                                                                                            {protectEdits && (
+                                                                                                <TooltipContent>
+                                                                                                    <p className="text-base">
+                                                                                                        These
+                                                                                                        values
+                                                                                                        are
+                                                                                                        protected.
+                                                                                                    </p>
+                                                                                                </TooltipContent>
+                                                                                            )}
+                                                                                        </Tooltip>
+                                                                                    </TooltipProvider>
                                                                                 </FormControl>
                                                                             </FormItem>
                                                                         )}
@@ -459,23 +479,42 @@ export default function ReportTable({
                                                                         }) => (
                                                                             <FormItem>
                                                                                 <FormControl>
-                                                                                    <Input
-                                                                                        type="number"
-                                                                                        min="0"
-                                                                                        className={`w-16 lg:w-20 ${getFieldState(`prod${product.reports[0]!.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
-                                                                                        {...field}
-                                                                                        onChange={(
-                                                                                            e,
-                                                                                        ) => {
-                                                                                            field.onChange(
-                                                                                                Number(
-                                                                                                    e
-                                                                                                        .target
-                                                                                                        .value,
-                                                                                                ),
-                                                                                            )
-                                                                                        }}
-                                                                                    />
+                                                                                    <TooltipProvider>
+                                                                                        <Tooltip>
+                                                                                            <TooltipTrigger>
+                                                                                                <Input
+                                                                                                    type="number"
+                                                                                                    min="0"
+                                                                                                    className={`w-16 lg:w-20 ${getFieldState(`prod${product.reports[0]!.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                    {...field}
+                                                                                                    onChange={(
+                                                                                                        e,
+                                                                                                    ) => {
+                                                                                                        field.onChange(
+                                                                                                            Number(
+                                                                                                                e
+                                                                                                                    .target
+                                                                                                                    .value,
+                                                                                                            ),
+                                                                                                        )
+                                                                                                    }}
+                                                                                                    disabled={
+                                                                                                        protectEdits
+                                                                                                    }
+                                                                                                />
+                                                                                            </TooltipTrigger>
+                                                                                            {protectEdits && (
+                                                                                                <TooltipContent>
+                                                                                                    <p className="text-base">
+                                                                                                        These
+                                                                                                        values
+                                                                                                        are
+                                                                                                        protected.
+                                                                                                    </p>
+                                                                                                </TooltipContent>
+                                                                                            )}
+                                                                                        </Tooltip>
+                                                                                    </TooltipProvider>
                                                                                 </FormControl>
                                                                             </FormItem>
                                                                         )}
@@ -525,23 +564,42 @@ export default function ReportTable({
                                                                                 }) => (
                                                                                     <FormItem>
                                                                                         <FormControl>
-                                                                                            <Input
-                                                                                                type="number"
-                                                                                                min="0"
-                                                                                                className={`w-16 lg:w-20 ${getFieldState(`prod${report.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
-                                                                                                {...field}
-                                                                                                onChange={(
-                                                                                                    e,
-                                                                                                ) => {
-                                                                                                    field.onChange(
-                                                                                                        Number(
-                                                                                                            e
-                                                                                                                .target
-                                                                                                                .value,
-                                                                                                        ),
-                                                                                                    )
-                                                                                                }}
-                                                                                            />
+                                                                                            <TooltipProvider>
+                                                                                                <Tooltip>
+                                                                                                    <TooltipTrigger>
+                                                                                                        <Input
+                                                                                                            type="number"
+                                                                                                            min="0"
+                                                                                                            className={`w-16 lg:w-20 ${getFieldState(`prod${report.id}.cashSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                            {...field}
+                                                                                                            onChange={(
+                                                                                                                e,
+                                                                                                            ) => {
+                                                                                                                field.onChange(
+                                                                                                                    Number(
+                                                                                                                        e
+                                                                                                                            .target
+                                                                                                                            .value,
+                                                                                                                    ),
+                                                                                                                )
+                                                                                                            }}
+                                                                                                            disabled={
+                                                                                                                protectEdits
+                                                                                                            }
+                                                                                                        />
+                                                                                                    </TooltipTrigger>
+                                                                                                    {protectEdits && (
+                                                                                                        <TooltipContent>
+                                                                                                            <p className="text-base">
+                                                                                                                These
+                                                                                                                values
+                                                                                                                are
+                                                                                                                protected.
+                                                                                                            </p>
+                                                                                                        </TooltipContent>
+                                                                                                    )}
+                                                                                                </Tooltip>
+                                                                                            </TooltipProvider>
                                                                                         </FormControl>
                                                                                     </FormItem>
                                                                                 )}
@@ -558,23 +616,42 @@ export default function ReportTable({
                                                                                 }) => (
                                                                                     <FormItem>
                                                                                         <FormControl>
-                                                                                            <Input
-                                                                                                type="number"
-                                                                                                min="0"
-                                                                                                className={`w-16 lg:w-20 ${getFieldState(`prod${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
-                                                                                                {...field}
-                                                                                                onChange={(
-                                                                                                    e,
-                                                                                                ) => {
-                                                                                                    field.onChange(
-                                                                                                        Number(
-                                                                                                            e
-                                                                                                                .target
-                                                                                                                .value,
-                                                                                                        ),
-                                                                                                    )
-                                                                                                }}
-                                                                                            />
+                                                                                            <TooltipProvider>
+                                                                                                <Tooltip>
+                                                                                                    <TooltipTrigger>
+                                                                                                        <Input
+                                                                                                            type="number"
+                                                                                                            min="0"
+                                                                                                            className={`w-16 lg:w-20 ${getFieldState(`prod${report.id}.cardSales`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                                            {...field}
+                                                                                                            onChange={(
+                                                                                                                e,
+                                                                                                            ) => {
+                                                                                                                field.onChange(
+                                                                                                                    Number(
+                                                                                                                        e
+                                                                                                                            .target
+                                                                                                                            .value,
+                                                                                                                    ),
+                                                                                                                )
+                                                                                                            }}
+                                                                                                            disabled={
+                                                                                                                protectEdits
+                                                                                                            }
+                                                                                                        />
+                                                                                                    </TooltipTrigger>
+                                                                                                    {protectEdits && (
+                                                                                                        <TooltipContent>
+                                                                                                            <p className="text-base">
+                                                                                                                These
+                                                                                                                values
+                                                                                                                are
+                                                                                                                protected.
+                                                                                                            </p>
+                                                                                                        </TooltipContent>
+                                                                                                    )}
+                                                                                                </Tooltip>
+                                                                                            </TooltipProvider>
                                                                                         </FormControl>
                                                                                     </FormItem>
                                                                                 )}
@@ -731,23 +808,42 @@ export default function ReportTable({
                                                             }) => (
                                                                 <FormItem>
                                                                     <FormControl>
-                                                                        <Input
-                                                                            type="number"
-                                                                            min="0"
-                                                                            className={`w-16 lg:w-20 ${getFieldState(`disc${discount.id}.cashDiscounts`).isDirty ? 'border-green-500 border-2' : ''}`}
-                                                                            {...field}
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) => {
-                                                                                field.onChange(
-                                                                                    Number(
-                                                                                        e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    ),
-                                                                                )
-                                                                            }}
-                                                                        />
+                                                                        <TooltipProvider>
+                                                                            <Tooltip>
+                                                                                <TooltipTrigger>
+                                                                                    <Input
+                                                                                        type="number"
+                                                                                        min="0"
+                                                                                        className={`w-16 lg:w-20 ${getFieldState(`disc${discount.id}.cashDiscounts`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                        {...field}
+                                                                                        onChange={(
+                                                                                            e,
+                                                                                        ) => {
+                                                                                            field.onChange(
+                                                                                                Number(
+                                                                                                    e
+                                                                                                        .target
+                                                                                                        .value,
+                                                                                                ),
+                                                                                            )
+                                                                                        }}
+                                                                                        disabled={
+                                                                                            protectEdits
+                                                                                        }
+                                                                                    />
+                                                                                </TooltipTrigger>
+                                                                                {protectEdits && (
+                                                                                    <TooltipContent>
+                                                                                        <p className="text-base">
+                                                                                            These
+                                                                                            values
+                                                                                            are
+                                                                                            protected.
+                                                                                        </p>
+                                                                                    </TooltipContent>
+                                                                                )}
+                                                                            </Tooltip>
+                                                                        </TooltipProvider>
                                                                     </FormControl>
                                                                 </FormItem>
                                                             )}
@@ -764,23 +860,42 @@ export default function ReportTable({
                                                             }) => (
                                                                 <FormItem>
                                                                     <FormControl>
-                                                                        <Input
-                                                                            type="number"
-                                                                            min="0"
-                                                                            className={`w-16 lg:w-20 ${getFieldState(`disc${discount.id}.cardDiscounts`).isDirty ? 'border-green-500 border-2' : ''}`}
-                                                                            {...field}
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) => {
-                                                                                field.onChange(
-                                                                                    Number(
-                                                                                        e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    ),
-                                                                                )
-                                                                            }}
-                                                                        />
+                                                                        <TooltipProvider>
+                                                                            <Tooltip>
+                                                                                <TooltipTrigger>
+                                                                                    <Input
+                                                                                        type="number"
+                                                                                        min="0"
+                                                                                        className={`w-16 lg:w-20 ${getFieldState(`disc${discount.id}.cardDiscounts`).isDirty ? 'border-green-500 border-2' : ''}`}
+                                                                                        {...field}
+                                                                                        onChange={(
+                                                                                            e,
+                                                                                        ) => {
+                                                                                            field.onChange(
+                                                                                                Number(
+                                                                                                    e
+                                                                                                        .target
+                                                                                                        .value,
+                                                                                                ),
+                                                                                            )
+                                                                                        }}
+                                                                                        disabled={
+                                                                                            protectEdits
+                                                                                        }
+                                                                                    />
+                                                                                </TooltipTrigger>
+                                                                                {protectEdits && (
+                                                                                    <TooltipContent>
+                                                                                        <p className="text-base">
+                                                                                            These
+                                                                                            values
+                                                                                            are
+                                                                                            protected.
+                                                                                        </p>
+                                                                                    </TooltipContent>
+                                                                                )}
+                                                                            </Tooltip>
+                                                                        </TooltipProvider>
                                                                     </FormControl>
                                                                 </FormItem>
                                                             )}

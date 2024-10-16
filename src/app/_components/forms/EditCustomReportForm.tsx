@@ -6,9 +6,14 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { moneyFormat } from '@/lib/utils'
+import {
+    currencyDisplayHandleChange,
+    formatAsCurrency,
+    moneyFormat,
+} from '@/lib/utils'
 import { type ReportType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { type Dispatch, type SetStateAction, useReducer } from 'react'
@@ -40,10 +45,9 @@ export default function EditCustomReportForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer(
         (_: unknown, next: string) => {
-            const digits = next.replace(/\D/g, '')
-            return moneyFormat.format(Number(digits) / 100)
+            return formatAsCurrency(next)
         },
-        moneyFormat.format(parseFloat(report.price)),
+        moneyFormat.format(parseFloat(report.price)).slice(1),
     )
 
     const form = useForm<z.infer<typeof customProductReportSchema>>({
@@ -56,25 +60,22 @@ export default function EditCustomReportForm({
         },
     })
 
-    const { formState } = form
+    const { reset, formState } = form
     const { isSubmitting } = formState
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    function handleChange(change: Function, formatted: string) {
-        const digits = formatted.replace(/\D/g, '')
-        const value = Number(digits) / 100
-        change(value)
-    }
-
     async function onSubmit(data: z.infer<typeof customProductReportSchema>) {
-        console.log(data)
+        //console.log(data)
         await editCustomReport(data)
         setIsOpen(false)
+        reset({}, { keepValues: false })
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6 pt-2"
+            >
                 <FormField
                     control={form.control}
                     name="name"
@@ -87,6 +88,7 @@ export default function EditCustomReportForm({
                                     {...field}
                                 />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -98,22 +100,32 @@ export default function EditCustomReportForm({
                             <FormLabel>Price</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="$0.00"
+                                    placeholder="Enter price"
                                     {...field}
                                     onChange={(event) => {
                                         setValue(event.target.value)
-                                        handleChange(
+                                        currencyDisplayHandleChange(
                                             field.onChange,
                                             event.target.value,
                                         )
                                     }}
-                                    value={value}
+                                    onBlur={(event) => {
+                                        const digits = formatAsCurrency(
+                                            event.target.value,
+                                        )
+                                        const rounded = Number(
+                                            parseFloat(digits).toFixed(2),
+                                        )
+                                        setValue(moneyFormat.format(rounded))
+                                    }}
+                                    value={`${value.length > 0 ? '$' : ''}${value}`}
                                 />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
-                <div className="flex flex-row gap-4 pt-4">
+                <div className="flex flex-row gap-4 pt-2">
                     <Button
                         type="submit"
                         className="hover:bg-purple-600"

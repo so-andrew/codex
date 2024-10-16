@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { moneyFormat } from '@/lib/utils'
+import { currencyDisplayHandleChange, formatAsCurrency } from '@/lib/utils'
 import { type ProductVariation } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useReducer, type Dispatch, type SetStateAction } from 'react'
@@ -42,9 +42,8 @@ export default function BulkEditVariationPriceForm({
 }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
-        const digits = next.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
-    }, '$0.00')
+        return formatAsCurrency(next)
+    }, '')
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -57,13 +56,6 @@ export default function BulkEditVariationPriceForm({
     const { toast } = useToast()
     const { formState, reset } = form
     const { isDirty, isSubmitting } = formState
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    function handleChange(change: Function, formatted: string) {
-        const digits = formatted.replace(/\D/g, '')
-        const value = Number(digits) / 100
-        change(value)
-    }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
@@ -97,16 +89,16 @@ export default function BulkEditVariationPriceForm({
                             <FormLabel>Price</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="$0.00"
+                                    placeholder="Enter price"
                                     {...field}
                                     onChange={(event) => {
                                         setValue(event.target.value)
-                                        handleChange(
+                                        currencyDisplayHandleChange(
                                             field.onChange,
                                             event.target.value,
                                         )
                                     }}
-                                    value={value}
+                                    value={`${value.length > 0 ? '$' : ''}${value}`}
                                 />
                             </FormControl>
                             <FormMessage />

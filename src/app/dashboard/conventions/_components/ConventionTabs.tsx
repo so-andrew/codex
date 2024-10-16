@@ -30,12 +30,14 @@ export default function ConventionTabs({
     revenue,
     discounts,
     conventionId,
+    protectEdits,
 }: {
     data: ProductsByCategory[]
     range: Date[]
     revenue: Map<string, Record<number, DailyRevenueReport>>
     discounts: DiscountReport[]
     conventionId: number
+    protectEdits: boolean
 }) {
     const { dirtyFormExists, setDirtyFormExists } = useFormStore(
         (state) => state,
@@ -130,6 +132,7 @@ export default function ConventionTabs({
                                 day={day}
                                 revenue={revenue.get(day.toISOString())!}
                                 discounts={discounts}
+                                protectEdits={protectEdits}
                             />
                         </TabsContent>
                     )

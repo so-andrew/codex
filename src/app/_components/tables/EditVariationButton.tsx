@@ -25,6 +25,7 @@ export default function EditVariationButton<TData extends ProductVariation>({
                 isOpen={isEditOpen}
                 setIsOpen={setIsEditOpen}
                 title="Edit Variation"
+                className="sm:max-w-lg p-8"
             >
                 <EditVariationForm data={variation} setIsOpen={setIsEditOpen} />
             </GenericDialog>

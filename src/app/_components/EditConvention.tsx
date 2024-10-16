@@ -2,6 +2,7 @@
 import { editConvention } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
     Dialog,
     DialogContent,
@@ -12,6 +13,7 @@ import {
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -54,6 +56,7 @@ const formSchema = z
                 required_error: 'Date range required',
             },
         ),
+        protectEdits: z.boolean(),
         // .refine((data) => data.from <= data.to, {
         //     message: 'Start date must be before or equal to end date',
         //     path: ['dateRange'],
@@ -96,6 +99,7 @@ export default function EditConvention({
                 from: convention.startDate,
                 to: convention.endDate,
             },
+            protectEdits: convention.protectEdits,
         },
     })
 
@@ -176,6 +180,7 @@ export default function EditConvention({
                                     </FormItem>
                                 )}
                             />
+
                             <FormField
                                 control={form.control}
                                 name="dateRange"
@@ -270,7 +275,6 @@ export default function EditConvention({
                                                                 selectedDay,
                                                             ),
                                                         )
-
                                                         if (
                                                             !range &&
                                                             isEqual(
@@ -299,6 +303,29 @@ export default function EditConvention({
                                     </FormItem>
                                 )}
                             />
+                            <FormField
+                                control={form.control}
+                                name="protectEdits"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <div className="space-y-2 leading-none">
+                                            <FormLabel>Protect Edits</FormLabel>
+
+                                            <FormDescription>
+                                                Enable to prevent accidental
+                                                changes.
+                                            </FormDescription>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+
                             <Button
                                 type="submit"
                                 className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600"

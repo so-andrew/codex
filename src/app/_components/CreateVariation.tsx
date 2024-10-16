@@ -15,11 +15,12 @@ export default function CreateVariation({ product }: { product: Product }) {
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
                 title="Add Variation"
+                className="sm:max-w-lg p-8"
             >
                 <CreateVariationForm data={product} setIsOpen={setIsOpen} />
             </GenericDialog>
             <Button
-                className="bg-purple-500 font-semibold hover:bg-purple-600"
+                className="font-semibold hover:bg-purple-600"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 Add Variation

@@ -31,6 +31,7 @@ import {
 } from '@/types'
 import { eachDayOfInterval } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
+import { Ellipsis } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { type Metadata, type ResolvingMetadata } from 'next/types'
 import ConventionTabs from '../_components/ConventionTabs'
@@ -171,12 +172,12 @@ export default async function page({ params }: { params: { id: string } }) {
               ? report.originalProductId
               : ++customProductIndex
 
-        console.log(
-            report.name,
-            report.productName,
-            effectiveProductId,
-            categoryId,
-        )
+        // console.log(
+        //     report.name,
+        //     report.productName,
+        //     effectiveProductId,
+        //     categoryId,
+        // )
 
         if (!products[effectiveProductId]) {
             const reportByProduct: ReportsByProduct = {
@@ -195,7 +196,7 @@ export default async function page({ params }: { params: { id: string } }) {
         products[effectiveProductId].reports.push(report)
     })
 
-    console.log('products:', products)
+    //console.log('products:', products)
 
     const categories: Record<number, ProductsByCategory> = {}
     Object.values(products).map((product) => {
@@ -214,7 +215,7 @@ export default async function page({ params }: { params: { id: string } }) {
     })
     const categorizedData = Object.values(categories)
 
-    console.log('categorized:', categorizedData)
+    //console.log('categorized:', categorizedData)
 
     const startDateString = convention
         ? formatInTimeZone(convention.startDate, timeZone, 'EEEE, MMM d, yyyy')
@@ -327,7 +328,7 @@ export default async function page({ params }: { params: { id: string } }) {
                                         variant="ghost"
                                         className="flex flex-row gap-2 justify-center items-center px-2"
                                     >
-                                        {/* <Ellipsis /> */}
+                                        <Ellipsis />
 
                                         <span>More Stats</span>
                                     </Button>
@@ -366,6 +367,7 @@ export default async function page({ params }: { params: { id: string } }) {
                     revenue={revenueByCategory}
                     discounts={discounts}
                     conventionId={conventionId}
+                    protectEdits={convention.protectEdits}
                 />
             </section>
         </FormStoreProvider>

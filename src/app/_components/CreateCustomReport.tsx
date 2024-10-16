@@ -18,6 +18,7 @@ export default function CreateCustomReport({
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
                 title="Add Custom Product"
+                className="sm:max-w-lg p-8"
             >
                 <CreateCustomReportForm
                     conventionId={conventionId}

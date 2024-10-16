@@ -123,6 +123,7 @@ export const conventions = createTable('convention', {
     creatorId: varchar('creatorId', { length: 256 })
         .references(() => users.id, { onDelete: 'cascade' })
         .notNull(),
+    protectEdits: boolean('protectEdits').default(false).notNull(),
 })
 export type Convention = typeof conventions.$inferSelect
 

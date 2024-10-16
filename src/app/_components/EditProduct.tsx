@@ -73,7 +73,7 @@ export default function EditProduct({ product, categories }: EditProductProps) {
     const { toast } = useToast()
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
+        //console.log(data)
         try {
             await editProduct(data)
             reset({}, { keepValues: true })
@@ -92,13 +92,13 @@ export default function EditProduct({ product, categories }: EditProductProps) {
     }
 
     return (
-        <div className="flex flex-row gap-4">
+        <>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
                     <Button variant="outline">Edit</Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-lg"
+                    className="sm:max-w-lg p-8"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
@@ -107,7 +107,7 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(onSubmit)}
-                            className="flex flex-col space-y-4"
+                            className="space-y-6 pt-2"
                         >
                             <FormField
                                 control={form.control}
@@ -234,6 +234,6 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                     </Form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }

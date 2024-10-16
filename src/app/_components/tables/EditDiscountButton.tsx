@@ -24,6 +24,7 @@ export default function EditDiscountButton<TData extends Discount>({
                 isOpen={isEditOpen}
                 setIsOpen={setIsEditOpen}
                 title="Edit Discount"
+                className="sm:max-w-lg p-8"
             >
                 <EditDiscountForm data={discount} setIsOpen={setIsEditOpen} />
             </GenericDialog>

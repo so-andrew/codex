@@ -6,9 +6,10 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { moneyFormat } from '@/lib/utils'
+import { currencyDisplayHandleChange, formatAsCurrency } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { type Dispatch, type SetStateAction, useReducer } from 'react'
 import { useForm } from 'react-hook-form'
@@ -37,9 +38,8 @@ export default function CreateCustomReportForm({
 }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
-        const digits = next.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
-    }, '$0.00')
+        return formatAsCurrency(next)
+    }, '')
 
     const form = useForm<z.infer<typeof customProductReportSchema>>({
         resolver: zodResolver(customProductReportSchema),
@@ -50,25 +50,22 @@ export default function CreateCustomReportForm({
         },
     })
 
-    const { formState } = form
+    const { reset, formState } = form
     const { isSubmitting } = formState
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    function handleChange(change: Function, formatted: string) {
-        const digits = formatted.replace(/\D/g, '')
-        const value = Number(digits) / 100
-        change(value)
-    }
-
     async function onSubmit(data: z.infer<typeof customProductReportSchema>) {
-        console.log(data)
+        //console.log(data)
         await addCustomReport(data)
         setIsOpen(false)
+        reset({}, { keepValues: false })
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6 pt-2"
+            >
                 <FormField
                     control={form.control}
                     name="name"
@@ -81,6 +78,7 @@ export default function CreateCustomReportForm({
                                     {...field}
                                 />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -92,11 +90,11 @@ export default function CreateCustomReportForm({
                             <FormLabel>Price</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="$0.00"
+                                    placeholder="Enter price"
                                     {...field}
                                     onChange={(event) => {
                                         setValue(event.target.value)
-                                        handleChange(
+                                        currencyDisplayHandleChange(
                                             field.onChange,
                                             event.target.value,
                                         )
@@ -104,10 +102,11 @@ export default function CreateCustomReportForm({
                                     value={value}
                                 />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
-                <div className="flex flex-row gap-4 pt-4">
+                <div className="flex flex-row gap-4 pt-2">
                     <Button
                         type="submit"
                         className="hover:bg-purple-600"

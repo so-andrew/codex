@@ -18,6 +18,7 @@ export default function CreateCustomDiscount({
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
                 title="Add Custom Discount"
+                className="sm:max-w-lg p-8"
             >
                 <CreateCustomDiscountForm
                     conventionId={conventionId}

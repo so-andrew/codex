@@ -31,7 +31,12 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 import { toast } from '@/hooks/use-toast'
-import { cn, moneyFormat } from '@/lib/utils'
+import {
+    cn,
+    currencyDisplayHandleChange,
+    formatAsCurrency,
+    moneyFormat,
+} from '@/lib/utils'
 import { type Category } from '@/server/db/schema'
 import { DevTool } from '@hookform/devtools'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -91,7 +96,7 @@ export default function CreateProduct({
             case 'set_value':
                 //console.log('slice1:', ...state.slice(0, action.index))
                 //console.log('slice2:', ...state.slice(action.index + 1))
-                console.log(action.index)
+                //console.log(action.index)
                 if (typeof action.index === 'undefined')
                     throw new Error('Index required')
 
@@ -131,15 +136,10 @@ export default function CreateProduct({
         })
     }
 
-    function formatAsCurrency(current: string) {
-        const digits = current.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
         return formatAsCurrency(next)
-    }, '$0.00')
+    }, '')
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -169,13 +169,6 @@ export default function CreateProduct({
         remove(index)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    function handleChange(change: Function, formatted: string) {
-        const digits = formatted.replace(/\D/g, '')
-        const value = Number(digits) / 100
-        change(value)
-    }
-
     async function onSubmit(data: z.infer<typeof formSchema>) {
         console.log(data)
         try {
@@ -199,7 +192,7 @@ export default function CreateProduct({
     }
 
     return (
-        <div className="flex flex-row gap-4">
+        <>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
                     <Button className="bg-purple-500 hover:bg-purple-600">
@@ -207,7 +200,7 @@ export default function CreateProduct({
                     </Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-xl"
+                    className="sm:max-w-xl p-8"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
@@ -216,7 +209,7 @@ export default function CreateProduct({
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(onSubmit)}
-                            className="space-y-4"
+                            className="space-y-6 pt-2"
                         >
                             <FormField
                                 control={form.control}
@@ -327,19 +320,36 @@ export default function CreateProduct({
                                             <FormLabel>Price</FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="$0.00"
+                                                    placeholder="Enter price"
                                                     className="w-40"
                                                     {...field}
                                                     onChange={(event) => {
                                                         setValue(
                                                             event.target.value,
                                                         )
-                                                        handleChange(
+                                                        currencyDisplayHandleChange(
                                                             field.onChange,
                                                             event.target.value,
                                                         )
                                                     }}
-                                                    value={value}
+                                                    onBlur={(event) => {
+                                                        const digits =
+                                                            formatAsCurrency(
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        const rounded = Number(
+                                                            parseFloat(
+                                                                digits,
+                                                            ).toFixed(2),
+                                                        )
+                                                        setValue(
+                                                            moneyFormat.format(
+                                                                rounded,
+                                                            ),
+                                                        )
+                                                    }}
+                                                    value={`${value.length > 0 ? '$' : ''}${value}`}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -360,9 +370,11 @@ export default function CreateProduct({
                                                 name={`variations.${index}.name`}
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>
-                                                            Variation Name
-                                                        </FormLabel>
+                                                        {index === 0 && (
+                                                            <FormLabel>
+                                                                Variation Name
+                                                            </FormLabel>
+                                                        )}
                                                         <FormControl>
                                                             <Input {...field} />
                                                         </FormControl>
@@ -375,33 +387,52 @@ export default function CreateProduct({
                                                 name={`variations.${index}.price`}
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>
-                                                            Price
-                                                        </FormLabel>
+                                                        {index === 0 && (
+                                                            <FormLabel>
+                                                                Price
+                                                            </FormLabel>
+                                                        )}
                                                         <FormControl>
                                                             <Input
-                                                                placeholder="$0.00"
+                                                                placeholder="Enter price"
                                                                 {...field}
                                                                 onChange={(
                                                                     event,
                                                                 ) => {
-                                                                    // console.log(
-                                                                    //     event.target
-                                                                    //         .name,
-                                                                    //     event.target
-                                                                    //         .value,
-                                                                    // )
                                                                     setDisplayValue(
                                                                         {
                                                                             index: index,
                                                                             target: event.target,
                                                                         },
                                                                     )
-                                                                    handleChange(
+                                                                    currencyDisplayHandleChange(
                                                                         field.onChange,
                                                                         event
                                                                             .target
                                                                             .value,
+                                                                    )
+                                                                }}
+                                                                onBlur={(
+                                                                    event,
+                                                                ) => {
+                                                                    const digits =
+                                                                        formatAsCurrency(
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                        )
+                                                                    const rounded =
+                                                                        Number(
+                                                                            parseFloat(
+                                                                                digits,
+                                                                            ).toFixed(
+                                                                                2,
+                                                                            ),
+                                                                        )
+                                                                    setValue(
+                                                                        moneyFormat.format(
+                                                                            rounded,
+                                                                        ),
                                                                     )
                                                                 }}
                                                                 value={
@@ -428,7 +459,7 @@ export default function CreateProduct({
                                     ))}
                                 </div>
                             )}
-                            <div className="flex flex-row gap-4 pt-4">
+                            <div className="flex flex-row gap-4 pt-2">
                                 <Button
                                     type="button"
                                     variant="secondary"
@@ -449,6 +480,6 @@ export default function CreateProduct({
                     </Form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }

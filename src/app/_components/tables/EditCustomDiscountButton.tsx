@@ -16,6 +16,7 @@ export default function EditCustomDiscountButton({
                 isOpen={isEditOpen}
                 setIsOpen={setIsEditOpen}
                 title="Edit Custom Discount"
+                className="sm:max-w-lg p-8"
             >
                 <EditCustomDiscountForm
                     discount={discount}

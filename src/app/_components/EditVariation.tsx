@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { moneyFormat } from '@/lib/utils'
+import { formatAsCurrency } from '@/lib/utils'
 import { type ProductVariation } from '@/server/db/schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog'
@@ -42,8 +42,7 @@ export default function EditVariation({
 }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
-        const digits = next.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
+        return formatAsCurrency(next)
     }, `\$${variation.price}`)
 
     const form = useForm<z.infer<typeof formSchema>>({

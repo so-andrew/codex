@@ -66,7 +66,7 @@ export default function CreateCategory({
     const { isSubmitting } = formState
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
+        //console.log(data)
         await createCategory(data)
         setIsOpen(false)
         reset({}, { keepValues: false })

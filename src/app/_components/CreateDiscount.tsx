@@ -17,7 +17,11 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { moneyFormat } from '@/lib/utils'
+import {
+    currencyDisplayHandleChange,
+    formatAsCurrency,
+    moneyFormat,
+} from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useReducer, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -41,9 +45,8 @@ export default function CreateDiscount() {
     const [isOpen, setIsOpen] = useState(false)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
-        const digits = next.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
-    }, '$0.00')
+        return formatAsCurrency(next)
+    }, '')
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -53,20 +56,13 @@ export default function CreateDiscount() {
         },
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    function handleChange(change: Function, formatted: string) {
-        const digits = formatted.replace(/\D/g, '')
-        const value = Number(digits) / 100
-        change(value)
-    }
-
     async function onSubmit(data: z.infer<typeof formSchema>) {
         await createDiscount(data)
         setIsOpen(false)
     }
 
     return (
-        <div className="flex flex-row gap-6">
+        <>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
                     <Button className="bg-purple-500 hover:bg-purple-600">
@@ -74,7 +70,7 @@ export default function CreateDiscount() {
                     </Button>
                 </DialogTrigger>
                 <DialogContent
-                    className="sm:max-w-lg"
+                    className="sm:max-w-lg p-8"
                     aria-describedby={undefined}
                 >
                     <DialogHeader>
@@ -83,7 +79,7 @@ export default function CreateDiscount() {
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(onSubmit)}
-                            className="space-y-6"
+                            className="space-y-6 pt-2"
                         >
                             <FormField
                                 control={form.control}
@@ -109,17 +105,33 @@ export default function CreateDiscount() {
                                         <FormLabel>Price</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="$0.00"
+                                                placeholder="Enter amount"
                                                 className="w-40"
                                                 {...field}
                                                 onChange={(event) => {
                                                     setValue(event.target.value)
-                                                    handleChange(
+                                                    currencyDisplayHandleChange(
                                                         field.onChange,
                                                         event.target.value,
                                                     )
                                                 }}
-                                                value={value}
+                                                onBlur={(event) => {
+                                                    const digits =
+                                                        formatAsCurrency(
+                                                            event.target.value,
+                                                        )
+                                                    const rounded = Number(
+                                                        parseFloat(
+                                                            digits,
+                                                        ).toFixed(2),
+                                                    )
+                                                    setValue(
+                                                        moneyFormat.format(
+                                                            rounded,
+                                                        ),
+                                                    )
+                                                }}
+                                                value={`${value.length > 0 ? '$' : ''}${value}`}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -131,6 +143,6 @@ export default function CreateDiscount() {
                     </Form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }

@@ -180,6 +180,7 @@ export default function EditCategoryForm({
                                     </PopoverContent>
                                 </Popover>
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />

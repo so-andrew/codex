@@ -10,7 +10,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { moneyFormat } from '@/lib/utils'
+import {
+    currencyDisplayHandleChange,
+    formatAsCurrency,
+    moneyFormat,
+} from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { type Dispatch, type SetStateAction, useReducer } from 'react'
 import { useForm } from 'react-hook-form'
@@ -40,9 +44,8 @@ export default function EditDiscountForm({
 }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [value, setValue] = useReducer((_: any, next: string) => {
-        const digits = next.replace(/\D/g, '')
-        return moneyFormat.format(Number(digits) / 100)
-    }, moneyFormat.format(data.amount))
+        return formatAsCurrency(next)
+    }, moneyFormat.format(data.amount).slice(1))
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -57,13 +60,6 @@ export default function EditDiscountForm({
     const { formState, reset } = form
     const { isDirty, isSubmitting } = formState
     const { toast } = useToast()
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    function handleChange(change: Function, formatted: string) {
-        const digits = formatted.replace(/\D/g, '')
-        const value = Number(digits) / 100
-        change(value)
-    }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
         try {
@@ -88,7 +84,7 @@ export default function EditDiscountForm({
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col space-y-4"
+                className="space-y-6 pt-2"
             >
                 <FormField
                     control={form.control}
@@ -110,30 +106,39 @@ export default function EditDiscountForm({
                     control={form.control}
                     name="amount"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="w-40">
                             <FormLabel>Amount</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="$0.00"
+                                    placeholder="Enter amount"
                                     {...field}
                                     onChange={(event) => {
                                         setValue(event.target.value)
-                                        handleChange(
+                                        currencyDisplayHandleChange(
                                             field.onChange,
                                             event.target.value,
                                         )
                                     }}
-                                    value={value}
+                                    onBlur={(event) => {
+                                        const digits = formatAsCurrency(
+                                            event.target.value,
+                                        )
+                                        const rounded = Number(
+                                            parseFloat(digits).toFixed(2),
+                                        )
+                                        setValue(moneyFormat.format(rounded))
+                                    }}
+                                    value={`${value.length > 0 ? '$' : ''}${value}`}
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <div className="flex flex-row gap-4 pt-4">
+                <div className="flex flex-row gap-4 pt-2">
                     <Button
                         type="submit"
-                        className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600"
+                        className="hover:bg-purple-600 disabled:bg-gray-600"
                         disabled={!isDirty || isSubmitting}
                     >
                         Save
