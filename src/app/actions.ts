@@ -17,7 +17,7 @@ import {
     products,
     productVariations,
 } from '@/server/db/schema'
-import { getUserCategories } from '@/server/queries'
+import { getRevenueInDateRange, getUserCategories } from '@/server/queries'
 import { z } from 'zod'
 
 export async function test() {
@@ -1344,4 +1344,27 @@ export async function editCustomDiscount(
         throw error
     }
     revalidatePath('/dashboard/conventions')
+}
+
+export async function getRevenueDateRange({
+    start,
+    end,
+}: {
+    start: Date
+    end?: Date
+}) {
+    const user = auth()
+    if (!user || !user.userId) {
+        const error = new Error('Invalid user.')
+        throw error
+    }
+
+    try {
+        const query = await getRevenueInDateRange({ start: start, end: end })
+        return query
+    } catch (e) {
+        const error = e as Error
+        console.error(error)
+        throw error
+    }
 }

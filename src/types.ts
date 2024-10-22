@@ -158,6 +158,12 @@ export type RevenueTypeChartData = {
     fill?: string
 }
 
+export type MonthlyRevenueChartData = {
+    month: string
+    revenue: number
+    fill?: string
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 export type Config = {
     [x: string]: ConfigEntry
@@ -166,4 +172,13 @@ export type Config = {
 export type ConfigEntry = {
     label: string
     fill?: string
+}
+
+export type DashboardRevenueData = {
+    monthRevenueArray: MonthlyRevenueChartData[]
+    monthDiscountArray: Map<string, number>
+    totalRevenue: number
+    totalDiscounts: number
+    previousRevenue: number
+    previousDiscounts: number
 }

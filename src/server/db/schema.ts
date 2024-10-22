@@ -1,7 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { relations, SQL, sql } from 'drizzle-orm'
+import { relations, type SQL, sql } from 'drizzle-orm'
 import {
     type AnyPgColumn,
     boolean,

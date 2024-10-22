@@ -6,8 +6,14 @@ import {
     type TopSellingVariations,
 } from '@/types'
 import { auth } from '@clerk/nextjs/server'
-import { eachDayOfInterval } from 'date-fns'
-import { and, asc, count, desc, eq, sql } from 'drizzle-orm'
+import {
+    eachDayOfInterval,
+    format,
+    intervalToDuration,
+    isWithinInterval,
+    sub,
+} from 'date-fns'
+import { and, asc, count, desc, eq, ne, or, sql } from 'drizzle-orm'
 import 'server-only'
 import {
     type Category,
@@ -545,16 +551,246 @@ export async function getMonthlyRevenue() {
 
     const query = await db
         .select({
-            month: sql`DATE_TRUNC('month',${productDailyRevenue.date})`,
+            date: productDailyRevenue.date,
+            month: sql<string>`DATE_TRUNC('month',${productDailyRevenue.date})`,
             cashSales: productDailyRevenue.cashSales,
             cardSales: productDailyRevenue.cardSales,
+            reportId: productDailyRevenue.reportId,
+            price: conventionProductReports.price,
+            totalRevenue:
+                sql<number>`cast(${conventionProductReports.price}*(sum(${productDailyRevenue.cardSales})+sum(${productDailyRevenue.cashSales})) as float)`.as(
+                    'totalRevenue',
+                ),
         })
         .from(productDailyRevenue)
+        .leftJoin(
+            conventionProductReports,
+            eq(conventionProductReports.id, productDailyRevenue.reportId),
+        )
+        .where(
+            or(
+                ne(productDailyRevenue.cashSales, 0),
+                ne(productDailyRevenue.cardSales, 0),
+            ),
+        )
         .groupBy(
+            productDailyRevenue.date,
             sql`DATE_TRUNC('month',${productDailyRevenue.date})`,
+            productDailyRevenue.reportId,
             productDailyRevenue.cashSales,
             productDailyRevenue.cardSales,
+            conventionProductReports.price,
         )
 
-    return query
+    //console.log(query)
+    const monthRevenueMap = new Map<string, number>()
+    for (const record of query) {
+        const monthString = format(record.date, 'LLL yy')
+        //console.log(record.month, monthString)
+        if (!monthRevenueMap.has(monthString)) {
+            monthRevenueMap.set(monthString, 0)
+        }
+        monthRevenueMap.set(
+            monthString,
+            monthRevenueMap.get(monthString)! + record.totalRevenue,
+        )
+    }
+
+    return monthRevenueMap
+}
+
+export async function getRevenueInDateRange({
+    start,
+    end,
+}: {
+    start: Date
+    end?: Date
+}) {
+    const user = auth()
+    if (!user.userId) throw new Error('Unauthorized')
+
+    console.log(start, end)
+    if (!start) throw new Error('No startDate')
+
+    const revenueQuery = await db
+        .select({
+            date: productDailyRevenue.date,
+            month: sql<string>`DATE_TRUNC('month',${productDailyRevenue.date})`,
+            cashSales: productDailyRevenue.cashSales,
+            cardSales: productDailyRevenue.cardSales,
+            reportId: productDailyRevenue.reportId,
+            price: conventionProductReports.price,
+            totalRevenue:
+                sql<number>`cast(${conventionProductReports.price}*(sum(${productDailyRevenue.cardSales})+sum(${productDailyRevenue.cashSales})) as float)`.as(
+                    'totalRevenue',
+                ),
+        })
+        .from(productDailyRevenue)
+        .leftJoin(
+            conventionProductReports,
+            eq(conventionProductReports.id, productDailyRevenue.reportId),
+        )
+        .where(
+            or(
+                ne(productDailyRevenue.cashSales, 0),
+                ne(productDailyRevenue.cardSales, 0),
+            ),
+        )
+        .groupBy(
+            productDailyRevenue.date,
+            sql`DATE_TRUNC('month',${productDailyRevenue.date})`,
+            productDailyRevenue.reportId,
+            productDailyRevenue.cashSales,
+            productDailyRevenue.cardSales,
+            conventionProductReports.price,
+        )
+
+    const discountQuery = await db
+        .select({
+            date: discountDaily.date,
+            cashDiscounts: discountDaily.cashDiscounts,
+            cardDiscounts: discountDaily.cardDiscounts,
+            reportId: discountDaily.reportId,
+            amount: conventionDiscountReports.amount,
+            totalDiscounts: sql<number>`cast(sum(${discountDaily.cashDiscounts})+sum(${discountDaily.cardDiscounts}) as int)`,
+            totalDiscountAmount: sql<number>`cast(${conventionDiscountReports.amount}*(sum(${discountDaily.cashDiscounts})+sum(${discountDaily.cardDiscounts})) as float)`,
+        })
+        .from(discountDaily)
+        .leftJoin(
+            conventionDiscountReports,
+            eq(conventionDiscountReports.id, discountDaily.reportId),
+        )
+        .where(
+            or(
+                ne(discountDaily.cashDiscounts, 0),
+                ne(discountDaily.cardDiscounts, 0),
+            ),
+        )
+        .groupBy(
+            discountDaily.date,
+            discountDaily.reportId,
+            discountDaily.cashDiscounts,
+            discountDaily.cardDiscounts,
+            conventionDiscountReports.amount,
+        )
+
+    const duration = intervalToDuration({ start: start, end: end ?? start })
+    console.log('duration:', duration)
+
+    const filteredRevenue = revenueQuery.filter((record) =>
+        isWithinInterval(record.date, {
+            start: start,
+            end: end ?? start,
+        }),
+    )
+
+    const filteredDiscounts = discountQuery.filter((discount) =>
+        isWithinInterval(discount.date, {
+            start: start,
+            end: end ?? start,
+        }),
+    )
+
+    const totalRevenue = filteredRevenue.reduce((acc, element) => {
+        return +acc + +element.totalRevenue
+    }, 0)
+    const totalDiscounts = filteredDiscounts.reduce((acc, element) => {
+        return +acc + +element.totalDiscountAmount
+    }, 0)
+
+    const previousPeriodRevenue = revenueQuery.filter((record) =>
+        isWithinInterval(record.date, {
+            start: sub(start, duration),
+            end: end ? sub(end, duration) : sub(start, duration),
+        }),
+    )
+
+    const previousPeriodDiscounts = discountQuery.filter((discount) =>
+        isWithinInterval(discount.date, {
+            start: sub(start, duration),
+            end: end ? sub(end, duration) : sub(start, duration),
+        }),
+    )
+
+    const previousTotalRevenue = previousPeriodRevenue.reduce(
+        (acc, element) => {
+            return +acc + +element.totalRevenue
+        },
+        0,
+    )
+    const previousTotalDiscounts = previousPeriodDiscounts.reduce(
+        (acc, element) => {
+            return +acc + +element.totalDiscountAmount
+        },
+        0,
+    )
+
+    console.log('filtered:', filteredRevenue)
+    console.log('filtered disc:', filteredDiscounts)
+    console.log('prev filtered:', previousPeriodRevenue)
+    console.log('prev filtered disc:', previousPeriodDiscounts)
+
+    const monthRevenueMap = new Map<string, number>()
+    for (const record of filteredRevenue) {
+        const monthString = format(record.date, 'LLL yy')
+        //console.log(record.month, monthString)
+        if (!monthRevenueMap.has(monthString)) {
+            monthRevenueMap.set(monthString, 0)
+        }
+        monthRevenueMap.set(
+            monthString,
+            monthRevenueMap.get(monthString)! + record.totalRevenue,
+        )
+    }
+
+    const monthDiscountMap = new Map<string, number>()
+    for (const discount of filteredDiscounts) {
+        const monthString = format(discount.date, 'LLL yy')
+        //console.log(record.month, monthString)
+        if (!monthDiscountMap.has(monthString)) {
+            monthDiscountMap.set(monthString, 0)
+        }
+        monthDiscountMap.set(
+            monthString,
+            monthDiscountMap.get(monthString)! + discount.totalDiscountAmount,
+        )
+    }
+
+    const previousRevenueMap = new Map<string, number>()
+    for (const record of previousPeriodRevenue) {
+        const monthString = format(record.date, 'LLL yy')
+        //console.log(record.month, monthString)
+        if (!previousRevenueMap.has(monthString)) {
+            previousRevenueMap.set(monthString, 0)
+        }
+        previousRevenueMap.set(
+            monthString,
+            previousRevenueMap.get(monthString)! + record.totalRevenue,
+        )
+    }
+
+    const previousDiscountMap = new Map<string, number>()
+    for (const discount of previousPeriodDiscounts) {
+        const monthString = format(discount.date, 'LLL yy')
+        //console.log(record.month, monthString)
+        if (!previousDiscountMap.has(monthString)) {
+            previousDiscountMap.set(monthString, 0)
+        }
+        previousDiscountMap.set(
+            monthString,
+            previousDiscountMap.get(monthString)! +
+                discount.totalDiscountAmount,
+        )
+    }
+
+    return {
+        monthRevenueMap,
+        monthDiscountMap,
+        previousRevenueMap,
+        previousDiscountMap,
+        totalRevenue,
+        totalDiscounts,
+        previousTotalRevenue,
+        previousTotalDiscounts,
+    }
 }
