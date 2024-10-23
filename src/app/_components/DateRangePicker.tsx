@@ -1,6 +1,6 @@
 'use client'
 
-import { format } from 'date-fns'
+import { format, isEqual } from 'date-fns'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -23,6 +23,7 @@ export function DateRangePicker({
     )
 
     function handleSetDateRange(range: DateRange | undefined) {
+        console.log(range)
         if (range) setDateRange(range)
         else resetDateRange()
     }
@@ -42,10 +43,14 @@ export function DateRangePicker({
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {dateRange?.from ? (
                             dateRange.to ? (
-                                <>
-                                    {format(dateRange.from, 'LLL dd, y')} -{' '}
-                                    {format(dateRange.to, 'LLL dd, y')}
-                                </>
+                                isEqual(dateRange.from, dateRange.to) ? (
+                                    format(dateRange.from, 'LLL dd, y')
+                                ) : (
+                                    <>
+                                        {format(dateRange.from, 'LLL dd, y')} -{' '}
+                                        {format(dateRange.to, 'LLL dd, y')}
+                                    </>
+                                )
                             ) : (
                                 format(dateRange.from, 'LLL dd, y')
                             )

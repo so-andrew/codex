@@ -1,11 +1,29 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { DashboardRevenueData, MonthlyRevenueChartData } from '@/types'
+import {
+    DashboardRevenueData,
+    MonthlyRevenueChartData,
+    TotalDiscountsByType,
+    TotalRevenueByType,
+} from '@/types'
 import { useUser } from '@clerk/nextjs'
+import { interval } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { getRevenueDateRange } from '../actions'
 import { useDatePickerStore } from '../providers/date-picker-store-provider'
 import StatisticsView from './_components/StatisticsView'
+
+const initialRevenueByType: TotalRevenueByType = {
+    cashRevenue: 0,
+    cardRevenue: 0,
+    totalRevenue: 0,
+}
+
+const initialDiscountsByType: TotalDiscountsByType = {
+    cashDiscountAmount: 0,
+    cardDiscountAmount: 0,
+    totalDiscountAmount: 0,
+}
 
 export default function Dashboard() {
     const user = useUser().user
@@ -13,22 +31,25 @@ export default function Dashboard() {
     const [data, setData] = useState<DashboardRevenueData>({
         monthRevenueArray: [] as MonthlyRevenueChartData[],
         monthDiscountArray: {} as Map<string, number>,
-        totalRevenue: 0,
-        totalDiscounts: 0,
-        previousRevenue: 0,
-        previousDiscounts: 0,
+        totalRevenueByType: initialRevenueByType,
+        totalDiscountsByType: initialDiscountsByType,
+        previousRevenueByType: initialRevenueByType,
+        previousDiscountsByType: initialDiscountsByType,
+        previousInterval: interval(new Date(), new Date()),
     })
 
     useEffect(() => {
         const updateData = async () => {
             if (dateRange) {
                 const {
+                    givenInterval,
                     monthRevenueMap,
                     monthDiscountMap,
-                    totalRevenue,
-                    totalDiscounts,
-                    previousTotalRevenue,
-                    previousTotalDiscounts,
+                    totalRevenueByType,
+                    totalDiscountsByType,
+                    previousInterval,
+                    previousRevenueByType,
+                    previousDiscountsByType,
                 } = await getRevenueDateRange({
                     start: dateRange.from ?? new Date(),
                     end: dateRange.to,
@@ -39,13 +60,13 @@ export default function Dashboard() {
                     'disc:',
                     monthDiscountMap,
                     'total rev:',
-                    totalRevenue,
+                    totalRevenueByType.totalRevenue,
                     'total disc:',
-                    totalDiscounts,
+                    totalDiscountsByType.totalDiscountAmount,
                     'prev rev:',
-                    previousTotalRevenue,
+                    previousRevenueByType.totalRevenue,
                     'prev disc:',
-                    previousTotalDiscounts,
+                    previousDiscountsByType.totalDiscountAmount,
                 )
                 const dataArray = Array.from(monthRevenueMap.entries()).map(
                     (entry, index) => {
@@ -60,10 +81,11 @@ export default function Dashboard() {
                 setData({
                     monthRevenueArray: dataArray,
                     monthDiscountArray: monthDiscountMap,
-                    totalRevenue: totalRevenue,
-                    totalDiscounts: totalDiscounts,
-                    previousRevenue: previousTotalRevenue,
-                    previousDiscounts: previousTotalDiscounts,
+                    totalRevenueByType: totalRevenueByType,
+                    totalDiscountsByType: totalDiscountsByType,
+                    previousRevenueByType: previousRevenueByType,
+                    previousDiscountsByType: previousDiscountsByType,
+                    previousInterval: previousInterval,
                 })
             }
         }
@@ -89,7 +111,11 @@ export default function Dashboard() {
 
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
-            <h1 className="text-2xl font-semibold">{`Welcome back, ${user?.firstName}.`}</h1>
+            {user ? (
+                <h1 className="text-2xl font-semibold">{`Welcome back, ${user?.firstName}.`}</h1>
+            ) : (
+                <h1 className="text-2xl font-semibold">Loading...</h1>
+            )}
             <div className="border-b pb-8">
                 <div className="flex flex-row gap-6">
                     <Button className="">Add Convention</Button>

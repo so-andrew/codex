@@ -17,7 +17,10 @@ import {
     products,
     productVariations,
 } from '@/server/db/schema'
-import { getRevenueInDateRange, getUserCategories } from '@/server/queries'
+import {
+    getRevenueStatsForDateRange,
+    getUserCategories,
+} from '@/server/queries'
 import { z } from 'zod'
 
 export async function test() {
@@ -1360,7 +1363,10 @@ export async function getRevenueDateRange({
     }
 
     try {
-        const query = await getRevenueInDateRange({ start: start, end: end })
+        const query = await getRevenueStatsForDateRange({
+            start: start,
+            end: end,
+        })
         return query
     } catch (e) {
         const error = e as Error

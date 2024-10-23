@@ -7,11 +7,12 @@ import {
 } from '@/types'
 import { auth } from '@clerk/nextjs/server'
 import {
+    differenceInCalendarDays,
     eachDayOfInterval,
     format,
-    intervalToDuration,
+    interval,
     isWithinInterval,
-    sub,
+    subDays,
 } from 'date-fns'
 import { and, asc, count, desc, eq, ne, or, sql } from 'drizzle-orm'
 import 'server-only'
@@ -458,8 +459,6 @@ export async function getConventionDiscountStats(conventionId: number) {
         )
         .where(eq(discountDaily.conventionId, conventionId))
 
-    //console.log(discountsWithRevenue)
-
     const conventionTotalDiscountAmount = discountsWithRevenue.reduce(
         (acc, element) => {
             return +acc + +element.totalDiscountAmount
@@ -582,11 +581,9 @@ export async function getMonthlyRevenue() {
             conventionProductReports.price,
         )
 
-    //console.log(query)
     const monthRevenueMap = new Map<string, number>()
     for (const record of query) {
         const monthString = format(record.date, 'LLL yy')
-        //console.log(record.month, monthString)
         if (!monthRevenueMap.has(monthString)) {
             monthRevenueMap.set(monthString, 0)
         }
@@ -599,7 +596,7 @@ export async function getMonthlyRevenue() {
     return monthRevenueMap
 }
 
-export async function getRevenueInDateRange({
+export async function getRevenueStatsForDateRange({
     start,
     end,
 }: {
@@ -610,8 +607,9 @@ export async function getRevenueInDateRange({
     if (!user.userId) throw new Error('Unauthorized')
 
     console.log(start, end)
-    if (!start) throw new Error('No startDate')
+    if (!start) throw new Error('No start date')
 
+    // Get all reports
     const revenueQuery = await db
         .select({
             date: productDailyRevenue.date,
@@ -620,6 +618,14 @@ export async function getRevenueInDateRange({
             cardSales: productDailyRevenue.cardSales,
             reportId: productDailyRevenue.reportId,
             price: conventionProductReports.price,
+            cashRevenue:
+                sql<number>`cast(${conventionProductReports.price}*${productDailyRevenue.cashSales} as float)`.as(
+                    'cashRevenue',
+                ),
+            cardRevenue:
+                sql<number>`cast(${conventionProductReports.price}*${productDailyRevenue.cardSales} as float)`.as(
+                    'cardRevenue',
+                ),
             totalRevenue:
                 sql<number>`cast(${conventionProductReports.price}*(sum(${productDailyRevenue.cardSales})+sum(${productDailyRevenue.cashSales})) as float)`.as(
                     'totalRevenue',
@@ -645,6 +651,7 @@ export async function getRevenueInDateRange({
             conventionProductReports.price,
         )
 
+    // Get all discounts
     const discountQuery = await db
         .select({
             date: discountDaily.date,
@@ -652,6 +659,14 @@ export async function getRevenueInDateRange({
             cardDiscounts: discountDaily.cardDiscounts,
             reportId: discountDaily.reportId,
             amount: conventionDiscountReports.amount,
+            cashDiscountAmount:
+                sql<number>`cast(${conventionDiscountReports.amount}*${discountDaily.cashDiscounts} as float)`.as(
+                    'cashDiscountAmount',
+                ),
+            cardDiscountAmount:
+                sql<number>`cast(${conventionDiscountReports.amount}*${discountDaily.cardDiscounts} as float)`.as(
+                    'cardDiscountAmount',
+                ),
             totalDiscounts: sql<number>`cast(sum(${discountDaily.cashDiscounts})+sum(${discountDaily.cardDiscounts}) as int)`,
             totalDiscountAmount: sql<number>`cast(${conventionDiscountReports.amount}*(sum(${discountDaily.cashDiscounts})+sum(${discountDaily.cardDiscounts})) as float)`,
         })
@@ -674,55 +689,98 @@ export async function getRevenueInDateRange({
             conventionDiscountReports.amount,
         )
 
-    const duration = intervalToDuration({ start: start, end: end ?? start })
-    console.log('duration:', duration)
+    const givenInterval = interval(start, end ?? start)
+    const dayDiff = differenceInCalendarDays(end ?? start, start) + 1
+    //const duration = intervalToDuration(givenInterval)
 
+    const previousInterval =
+        dayDiff === 1
+            ? interval(subDays(start, 7), subDays(start, 7))
+            : interval(
+                  subDays(start, dayDiff),
+                  end ? subDays(end, dayDiff) : subDays(start, dayDiff),
+              )
+
+    //console.log('duration:', duration)
+    // console.log(
+    //     areIntervalsOverlapping(previousInterval, givenInterval, {
+    //         inclusive: true,
+    //     }),
+    // )
+    // console.log('dayDiff:', dayDiff)
+
+    // Calculate stats for current period
     const filteredRevenue = revenueQuery.filter((record) =>
-        isWithinInterval(record.date, {
-            start: start,
-            end: end ?? start,
-        }),
+        isWithinInterval(record.date, givenInterval),
     )
-
     const filteredDiscounts = discountQuery.filter((discount) =>
-        isWithinInterval(discount.date, {
-            start: start,
-            end: end ?? start,
-        }),
+        isWithinInterval(discount.date, givenInterval),
     )
 
-    const totalRevenue = filteredRevenue.reduce((acc, element) => {
-        return +acc + +element.totalRevenue
-    }, 0)
-    const totalDiscounts = filteredDiscounts.reduce((acc, element) => {
-        return +acc + +element.totalDiscountAmount
-    }, 0)
+    const totalRevenueByType = filteredRevenue.reduce(
+        (acc, element) => {
+            acc.cashRevenue += element.cashRevenue
+            acc.cardRevenue += element.cardRevenue
+            acc.totalRevenue += element.totalRevenue
+            return acc
+        },
+        { totalRevenue: 0, cashRevenue: 0, cardRevenue: 0 },
+    )
 
+    // const totalRevenue = filteredRevenue.reduce((acc, element) => {
+    //     return +acc + +element.totalRevenue
+    // }, 0)
+
+    const totalDiscountsByType = filteredDiscounts.reduce(
+        (acc, element) => {
+            acc.cashDiscountAmount += element.cashDiscountAmount
+            acc.cardDiscountAmount += element.cardDiscountAmount
+            acc.totalDiscountAmount += element.totalDiscountAmount
+            return acc
+        },
+        {
+            totalDiscountAmount: 0,
+            cashDiscountAmount: 0,
+            cardDiscountAmount: 0,
+        },
+    )
+
+    // Calculate stats for previous period
     const previousPeriodRevenue = revenueQuery.filter((record) =>
-        isWithinInterval(record.date, {
-            start: sub(start, duration),
-            end: end ? sub(end, duration) : sub(start, duration),
-        }),
+        isWithinInterval(record.date, previousInterval),
     )
-
     const previousPeriodDiscounts = discountQuery.filter((discount) =>
-        isWithinInterval(discount.date, {
-            start: sub(start, duration),
-            end: end ? sub(end, duration) : sub(start, duration),
-        }),
+        isWithinInterval(discount.date, previousInterval),
+    )
+    const previousRevenueByType = previousPeriodRevenue.reduce(
+        (acc, element) => {
+            acc.cashRevenue += element.cashRevenue
+            acc.cardRevenue += element.cardRevenue
+            acc.totalRevenue += element.totalRevenue
+            return acc
+        },
+        { totalRevenue: 0, cashRevenue: 0, cardRevenue: 0 },
+    )
+    const previousDiscountsByType = previousPeriodDiscounts.reduce(
+        (acc, element) => {
+            acc.cashDiscountAmount += element.cashDiscountAmount
+            acc.cardDiscountAmount += element.cardDiscountAmount
+            acc.totalDiscountAmount += element.totalDiscountAmount
+            return acc
+        },
+        {
+            totalDiscountAmount: 0,
+            cashDiscountAmount: 0,
+            cardDiscountAmount: 0,
+        },
     )
 
-    const previousTotalRevenue = previousPeriodRevenue.reduce(
-        (acc, element) => {
-            return +acc + +element.totalRevenue
-        },
-        0,
-    )
-    const previousTotalDiscounts = previousPeriodDiscounts.reduce(
-        (acc, element) => {
-            return +acc + +element.totalDiscountAmount
-        },
-        0,
+    console.log('start:', givenInterval.start, 'end:', givenInterval.end)
+    console.log(
+        'prev start:',
+        previousInterval.start,
+        'prev end:',
+        previousInterval.end,
     )
 
     console.log('filtered:', filteredRevenue)
@@ -730,10 +788,10 @@ export async function getRevenueInDateRange({
     console.log('prev filtered:', previousPeriodRevenue)
     console.log('prev filtered disc:', previousPeriodDiscounts)
 
+    // Map revenue to month
     const monthRevenueMap = new Map<string, number>()
     for (const record of filteredRevenue) {
         const monthString = format(record.date, 'LLL yy')
-        //console.log(record.month, monthString)
         if (!monthRevenueMap.has(monthString)) {
             monthRevenueMap.set(monthString, 0)
         }
@@ -743,10 +801,10 @@ export async function getRevenueInDateRange({
         )
     }
 
+    // Map discount to month
     const monthDiscountMap = new Map<string, number>()
     for (const discount of filteredDiscounts) {
         const monthString = format(discount.date, 'LLL yy')
-        //console.log(record.month, monthString)
         if (!monthDiscountMap.has(monthString)) {
             monthDiscountMap.set(monthString, 0)
         }
@@ -756,10 +814,10 @@ export async function getRevenueInDateRange({
         )
     }
 
+    // Map previous revenue to month
     const previousRevenueMap = new Map<string, number>()
     for (const record of previousPeriodRevenue) {
         const monthString = format(record.date, 'LLL yy')
-        //console.log(record.month, monthString)
         if (!previousRevenueMap.has(monthString)) {
             previousRevenueMap.set(monthString, 0)
         }
@@ -769,10 +827,10 @@ export async function getRevenueInDateRange({
         )
     }
 
+    // Map previous discount to month
     const previousDiscountMap = new Map<string, number>()
     for (const discount of previousPeriodDiscounts) {
         const monthString = format(discount.date, 'LLL yy')
-        //console.log(record.month, monthString)
         if (!previousDiscountMap.has(monthString)) {
             previousDiscountMap.set(monthString, 0)
         }
@@ -788,9 +846,11 @@ export async function getRevenueInDateRange({
         monthDiscountMap,
         previousRevenueMap,
         previousDiscountMap,
-        totalRevenue,
-        totalDiscounts,
-        previousTotalRevenue,
-        previousTotalDiscounts,
+        givenInterval,
+        totalRevenueByType,
+        totalDiscountsByType,
+        previousInterval,
+        previousRevenueByType,
+        previousDiscountsByType,
     }
 }
