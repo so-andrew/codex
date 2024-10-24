@@ -33,7 +33,8 @@ export default function PaymentTypeStatsCard({
     cardRevenue: number
 }) {
     const chartData = [{ cash: cashRevenue, card: cardRevenue }]
-    console.log(chartData)
+    const cashPercent = cashRevenue / (cashRevenue + cardRevenue)
+    const cardPercent = cardRevenue / (cashRevenue + cardRevenue)
 
     return (
         <Card className="h-full">
@@ -44,56 +45,80 @@ export default function PaymentTypeStatsCard({
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <ChartContainer
-                    config={chartConfig}
-                    className="mx-auto aspect-auto h-8"
-                >
-                    <BarChart
-                        accessibilityLayer
-                        data={chartData}
-                        layout="vertical"
-                        barSize={30}
-                        stackOffset="expand"
-                        margin={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                {cashRevenue > 0 && cardRevenue > 0 ? (
+                    <ChartContainer
+                        config={chartConfig}
+                        className="mx-auto aspect-auto h-8"
                     >
-                        <ChartTooltip
-                            content={<ChartTooltipContent hideLabel />}
-                        />
-                        {/* <ChartLegend content={<ChartLegendContent />} /> */}
-                        <XAxis type="number" hide />
-                        <YAxis type="category" hide />
-                        <Bar
-                            dataKey="cash"
-                            stackId="a"
-                            fill="var(--color-cash)"
-                            radius={[5, 0, 0, 5]}
-                        />
-                        <Bar
-                            dataKey="card"
-                            stackId="a"
-                            fill="var(--color-card)"
-                            radius={[0, 5, 5, 0]}
-                        />
-                    </BarChart>
-                </ChartContainer>
+                        <BarChart
+                            accessibilityLayer
+                            data={chartData}
+                            layout="vertical"
+                            barSize={30}
+                            stackOffset="expand"
+                            margin={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                        >
+                            <ChartTooltip
+                                content={<ChartTooltipContent hideLabel />}
+                            />
+                            {/* <ChartLegend content={<ChartLegendContent />} /> */}
+                            <XAxis type="number" hide />
+                            <YAxis type="category" hide />
+                            <Bar
+                                dataKey="cash"
+                                stackId="a"
+                                fill="var(--color-cash)"
+                                radius={[5, 0, 0, 5]}
+                            />
+                            <Bar
+                                dataKey="card"
+                                stackId="a"
+                                fill="var(--color-card)"
+                                radius={[0, 5, 5, 0]}
+                            />
+                        </BarChart>
+                    </ChartContainer>
+                ) : (
+                    <div className="h-8 text-gray-500 text-center">
+                        No data for selected period
+                    </div>
+                )}
                 <div className="flex flex-col justify-around mt-4 gap-1">
                     <div className="flex flex-row justify-between gap-2">
                         <div className="flex flex-row gap-3 items-center">
                             <div className="w-3 h-3 rounded-sm shrink-0 bg-[hsl(var(--chart-1))]" />
                             <h2 className="text-gray-500">Cash</h2>
                         </div>
+
                         <span className="font-semibold">
                             {moneyFormat.format(cashRevenue)}
                         </span>
+                        {/* <span className="text-gray-500">
+                            {isFinite(cashPercent)
+                                ? cashPercent.toLocaleString(undefined, {
+                                      style: 'percent',
+                                      maximumFractionDigits: 2,
+                                  })
+                                : ''}
+                        </span> */}
                     </div>
                     <div className="flex flex-row justify-between gap-2">
                         <div className="flex flex-row gap-3 items-center">
                             <div className="w-3 h-3 rounded-sm shrink-0 bg-[hsl(var(--chart-2))]" />
                             <h2 className="text-gray-500">Card</h2>
                         </div>
+
                         <span className="font-semibold">
                             {moneyFormat.format(cardRevenue)}
                         </span>
+                        {/* <span className="text-gray-500">
+                            {isFinite(cardPercent)
+                                ? cardPercent.toLocaleString(undefined, {
+                                      style: 'percent',
+                                      maximumFractionDigits: 2,
+                                  })
+                                : ''}
+                        </span> */}
                     </div>
                 </div>
             </CardContent>

@@ -4,7 +4,7 @@ import TestButton from '../_components/TestButton'
 //import { test } from '../actions'
 
 export default async function ProfilePage() {
-    const { userId } = auth()
+    const { userId } = await auth()
 
     //const user = await currentUser()
     //console.log(user)

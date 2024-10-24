@@ -19,7 +19,7 @@ export interface FormStoreProviderProps {
 }
 
 export const FormStoreProvider = ({ children }: FormStoreProviderProps) => {
-    const storeRef = useRef<FormStoreApi>()
+    const storeRef = useRef<FormStoreApi>(undefined)
     if (!storeRef.current) {
         storeRef.current = createFormStore(initFormStore())
     }

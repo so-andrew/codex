@@ -2,6 +2,7 @@ import { db } from '@/server/db'
 import {
     type CategoryTableRow,
     type DailyRevenueReport,
+    ProductRevenue,
     type ProductTableRow,
     type TopSellingVariations,
 } from '@/types'
@@ -96,7 +97,7 @@ const getProductVariations = db
     .prepare('get-variations')
 
 export async function getProductById(productId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     const products = await getSingleProduct.execute({
         productId: productId,
@@ -106,13 +107,13 @@ export async function getProductById(productId: number) {
 }
 
 export async function getUserProducts() {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await getProducts.execute({ userId: user.userId })
 }
 
 export async function getProductHierarchy() {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     const productsWithVariations = await db
         .select()
@@ -170,19 +171,19 @@ function constructProductHierarchy({
 }
 
 export async function getUserDiscounts() {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await getDiscounts.execute({ userId: user.userId })
 }
 
 export async function getUserConventions() {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await getConventions.execute({ userId: user.userId })
 }
 
 export async function getConventionById(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     const conventions = await getSingleConvention.execute({
         conventionId: conventionId,
@@ -192,7 +193,7 @@ export async function getConventionById(conventionId: number) {
 }
 
 export async function getUserProductVariations(productId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await getProductVariations.execute({
         productId: productId,
@@ -201,7 +202,7 @@ export async function getUserProductVariations(productId: number) {
 }
 
 export async function getUserCategories() {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     const categories = await getCategories.execute({ userId: user.userId })
     //console.log(categories)
@@ -216,7 +217,7 @@ export async function getUserCategories() {
 }
 
 export async function getCategoryHierarchy() {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     const categories = (
         await getCategories.execute({ userId: user.userId })
@@ -256,7 +257,7 @@ function constructCategoryHierarchy(categories: Array<CategoryTableRow>) {
 }
 
 export async function getConventionReportsOld(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await db
         .select()
@@ -265,7 +266,7 @@ export async function getConventionReportsOld(conventionId: number) {
 }
 
 // export async function getConventionReports(conventionId: number) {
-//     const user = auth()
+//     const user = await auth()
 //     if (!user.userId) throw new Error('Unauthorized')
 //     return (await db
 //         .select({
@@ -288,7 +289,7 @@ export async function getConventionReportsOld(conventionId: number) {
 // }
 
 export async function getConventionReports(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     const reportsWithRevenue = await db.query.conventionProductReports.findMany(
         {
@@ -315,7 +316,7 @@ export async function getConventionReports(conventionId: number) {
 }
 
 export async function getConventionCategories(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
     return await db
         .selectDistinct({
@@ -332,7 +333,7 @@ export async function getConventionCategories(conventionId: number) {
 }
 
 export async function getConventionRevenue(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
     // Returns sales information for each product variation on a per-date basis
@@ -411,7 +412,7 @@ export async function getConventionRevenue(conventionId: number) {
 }
 
 export async function getConventionDiscounts(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
     const discounts = await db.query.conventionDiscountReports.findMany({
@@ -432,7 +433,7 @@ export async function getConventionDiscounts(conventionId: number) {
 }
 
 export async function getConventionDiscountStats(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
     const discountsWithRevenue = await db
@@ -474,7 +475,7 @@ export async function getConventionDiscountStats(conventionId: number) {
 
 // Returns array of Date objects from start date to end date inclusive
 export async function getConventionDateRange(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
     const query = await db
@@ -494,7 +495,7 @@ export async function getConventionDateRange(conventionId: number) {
 }
 
 export async function getTopSellingVariations(conventionId: number) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
     // Returns total sales/revenue for each product variation
@@ -545,7 +546,7 @@ export async function getTopSellingVariations(conventionId: number) {
 }
 
 export async function getMonthlyRevenue() {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
     const query = await db
@@ -603,7 +604,7 @@ export async function getRevenueStatsForDateRange({
     start: Date
     end?: Date
 }) {
-    const user = auth()
+    const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
     console.log(start, end)
@@ -618,6 +619,10 @@ export async function getRevenueStatsForDateRange({
             cardSales: productDailyRevenue.cardSales,
             reportId: productDailyRevenue.reportId,
             price: conventionProductReports.price,
+            name: conventionProductReports.name,
+            productName: conventionProductReports.productName,
+            productId: conventionProductReports.productId,
+            productVariationId: conventionProductReports.productVariationId,
             cashRevenue:
                 sql<number>`cast(${conventionProductReports.price}*${productDailyRevenue.cashSales} as float)`.as(
                     'cashRevenue',
@@ -643,6 +648,10 @@ export async function getRevenueStatsForDateRange({
             ),
         )
         .groupBy(
+            conventionProductReports.productId,
+            conventionProductReports.productVariationId,
+            conventionProductReports.productName,
+            conventionProductReports.name,
             productDailyRevenue.date,
             sql`DATE_TRUNC('month',${productDailyRevenue.date})`,
             productDailyRevenue.reportId,
@@ -717,6 +726,27 @@ export async function getRevenueStatsForDateRange({
         isWithinInterval(discount.date, givenInterval),
     )
 
+    const productRevenueMap = new Map<string, ProductRevenue>()
+    for (const record of filteredRevenue) {
+        const id = `${record.productId}.${record.productVariationId}`
+        if (!productRevenueMap.has(id)) {
+            productRevenueMap.set(id, {
+                name:
+                    record.name === 'Default'
+                        ? (record.productName ?? 'test')
+                        : (record.name ?? 'Unknown'),
+                revenue: 0,
+            })
+        }
+        const value = productRevenueMap.get(id)
+        productRevenueMap.set(id, {
+            ...value!,
+            revenue: value!.revenue + record.totalRevenue,
+        })
+    }
+
+    console.log(productRevenueMap)
+
     const totalRevenueByType = filteredRevenue.reduce(
         (acc, element) => {
             acc.cashRevenue += element.cashRevenue
@@ -726,10 +756,6 @@ export async function getRevenueStatsForDateRange({
         },
         { totalRevenue: 0, cashRevenue: 0, cardRevenue: 0 },
     )
-
-    // const totalRevenue = filteredRevenue.reduce((acc, element) => {
-    //     return +acc + +element.totalRevenue
-    // }, 0)
 
     const totalDiscountsByType = filteredDiscounts.reduce(
         (acc, element) => {
@@ -852,5 +878,6 @@ export async function getRevenueStatsForDateRange({
         previousInterval,
         previousRevenueByType,
         previousDiscountsByType,
+        productRevenueMap,
     }
 }

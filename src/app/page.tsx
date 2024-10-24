@@ -5,8 +5,8 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Features from './_components/Features'
 
-export default function HomePage() {
-    const user = auth()
+export default async function HomePage() {
+    const user = await auth()
     if (user.userId) {
         redirect('/dashboard')
     }

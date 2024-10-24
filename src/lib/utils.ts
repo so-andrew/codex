@@ -32,7 +32,7 @@ export const moneyFormat = Intl.NumberFormat('en-US', {
 })
 
 export function formatAsCurrency(current: string) {
-    return current.replace(/[^\d\.]/g, '')
+    return current.replace(/[^\d\.]/g, '');
 }
 
 export function currencyDisplayHandleChange(

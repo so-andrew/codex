@@ -41,13 +41,11 @@ import RevenueTypeStatsCard from '../_components/RevenueTypeStatsCard'
 import StatsCarousel from '../_components/StatsCarousel'
 
 type Props = {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }
 
-export async function generateMetadata(
-    { params }: Props,
-    parent: ResolvingMetadata,
-): Promise<Metadata> {
+export async function generateMetadata(props: Props, parent: ResolvingMetadata): Promise<Metadata> {
+    const params = await props.params;
     const id = parseInt(params.id)
     const convention = await getConventionById(id)
 
@@ -56,7 +54,8 @@ export async function generateMetadata(
     }
 }
 
-export default async function page({ params }: { params: { id: string } }) {
+export default async function page(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     const conventionId = parseInt(params.id)
     const convention = await getConventionById(conventionId)
 

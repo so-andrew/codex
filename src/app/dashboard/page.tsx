@@ -1,10 +1,11 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import {
-    DashboardRevenueData,
-    MonthlyRevenueChartData,
-    TotalDiscountsByType,
-    TotalRevenueByType,
+    type DashboardRevenueData,
+    type MonthlyRevenueChartData,
+    type ProductRevenue,
+    type TotalDiscountsByType,
+    type TotalRevenueByType,
 } from '@/types'
 import { useUser } from '@clerk/nextjs'
 import { interval } from 'date-fns'
@@ -26,8 +27,8 @@ const initialDiscountsByType: TotalDiscountsByType = {
 }
 
 export default function Dashboard() {
-    const user = useUser().user
-    const { dateRange, setDateRange } = useDatePickerStore((state) => state)
+    const { user } = useUser()
+    const { dateRange } = useDatePickerStore((state) => state)
     const [data, setData] = useState<DashboardRevenueData>({
         monthRevenueArray: [] as MonthlyRevenueChartData[],
         monthDiscountArray: {} as Map<string, number>,
@@ -36,13 +37,13 @@ export default function Dashboard() {
         previousRevenueByType: initialRevenueByType,
         previousDiscountsByType: initialDiscountsByType,
         previousInterval: interval(new Date(), new Date()),
+        productRevenueMap: new Map<string, ProductRevenue>(),
     })
 
     useEffect(() => {
         const updateData = async () => {
             if (dateRange) {
                 const {
-                    givenInterval,
                     monthRevenueMap,
                     monthDiscountMap,
                     totalRevenueByType,
@@ -50,6 +51,7 @@ export default function Dashboard() {
                     previousInterval,
                     previousRevenueByType,
                     previousDiscountsByType,
+                    productRevenueMap,
                 } = await getRevenueDateRange({
                     start: dateRange.from ?? new Date(),
                     end: dateRange.to,
@@ -77,7 +79,6 @@ export default function Dashboard() {
                         }
                     },
                 ) as MonthlyRevenueChartData[]
-                //setMonthlyRevenueChartData(dataArray)
                 setData({
                     monthRevenueArray: dataArray,
                     monthDiscountArray: monthDiscountMap,
@@ -86,6 +87,7 @@ export default function Dashboard() {
                     previousRevenueByType: previousRevenueByType,
                     previousDiscountsByType: previousDiscountsByType,
                     previousInterval: previousInterval,
+                    productRevenueMap: productRevenueMap,
                 })
             }
         }
@@ -122,7 +124,7 @@ export default function Dashboard() {
                     <Button variant="secondary">Add Product</Button>
                 </div>
             </div>
-            <section>
+            <section className="mb-10">
                 <StatisticsView data={data} />
             </section>
         </section>

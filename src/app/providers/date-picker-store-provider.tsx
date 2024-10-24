@@ -21,7 +21,7 @@ export interface DatePickerStoreProviderProps {
 export const DatePickerStoreProvider = ({
     children,
 }: DatePickerStoreProviderProps) => {
-    const storeRef = useRef<DatePickerStoreApi>()
+    const storeRef = useRef<DatePickerStoreApi>(undefined)
     if (!storeRef.current) {
         storeRef.current = createDatePickerStore(initDatePickerStore())
     }

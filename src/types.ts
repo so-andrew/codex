@@ -184,6 +184,12 @@ export type DashboardRevenueData = {
     previousDiscountsByType: TotalDiscountsByType
     givenInterval?: Interval
     previousInterval: Interval
+    productRevenueMap: Map<string, ProductRevenue>
+}
+
+export type ProductRevenue = {
+    name: string
+    revenue: number
 }
 
 export type TotalRevenueByType = {

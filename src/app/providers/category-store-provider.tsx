@@ -21,7 +21,7 @@ export interface CategoryStoreProviderProps {
 export const CategoryStoreProvider = ({
     children,
 }: CategoryStoreProviderProps) => {
-    const storeRef = useRef<CategoryStoreApi>()
+    const storeRef = useRef<CategoryStoreApi>(undefined)
     if (!storeRef.current) {
         storeRef.current = createCategoryStore(initCategoryStore())
     }

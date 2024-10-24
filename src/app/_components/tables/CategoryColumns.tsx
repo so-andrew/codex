@@ -67,7 +67,14 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
         cell: ({ row, table }) => {
             //const category = row.original.category
             return (
-                <div
+                // row.depth === 0 ? (
+                //     <Link href={`/dashboard/products/${product.id}`}>
+                //         {product.name} {row.depth}
+                //     </Link>
+                // ) : (
+                //     <span className="ml-4">{product.name}</span>
+                // )
+                (<div
                     className="flex items-center font-medium"
                     style={{
                         paddingLeft: `${row.depth * 2}rem`,
@@ -89,15 +96,8 @@ export const columns: ColumnDef<CategoryTableRow>[] = [
                         <span className="mr-2 h-4 w-4"></span>
                     )}
                     <EditCategoryButton row={row} meta={table.options.meta!} />
-                </div>
-                // row.depth === 0 ? (
-                //     <Link href={`/dashboard/products/${product.id}`}>
-                //         {product.name} {row.depth}
-                //     </Link>
-                // ) : (
-                //     <span className="ml-4">{product.name}</span>
-                // )
-            )
+                </div>)
+            );
         },
     },
     {
