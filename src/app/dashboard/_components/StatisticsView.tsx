@@ -26,7 +26,7 @@ export default function StatisticsView({
         <div className="flex flex-col gap-6">
             <DateRangePicker />
             {/* <h2>{displayDateString}</h2> */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-9 gap-4 items-stretch">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-6 2xl:grid-cols-8 gap-4 items-stretch">
                 <div className="lg:col-span-2">
                     <PeriodRevenueStatsCard
                         revenue={data.totalRevenueByType.totalRevenue}
@@ -51,7 +51,7 @@ export default function StatisticsView({
                         cardRevenue={data.totalRevenueByType.cardRevenue}
                     />
                 </div>
-                <div className="lg:col-span-4 row-start-2">
+                <div className="lg:col-span-4 lg:row-start-2">
                     <TopProductStatsCard
                         data={Array.from(data.productRevenueMap.values()).sort(
                             (a, b) => a.revenue - b.revenue,
