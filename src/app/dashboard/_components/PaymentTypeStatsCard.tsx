@@ -21,7 +21,7 @@ const chartConfig = {
     },
     card: {
         label: 'Card',
-        color: 'hsl(var(--chart-2))',
+        color: 'hsl(var(--chart-blue-1))',
     },
 } satisfies ChartConfig
 
@@ -92,33 +92,39 @@ export default function PaymentTypeStatsCard({
 
                         <span className="font-semibold">
                             {moneyFormat.format(cashRevenue)}
+                            <span className="text-gray-500 font-light">
+                                {isFinite(cashPercent)
+                                    ? ` (${cashPercent.toLocaleString(
+                                          undefined,
+                                          {
+                                              style: 'percent',
+                                              maximumFractionDigits: 2,
+                                          },
+                                      )})`
+                                    : ''}
+                            </span>
                         </span>
-                        {/* <span className="text-gray-500">
-                            {isFinite(cashPercent)
-                                ? cashPercent.toLocaleString(undefined, {
-                                      style: 'percent',
-                                      maximumFractionDigits: 2,
-                                  })
-                                : ''}
-                        </span> */}
                     </div>
                     <div className="flex flex-row justify-between gap-2">
                         <div className="flex flex-row gap-3 items-center">
-                            <div className="w-3 h-3 rounded-sm shrink-0 bg-[hsl(var(--chart-2))]" />
+                            <div className="w-3 h-3 rounded-sm shrink-0 bg-[hsl(var(--chart-blue-1))]" />
                             <h2 className="text-gray-500">Card</h2>
                         </div>
 
                         <span className="font-semibold">
                             {moneyFormat.format(cardRevenue)}
+                            <span className="text-gray-500 font-light">
+                                {isFinite(cardPercent)
+                                    ? ` (${cardPercent.toLocaleString(
+                                          undefined,
+                                          {
+                                              style: 'percent',
+                                              maximumFractionDigits: 2,
+                                          },
+                                      )})`
+                                    : ''}
+                            </span>
                         </span>
-                        {/* <span className="text-gray-500">
-                            {isFinite(cardPercent)
-                                ? cardPercent.toLocaleString(undefined, {
-                                      style: 'percent',
-                                      maximumFractionDigits: 2,
-                                  })
-                                : ''}
-                        </span> */}
                     </div>
                 </div>
             </CardContent>

@@ -190,6 +190,7 @@ export type DashboardRevenueData = {
 export type ProductRevenue = {
     name: string
     revenue: number
+    sales: number
 }
 
 export type TotalRevenueByType = {

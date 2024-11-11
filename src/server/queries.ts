@@ -736,12 +736,14 @@ export async function getRevenueStatsForDateRange({
                         ? (record.productName ?? 'test')
                         : (record.name ?? 'Unknown'),
                 revenue: 0,
+                sales: 0,
             })
         }
         const value = productRevenueMap.get(id)
         productRevenueMap.set(id, {
             ...value!,
             revenue: value!.revenue + record.totalRevenue,
+            sales: value!.sales + record.cardSales + record.cashSales,
         })
     }
 
