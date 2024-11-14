@@ -12,26 +12,29 @@ import {
     ChartTooltipContent,
 } from '@/components/ui/chart'
 import { moneyFormat } from '@/lib/utils'
-import { type ProductRevenue } from '@/types'
+import { type CategoryRevenue } from '@/types'
 import { Bar, BarChart, Cell, XAxis, YAxis } from 'recharts'
 
 const chartConfig = {
+    category: {
+        label: 'Category',
+        color: 'hsl(var(--chart-2))',
+    },
     revenue: {
         label: 'Revenue',
-        color: 'hsl(var(--chart-blue-1))',
+        color: 'hsl(var(--chart-1))',
     },
 } satisfies ChartConfig
 
-export default function TopProductStatsCard({
+export default function TopCategoryStatsCard({
     data,
 }: {
-    data: ProductRevenue[]
+    data: CategoryRevenue[]
 }) {
-    console.log('data:', data)
     return (
         <Card className="h-full">
             <CardHeader className="space-y-1">
-                <CardTitle className="text-lg">Top Selling Products</CardTitle>
+                <CardTitle className="text-lg">Top Categories</CardTitle>
                 <CardDescription className="leading-none">
                     Based on gross sales
                 </CardDescription>
@@ -50,7 +53,14 @@ export default function TopProductStatsCard({
                                         formatter={(value, name) => {
                                             return (
                                                 <div className="flex gap-2 w-full items-center">
-                                                    <div className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[hsl(var(--chart-blue-1))]" />
+                                                    <div
+                                                        className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[hsl(var(--chart-blue-1))]"
+                                                        // style={
+                                                        //     {
+                                                        //         '--color-bg': `var(--color-${name}),`,
+                                                        //     } as React.CSSProperties
+                                                        // }
+                                                    />
                                                     <div className="flex flex-row w-full justify-between">
                                                         <div className="text-muted-foreground">
                                                             {chartConfig[
@@ -67,8 +77,7 @@ export default function TopProductStatsCard({
                                     />
                                 }
                             />
-                            {/* <XAxis type="category" tick={false} /> */}
-                            <XAxis type="category" dataKey="name" hide />
+                            <XAxis type="category" dataKey="category" hide />
                             <YAxis type="number" unit="$" hide />
                             <Bar dataKey="revenue">
                                 {data.map((entry, index) => (
@@ -98,7 +107,7 @@ export default function TopProductStatsCard({
                             <div className="flex flex-row gap-3 items-center">
                                 <div className="w-3 h-3 rounded-sm shrink-0 bg-[hsl(var(--chart-blue-1))]" />
                                 <span className="text-gray-500">
-                                    {data.slice(-1)[0]?.name}
+                                    {data.slice(-1)[0]?.category}
                                 </span>
                             </div>
                             <div className="flex flex-row gap-2 font-semibold">
@@ -112,7 +121,7 @@ export default function TopProductStatsCard({
                             <div className="flex flex-row gap-3 items-center">
                                 <div className="w-3 h-3 rounded-sm shrink-0 bg-[hsl(var(--chart-blue-3))]" />
                                 <span className="text-gray-500">
-                                    {data[0]?.name}
+                                    {data[0]?.category}
                                 </span>
                             </div>
                             <div className="flex flex-row gap-2 font-semibold">

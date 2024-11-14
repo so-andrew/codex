@@ -1,8 +1,9 @@
 import { db } from '@/server/db'
 import {
+    type CategoryRevenue,
     type CategoryTableRow,
     type DailyRevenueReport,
-    ProductRevenue,
+    type ProductRevenue,
     type ProductTableRow,
     type TopSellingVariations,
 } from '@/types'
@@ -623,6 +624,7 @@ export async function getRevenueStatsForDateRange({
             productName: conventionProductReports.productName,
             productId: conventionProductReports.productId,
             productVariationId: conventionProductReports.productVariationId,
+            categoryName: conventionProductReports.categoryName,
             cashRevenue:
                 sql<number>`cast(${conventionProductReports.price}*${productDailyRevenue.cashSales} as float)`.as(
                     'cashRevenue',
@@ -652,6 +654,7 @@ export async function getRevenueStatsForDateRange({
             conventionProductReports.productVariationId,
             conventionProductReports.productName,
             conventionProductReports.name,
+            conventionProductReports.categoryName,
             productDailyRevenue.date,
             sql`DATE_TRUNC('month',${productDailyRevenue.date})`,
             productDailyRevenue.reportId,
@@ -726,6 +729,7 @@ export async function getRevenueStatsForDateRange({
         isWithinInterval(discount.date, givenInterval),
     )
 
+    const categoryRevenueMap = new Map<string, CategoryRevenue>()
     const productRevenueMap = new Map<string, ProductRevenue>()
     for (const record of filteredRevenue) {
         const id = `${record.productId}.${record.productVariationId}`
@@ -739,15 +743,32 @@ export async function getRevenueStatsForDateRange({
                 sales: 0,
             })
         }
+
+        const category = record.categoryName ?? 'Uncategorized'
+        if (!categoryRevenueMap.has(category)) {
+            categoryRevenueMap.set(category, {
+                category: category,
+                revenue: 0,
+                sales: 0,
+            })
+        }
+
         const value = productRevenueMap.get(id)
         productRevenueMap.set(id, {
             ...value!,
             revenue: value!.revenue + record.totalRevenue,
             sales: value!.sales + record.cardSales + record.cashSales,
         })
+        const categoryValue = categoryRevenueMap.get(category)
+        categoryRevenueMap.set(category, {
+            ...categoryValue!,
+            revenue: categoryValue!.revenue + record.totalRevenue,
+            sales: categoryValue!.sales + record.cardSales + record.cashSales,
+        })
     }
 
-    console.log(productRevenueMap)
+    console.log('prm:', productRevenueMap)
+    console.log('crm:', categoryRevenueMap)
 
     const totalRevenueByType = filteredRevenue.reduce(
         (acc, element) => {
@@ -881,5 +902,6 @@ export async function getRevenueStatsForDateRange({
         previousRevenueByType,
         previousDiscountsByType,
         productRevenueMap,
+        categoryRevenueMap,
     }
 }

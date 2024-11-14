@@ -59,7 +59,33 @@ export default function PaymentTypeStatsCard({
                             margin={{ top: 0, bottom: 0, left: 0, right: 0 }}
                         >
                             <ChartTooltip
-                                content={<ChartTooltipContent hideLabel />}
+                                content={
+                                    <ChartTooltipContent
+                                        hideLabel
+                                        formatter={(value, name) => (
+                                            <div className="flex gap-2 w-full items-center">
+                                                <div
+                                                    className={`h-2.5 w-2.5 shrink-0 rounded-[2px] ${name === 'card' ? 'bg-[--color-card]' : 'bg-[--color-cash]'}`}
+                                                    style={
+                                                        {
+                                                            '--color-bg': `var(--color-${name}),`,
+                                                        } as React.CSSProperties
+                                                    }
+                                                />
+                                                <div className="flex flex-row w-full justify-between">
+                                                    <div className="text-muted-foreground">
+                                                        {chartConfig[
+                                                            name as keyof typeof chartConfig
+                                                        ]?.label || name}
+                                                    </div>
+                                                    <div className="font-mono">
+                                                        {`\$${value as string}`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    />
+                                }
                             />
                             {/* <ChartLegend content={<ChartLegendContent />} /> */}
                             <XAxis type="number" hide />

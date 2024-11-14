@@ -185,10 +185,17 @@ export type DashboardRevenueData = {
     givenInterval?: Interval
     previousInterval: Interval
     productRevenueMap: Map<string, ProductRevenue>
+    categoryRevenueMap: Map<string, CategoryRevenue>
 }
 
 export type ProductRevenue = {
     name: string
+    revenue: number
+    sales: number
+}
+
+export type CategoryRevenue = {
+    category: string
     revenue: number
     sales: number
 }

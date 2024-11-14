@@ -5,6 +5,7 @@ import { useDatePickerStore } from '@/app/providers/date-picker-store-provider'
 import { type DashboardRevenueData } from '@/types'
 import PaymentTypeStatsCard from './PaymentTypeStatsCard'
 import PeriodRevenueStatsCard from './PeriodRevenueStatsCard'
+import TopCategoryStatsCard from './TopCategoryStatsCard'
 import TopProductStatsCard from './TopProductStatsCard'
 
 export default function StatisticsView({
@@ -45,7 +46,7 @@ export default function StatisticsView({
                 {/* <div className="col-span-3 row-span-1">
                     <MonthlyRevenueStatsCard data={data.monthRevenueArray} />
                 </div> */}
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-3">
                     <PaymentTypeStatsCard
                         cashRevenue={data.totalRevenueByType.cashRevenue}
                         cardRevenue={data.totalRevenueByType.cardRevenue}
@@ -54,6 +55,13 @@ export default function StatisticsView({
                 <div className="lg:col-span-4 lg:row-start-2">
                     <TopProductStatsCard
                         data={Array.from(data.productRevenueMap.values()).sort(
+                            (a, b) => a.revenue - b.revenue,
+                        )}
+                    />
+                </div>
+                <div className="lg:col-span-4 lg:row-start-2">
+                    <TopCategoryStatsCard
+                        data={Array.from(data.categoryRevenueMap.values()).sort(
                             (a, b) => a.revenue - b.revenue,
                         )}
                     />

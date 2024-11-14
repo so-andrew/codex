@@ -1,6 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import {
+    type CategoryRevenue,
     type DashboardRevenueData,
     type MonthlyRevenueChartData,
     type ProductRevenue,
@@ -38,6 +39,7 @@ export default function Dashboard() {
         previousDiscountsByType: initialDiscountsByType,
         previousInterval: interval(new Date(), new Date()),
         productRevenueMap: new Map<string, ProductRevenue>(),
+        categoryRevenueMap: new Map<string, CategoryRevenue>(),
     })
 
     useEffect(() => {
@@ -52,6 +54,7 @@ export default function Dashboard() {
                     previousRevenueByType,
                     previousDiscountsByType,
                     productRevenueMap,
+                    categoryRevenueMap,
                 } = await getRevenueDateRange({
                     start: dateRange.from ?? new Date(),
                     end: dateRange.to,
@@ -88,6 +91,7 @@ export default function Dashboard() {
                     previousDiscountsByType: previousDiscountsByType,
                     previousInterval: previousInterval,
                     productRevenueMap: productRevenueMap,
+                    categoryRevenueMap: categoryRevenueMap,
                 })
             }
         }
