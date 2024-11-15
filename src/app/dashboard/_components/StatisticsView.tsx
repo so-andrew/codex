@@ -3,6 +3,8 @@
 import { DateRangePicker } from '@/app/_components/DateRangePicker'
 import { useDatePickerStore } from '@/app/providers/date-picker-store-provider'
 import { type DashboardRevenueData } from '@/types'
+import { isBefore } from 'date-fns'
+import ConventionsStatsCard from './ConventionsStatsCard'
 import PaymentTypeStatsCard from './PaymentTypeStatsCard'
 import PeriodRevenueStatsCard from './PeriodRevenueStatsCard'
 import TopCategoryStatsCard from './TopCategoryStatsCard'
@@ -46,23 +48,30 @@ export default function StatisticsView({
                 {/* <div className="col-span-3 row-span-1">
                     <MonthlyRevenueStatsCard data={data.monthRevenueArray} />
                 </div> */}
-                <div className="lg:col-span-3">
+                <div className="lg:col-span-2">
                     <PaymentTypeStatsCard
                         cashRevenue={data.totalRevenueByType.cashRevenue}
                         cardRevenue={data.totalRevenueByType.cardRevenue}
                     />
                 </div>
-                <div className="lg:col-span-4 lg:row-start-2">
+                <div className="lg:col-span-2 lg:row-start-2">
                     <TopProductStatsCard
                         data={Array.from(data.productRevenueMap.values()).sort(
                             (a, b) => a.revenue - b.revenue,
                         )}
                     />
                 </div>
-                <div className="lg:col-span-4 lg:row-start-2">
+                <div className="lg:col-span-2 lg:row-start-2">
                     <TopCategoryStatsCard
                         data={Array.from(data.categoryRevenueMap.values()).sort(
                             (a, b) => a.revenue - b.revenue,
+                        )}
+                    />
+                </div>
+                <div className="lg:col-span-2">
+                    <ConventionsStatsCard
+                        data={data.conventionsInPeriod.sort((a, b) =>
+                            isBefore(a.startDate, b.startDate) ? -1 : 1,
                         )}
                     />
                 </div>

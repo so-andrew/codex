@@ -186,6 +186,7 @@ export type DashboardRevenueData = {
     previousInterval: Interval
     productRevenueMap: Map<string, ProductRevenue>
     categoryRevenueMap: Map<string, CategoryRevenue>
+    conventionsInPeriod: ConventionInfo[]
 }
 
 export type ProductRevenue = {
@@ -198,6 +199,14 @@ export type CategoryRevenue = {
     category: string
     revenue: number
     sales: number
+}
+
+export type ConventionInfo = {
+    id: number
+    name: string
+    location: string
+    startDate: Date
+    endDate: Date
 }
 
 export type TotalRevenueByType = {

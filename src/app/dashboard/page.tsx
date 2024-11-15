@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button'
 import {
     type CategoryRevenue,
+    type ConventionInfo,
     type DashboardRevenueData,
     type MonthlyRevenueChartData,
     type ProductRevenue,
@@ -40,6 +41,7 @@ export default function Dashboard() {
         previousInterval: interval(new Date(), new Date()),
         productRevenueMap: new Map<string, ProductRevenue>(),
         categoryRevenueMap: new Map<string, CategoryRevenue>(),
+        conventionsInPeriod: [] as ConventionInfo[],
     })
 
     useEffect(() => {
@@ -55,6 +57,7 @@ export default function Dashboard() {
                     previousDiscountsByType,
                     productRevenueMap,
                     categoryRevenueMap,
+                    conventionsInPeriod,
                 } = await getRevenueDateRange({
                     start: dateRange.from ?? new Date(),
                     end: dateRange.to,
@@ -92,6 +95,7 @@ export default function Dashboard() {
                     previousInterval: previousInterval,
                     productRevenueMap: productRevenueMap,
                     categoryRevenueMap: categoryRevenueMap,
+                    conventionsInPeriod: conventionsInPeriod,
                 })
             }
         }

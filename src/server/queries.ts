@@ -2,6 +2,7 @@ import { db } from '@/server/db'
 import {
     type CategoryRevenue,
     type CategoryTableRow,
+    type ConventionInfo,
     type DailyRevenueReport,
     type ProductRevenue,
     type ProductTableRow,
@@ -9,6 +10,7 @@ import {
 } from '@/types'
 import { auth } from '@clerk/nextjs/server'
 import {
+    areIntervalsOverlapping,
     differenceInCalendarDays,
     eachDayOfInterval,
     format,
@@ -644,9 +646,12 @@ export async function getRevenueStatsForDateRange({
             eq(conventionProductReports.id, productDailyRevenue.reportId),
         )
         .where(
-            or(
-                ne(productDailyRevenue.cashSales, 0),
-                ne(productDailyRevenue.cardSales, 0),
+            and(
+                or(
+                    ne(productDailyRevenue.cashSales, 0),
+                    ne(productDailyRevenue.cardSales, 0),
+                ),
+                eq(conventionProductReports.creatorId, user.userId),
             ),
         )
         .groupBy(
@@ -688,9 +693,12 @@ export async function getRevenueStatsForDateRange({
             eq(conventionDiscountReports.id, discountDaily.reportId),
         )
         .where(
-            or(
-                ne(discountDaily.cashDiscounts, 0),
-                ne(discountDaily.cardDiscounts, 0),
+            and(
+                or(
+                    ne(discountDaily.cashDiscounts, 0),
+                    ne(discountDaily.cardDiscounts, 0),
+                ),
+                eq(conventionDiscountReports.creatorId, user.userId),
             ),
         )
         .groupBy(
@@ -701,10 +709,24 @@ export async function getRevenueStatsForDateRange({
             conventionDiscountReports.amount,
         )
 
+    //console.log('rq:', revenueQuery)
+
+    const conventionQuery = (await db
+        .select({
+            id: conventions.id,
+            name: conventions.name,
+            location: conventions.location,
+            startDate: conventions.startDate,
+            endDate: conventions.endDate,
+        })
+        .from(conventions)
+        .where(eq(conventions.creatorId, user.userId))) as ConventionInfo[]
+
+    // Get current interval
     const givenInterval = interval(start, end ?? start)
     const dayDiff = differenceInCalendarDays(end ?? start, start) + 1
-    //const duration = intervalToDuration(givenInterval)
 
+    // Calculate previous interval
     const previousInterval =
         dayDiff === 1
             ? interval(subDays(start, 7), subDays(start, 7))
@@ -712,14 +734,6 @@ export async function getRevenueStatsForDateRange({
                   subDays(start, dayDiff),
                   end ? subDays(end, dayDiff) : subDays(start, dayDiff),
               )
-
-    //console.log('duration:', duration)
-    // console.log(
-    //     areIntervalsOverlapping(previousInterval, givenInterval, {
-    //         inclusive: true,
-    //     }),
-    // )
-    // console.log('dayDiff:', dayDiff)
 
     // Calculate stats for current period
     const filteredRevenue = revenueQuery.filter((record) =>
@@ -729,6 +743,9 @@ export async function getRevenueStatsForDateRange({
         isWithinInterval(discount.date, givenInterval),
     )
 
+    // Create category revenue map and product revenue map
+    // categoryRevenueMap maps category name to revenue, sales
+    // productRevenueMap maps product id to revenue, sales
     const categoryRevenueMap = new Map<string, CategoryRevenue>()
     const productRevenueMap = new Map<string, ProductRevenue>()
     for (const record of filteredRevenue) {
@@ -770,6 +787,7 @@ export async function getRevenueStatsForDateRange({
     console.log('prm:', productRevenueMap)
     console.log('crm:', categoryRevenueMap)
 
+    // Calculate total revenue by payment type
     const totalRevenueByType = filteredRevenue.reduce(
         (acc, element) => {
             acc.cashRevenue += element.cashRevenue
@@ -780,6 +798,7 @@ export async function getRevenueStatsForDateRange({
         { totalRevenue: 0, cashRevenue: 0, cardRevenue: 0 },
     )
 
+    // Calculate total discounts by payment type
     const totalDiscountsByType = filteredDiscounts.reduce(
         (acc, element) => {
             acc.cashDiscountAmount += element.cashDiscountAmount
@@ -890,6 +909,19 @@ export async function getRevenueStatsForDateRange({
         )
     }
 
+    // Filter conventions to current period
+    const conventionsInPeriod = conventionQuery.filter((convention) => {
+        const conventionInterval = interval(
+            convention.startDate,
+            convention.endDate,
+        )
+        return areIntervalsOverlapping(conventionInterval, givenInterval, {
+            inclusive: true,
+        })
+    })
+
+    console.log('conventionsInPeriod:', conventionsInPeriod)
+
     return {
         monthRevenueMap,
         monthDiscountMap,
@@ -903,5 +935,6 @@ export async function getRevenueStatsForDateRange({
         previousDiscountsByType,
         productRevenueMap,
         categoryRevenueMap,
+        conventionsInPeriod,
     }
 }
