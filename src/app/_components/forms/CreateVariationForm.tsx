@@ -66,7 +66,6 @@ export default function CreateVariationForm({
     const { isSubmitting } = formState
 
     async function onSubmit(data: z.infer<typeof variationSchema>) {
-        //console.log(data)
         await createVariation(data)
         setIsOpen(false)
     }

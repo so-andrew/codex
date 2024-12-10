@@ -23,7 +23,6 @@ export function DateRangePicker({
     )
 
     function handleSetDateRange(range: DateRange | undefined) {
-        console.log(range)
         if (range) setDateRange(range)
         else resetDateRange()
     }

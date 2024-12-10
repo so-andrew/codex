@@ -38,7 +38,6 @@ import {
     moneyFormat,
 } from '@/lib/utils'
 import { type Category } from '@/server/db/schema'
-import { DevTool } from '@hookform/devtools'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useReducer, useState } from 'react'
@@ -105,7 +104,6 @@ export default function CreateProduct({
                     formatAsCurrency(action.value!),
                     ...state.slice(action.index + 1),
                 ]
-                console.log('newArr', newArr)
                 return newArr
             case 'remove_value':
                 if (typeof action.index === 'undefined')
@@ -170,7 +168,6 @@ export default function CreateProduct({
     }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
         try {
             await createProduct(data)
             setVariationCount(0)
@@ -476,7 +473,6 @@ export default function CreateProduct({
                                 </Button>
                             </div>
                         </form>
-                        <DevTool control={form.control} />
                     </Form>
                 </DialogContent>
             </Dialog>

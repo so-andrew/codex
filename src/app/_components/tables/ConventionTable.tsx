@@ -194,22 +194,6 @@ export default function ConventionTable({ data }: { data: Convention[] }) {
                         </Button>
                     </div>
                     <div className="flex flex-row items-center gap-4">
-                        {/* <Button
-                            variant="outline"
-                            onClick={() => {
-                                console.log(getSelectedVariations())
-                            }}
-                        >
-                            Console Log
-                        </Button> */}
-                        {/* <Button
-                            variant="outline"
-                            onClick={() =>
-                                setIsEditPricesOpen(!isEditPricesOpen)
-                            }
-                        >s
-                            Edit Prices
-                        </Button>*/}
                         <Button
                             variant="destructive"
                             onClick={() =>

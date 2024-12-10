@@ -138,7 +138,7 @@ export default function CreateConvention() {
                                     <FormItem className="flex flex-col">
                                         <FormLabel>Dates</FormLabel>
                                         <FormControl>
-                                            <Popover>
+                                            <Popover modal={true}>
                                                 <PopoverTrigger asChild>
                                                     <Button
                                                         id="date"

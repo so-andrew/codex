@@ -77,7 +77,7 @@ export default function PeriodRevenueStatsCard({
         : ''
 
     return (
-        <Card>
+        <Card className="h-full">
             <CardHeader className="space-y-1">
                 <CardTitle className="text-lg">Key Metrics</CardTitle>
                 {previousString && (

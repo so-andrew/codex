@@ -6,9 +6,6 @@ import TestButton from '../_components/TestButton'
 export default async function ProfilePage() {
     const { userId } = await auth()
 
-    //const user = await currentUser()
-    //console.log(user)
-
     return (
         <section>
             <SignedIn>

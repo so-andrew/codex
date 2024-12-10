@@ -113,7 +113,6 @@ export default function ReportTable({
             startingRowExpandedState[product.productId] =
                 product.reports.length > 1
             for (const report of product.reports) {
-                //console.log(report)
                 def.current[`prod${report.id.toString()}`] = {
                     reportId: report.id,
                     date: day,
@@ -163,7 +162,6 @@ export default function ReportTable({
     async function onSubmit(data: z.infer<typeof formSchema>) {
         const updates = []
         const values = dirtyValues(dirtyFields, data)
-        console.log(values)
         for (const [id, formData] of Object.entries(values)) {
             try {
                 let parse = {} as ReportOrDiscount
@@ -202,7 +200,6 @@ export default function ReportTable({
                 })
             }
         }
-        //console.log(updates)
         await editRecords(updates)
     }
 
@@ -229,7 +226,6 @@ export default function ReportTable({
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     {/* Iterate over categories -> products -> variations */}
                     {data.map((category) => {
-                        //console.log(category.products)
                         return (
                             <div
                                 key={category.categoryId}

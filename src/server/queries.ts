@@ -610,7 +610,7 @@ export async function getRevenueStatsForDateRange({
     const user = await auth()
     if (!user.userId) throw new Error('Unauthorized')
 
-    console.log(start, end)
+    // console.log(start, end)
     if (!start) throw new Error('No start date')
 
     // Get all reports
@@ -784,8 +784,7 @@ export async function getRevenueStatsForDateRange({
         })
     }
 
-    console.log('prm:', productRevenueMap)
-    console.log('crm:', categoryRevenueMap)
+    // s
 
     // Calculate total revenue by payment type
     const totalRevenueByType = filteredRevenue.reduce(
@@ -843,18 +842,18 @@ export async function getRevenueStatsForDateRange({
         },
     )
 
-    console.log('start:', givenInterval.start, 'end:', givenInterval.end)
-    console.log(
-        'prev start:',
-        previousInterval.start,
-        'prev end:',
-        previousInterval.end,
-    )
+    // console.log('start:', givenInterval.start, 'end:', givenInterval.end)
+    // console.log(
+    //     'prev start:',
+    //     previousInterval.start,
+    //     'prev end:',
+    //     previousInterval.end,
+    // )
 
-    console.log('filtered:', filteredRevenue)
-    console.log('filtered disc:', filteredDiscounts)
-    console.log('prev filtered:', previousPeriodRevenue)
-    console.log('prev filtered disc:', previousPeriodDiscounts)
+    // console.log('filtered:', filteredRevenue)
+    // console.log('filtered disc:', filteredDiscounts)
+    // console.log('prev filtered:', previousPeriodRevenue)
+    // console.log('prev filtered disc:', previousPeriodDiscounts)
 
     // Map revenue to month
     const monthRevenueMap = new Map<string, number>()
@@ -920,7 +919,7 @@ export async function getRevenueStatsForDateRange({
         })
     })
 
-    console.log('conventionsInPeriod:', conventionsInPeriod)
+    // console.log('conventionsInPeriod:', conventionsInPeriod)
 
     return {
         monthRevenueMap,

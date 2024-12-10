@@ -207,32 +207,7 @@ export default function CategoryTable({
                             Deselect all
                         </Button>
                     </div>
-                    <div className="flex flex-row items-center gap-4">
-                        {/* <Button
-                            variant="outline"
-                            onClick={() => {
-                                console.log(getSelectedVariations())
-                            }}
-                        >
-                            Console Log
-                        </Button> */}
-                        {/* <Button
-                            variant="outline"
-                            onClick={() =>
-                                setIsEditPricesOpen(!isEditPricesOpen)
-                            }
-                        >
-                            Edit Prices
-                        </Button>*/}
-                        {/* <Button
-                           variant="destructive"
-                           onClick={() =>
-                               setIsDeleteProductsOpen(!isDeleteProductsOpen)
-                           }
-                       >
-                           Delete Products
-                       </Button> */}
-                    </div>
+                    <div className="flex flex-row items-center gap-4"></div>
                 </div>
             )}
         </>

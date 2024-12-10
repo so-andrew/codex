@@ -73,7 +73,6 @@ export default function EditProduct({ product, categories }: EditProductProps) {
     const { toast } = useToast()
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        //console.log(data)
         try {
             await editProduct(data)
             reset({}, { keepValues: true })

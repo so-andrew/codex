@@ -67,7 +67,6 @@ export default function EditVariation({
     }
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
         try {
             //await EditVariation(data)
             reset({}, { keepValues: true })

@@ -1,5 +1,4 @@
 'use client'
-import { Button } from '@/components/ui/button'
 import {
     type CategoryRevenue,
     type ConventionInfo,
@@ -43,6 +42,17 @@ export default function Dashboard() {
         categoryRevenueMap: new Map<string, CategoryRevenue>(),
         conventionsInPeriod: [] as ConventionInfo[],
     })
+    // const [categories, setCategories] = useState<Category[]>([])
+
+    // useEffect(() => {
+    //     const getCategories = async () => {
+    //         const { categories: userCategories } = await getUserCategories()
+    //         setCategories(userCategories)
+    //     }
+    //     getCategories().catch((error) => {
+    //         console.error(error)
+    //     })
+    // }, [])
 
     useEffect(() => {
         const updateData = async () => {
@@ -62,20 +72,6 @@ export default function Dashboard() {
                     start: dateRange.from ?? new Date(),
                     end: dateRange.to,
                 })
-                console.log(
-                    'rev:',
-                    monthRevenueMap,
-                    'disc:',
-                    monthDiscountMap,
-                    'total rev:',
-                    totalRevenueByType.totalRevenue,
-                    'total disc:',
-                    totalDiscountsByType.totalDiscountAmount,
-                    'prev rev:',
-                    previousRevenueByType.totalRevenue,
-                    'prev disc:',
-                    previousDiscountsByType.totalDiscountAmount,
-                )
                 const dataArray = Array.from(monthRevenueMap.entries()).map(
                     (entry, index) => {
                         return {
@@ -104,21 +100,6 @@ export default function Dashboard() {
         })
     }, [dateRange])
 
-    //const test = await getMonthlyRevenue()
-    //console.log(test)
-
-    // useEffect(() => {
-    //     console.log(data)
-    //     const dataArray = Array.from(data.entries()).map((entry, index) => {
-    //         return {
-    //             month: entry[0],
-    //             revenue: entry[1],
-    //             //fill: `hsl(var(--chart-${index + 1}))`,
-    //         }
-    //     }) as MonthlyRevenueChartData[]
-    //     setMonthlyRevenueChartData(dataArray)
-    // }, [data])
-
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
             {user ? (
@@ -126,12 +107,12 @@ export default function Dashboard() {
             ) : (
                 <h1 className="text-2xl font-semibold">Loading...</h1>
             )}
-            <div className="border-b pb-8">
+            {/* <div className="border-b pb-8">
                 <div className="flex flex-row gap-6">
-                    <Button className="">Add Convention</Button>
-                    <Button variant="secondary">Add Product</Button>
+                    <CreateConvention />
+                    <CreateProduct categories={categories} /> 
                 </div>
-            </div>
+            </div> */}
             <section className="mb-10">
                 <StatisticsView data={data} />
             </section>

@@ -27,7 +27,6 @@ export default function TopProductStatsCard({
 }: {
     data: ProductRevenue[]
 }) {
-    console.log('data:', data)
     return (
         <Card className="h-full">
             <CardHeader className="space-y-1">

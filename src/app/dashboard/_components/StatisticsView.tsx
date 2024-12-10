@@ -54,14 +54,14 @@ export default function StatisticsView({
                         cardRevenue={data.totalRevenueByType.cardRevenue}
                     />
                 </div>
-                <div className="lg:col-span-2 lg:row-start-2">
+                <div className="lg:col-span-3 lg:row-start-2">
                     <TopProductStatsCard
                         data={Array.from(data.productRevenueMap.values()).sort(
                             (a, b) => a.revenue - b.revenue,
                         )}
                     />
                 </div>
-                <div className="lg:col-span-2 lg:row-start-2">
+                <div className="lg:col-span-3 lg:row-start-2">
                     <TopCategoryStatsCard
                         data={Array.from(data.categoryRevenueMap.values()).sort(
                             (a, b) => a.revenue - b.revenue,
