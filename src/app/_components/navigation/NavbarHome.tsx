@@ -22,7 +22,7 @@ const NavbarHome = () => {
                 />
                 <span className="text-3xl">Codex</span>
             </Link>
-            <ul className="hidden h-full gap-12 sm:flex">
+            <ul className="h-full gap-12 sm:flex">
                 <div className="ml-10 items-center justify-center text-xl lg:flex">
                     <SignedOut>
                         <SignInButton>

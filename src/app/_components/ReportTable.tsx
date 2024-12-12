@@ -440,9 +440,6 @@ export default function ReportTable({
                                                                                                     onChange={(
                                                                                                         e,
                                                                                                     ) => {
-                                                                                                        console.log(
-                                                                                                            'hi',
-                                                                                                        )
                                                                                                         field.onChange(
                                                                                                             Number(
                                                                                                                 e
@@ -931,20 +928,6 @@ export default function ReportTable({
                         >
                             {/* <span>{`isDirty: ${isDirty}, getValues() === defaultValues = ${getValues() === defaultValues}, number of changes: ${Object.keys(dirtyFields).length}`}</span> */}
                             <span>{`${Object.keys(dirtyFields).length} changed field${Object.keys(dirtyFields).length !== 1 ? 's' : ''}`}</span>
-
-                            {/* <Button
-                                type="button"
-                                onClick={() => {
-                                    console.log('default', defaultValues)
-                                    console.log(
-                                        'curr',
-                                        JSON.stringify(getValues()),
-                                    )
-                                    console.log(defaultValues === getValues())
-                                }}
-                            >
-                                Log
-                            </Button> */}
                             <Button
                                 type="submit"
                                 className="hover:bg-purple-600"

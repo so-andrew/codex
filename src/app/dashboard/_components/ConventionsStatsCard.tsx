@@ -23,7 +23,7 @@ export default function ConventionsStatsCard({
                     In selected period
                 </CardDescription>
             </CardHeader>
-            <CardContent className="h-1/2 overflow-y-scroll">
+            <CardContent className="h-1/2 overflow-y-auto mr-2">
                 <div className="space-y-2">
                     {data.map((convention) => {
                         const startDateString = convention

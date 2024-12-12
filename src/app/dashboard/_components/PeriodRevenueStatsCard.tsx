@@ -55,11 +55,11 @@ export default function PeriodRevenueStatsCard({
         addDays(previousInterval.end, 1),
     )
 
-    // Interval length display
-    console.log(
-        JSON.stringify(previousInterval),
-        intervalToDuration(inclusiveInterval).days,
-    )
+    // // Interval length display
+    // console.log(
+    //     JSON.stringify(previousInterval),
+    //     intervalToDuration(inclusiveInterval).days,
+    // )
 
     const previousString = intervalToDuration(previousInterval).days
         ? formatDuration(intervalToDuration(inclusiveInterval), {

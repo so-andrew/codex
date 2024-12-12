@@ -3,7 +3,7 @@ import NavbarHome from '@/app/_components/navigation/NavbarHome'
 import { Separator } from '@/components/ui/separator'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import Features from './_components/Features'
+import { Features } from './_components/Features'
 
 export default async function HomePage() {
     const user = await auth()
@@ -16,6 +16,7 @@ export default async function HomePage() {
             <NavbarHome />
             <Hero />
             <Separator />
+            {/* <FeaturesOld /> */}
             <Features />
         </section>
     )
