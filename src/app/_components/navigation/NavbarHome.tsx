@@ -22,11 +22,14 @@ const NavbarHome = () => {
                 />
                 <span className="text-3xl">Codex</span>
             </Link>
-            <ul className="hidden h-full gap-12 sm:flex">
+            <ul className="h-full gap-12 sm:flex">
                 <div className="ml-10 items-center justify-center text-xl lg:flex">
                     <SignedOut>
                         <SignInButton>
-                            <Button className="items-center justify-start w-max gap-2 rounded-full text-lg font-medium bg-purple-500 hover:bg-purple-600 px-7 py-7">
+                            <Button
+                                variant="outline"
+                                className="items-center justify-start w-max gap-2 rounded-full text-lg font-medium hover:bg-purple-600 hover:text-white px-7 py-7"
+                            >
                                 <UserRound size={20}></UserRound>
                                 <span>Sign In</span>
                             </Button>

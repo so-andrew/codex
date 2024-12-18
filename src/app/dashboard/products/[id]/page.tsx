@@ -12,13 +12,11 @@ import { redirect } from 'next/navigation'
 import type { Metadata, ResolvingMetadata } from 'next/types'
 
 type Props = {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }
 
-export async function generateMetadata(
-    { params }: Props,
-    parent: ResolvingMetadata,
-): Promise<Metadata> {
+export async function generateMetadata(props: Props, parent: ResolvingMetadata): Promise<Metadata> {
+    const params = await props.params;
     const id = parseInt(params.id)
     const product = await getProductById(id)
 
@@ -27,7 +25,8 @@ export async function generateMetadata(
     }
 }
 
-export default async function page({ params }: { params: { id: string } }) {
+export default async function page(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     const product = (await getProductById(parseInt(params.id))) as Product
     const { categories, categoryMap } = await getUserCategories()
 

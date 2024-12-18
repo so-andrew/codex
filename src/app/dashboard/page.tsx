@@ -1,23 +1,58 @@
 'use client'
-import { Button } from '@/components/ui/button'
-import { DashboardRevenueData, MonthlyRevenueChartData } from '@/types'
+import {
+    type CategoryRevenue,
+    type ConventionInfo,
+    type DashboardRevenueData,
+    type MonthlyRevenueChartData,
+    type ProductRevenue,
+    type TotalDiscountsByType,
+    type TotalRevenueByType,
+} from '@/types'
 import { useUser } from '@clerk/nextjs'
+import { interval } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { getRevenueDateRange } from '../actions'
 import { useDatePickerStore } from '../providers/date-picker-store-provider'
 import StatisticsView from './_components/StatisticsView'
 
+const initialRevenueByType: TotalRevenueByType = {
+    cashRevenue: 0,
+    cardRevenue: 0,
+    totalRevenue: 0,
+}
+
+const initialDiscountsByType: TotalDiscountsByType = {
+    cashDiscountAmount: 0,
+    cardDiscountAmount: 0,
+    totalDiscountAmount: 0,
+}
+
 export default function Dashboard() {
-    const user = useUser().user
-    const { dateRange, setDateRange } = useDatePickerStore((state) => state)
+    const { user } = useUser()
+    const { dateRange } = useDatePickerStore((state) => state)
     const [data, setData] = useState<DashboardRevenueData>({
         monthRevenueArray: [] as MonthlyRevenueChartData[],
         monthDiscountArray: {} as Map<string, number>,
-        totalRevenue: 0,
-        totalDiscounts: 0,
-        previousRevenue: 0,
-        previousDiscounts: 0,
+        totalRevenueByType: initialRevenueByType,
+        totalDiscountsByType: initialDiscountsByType,
+        previousRevenueByType: initialRevenueByType,
+        previousDiscountsByType: initialDiscountsByType,
+        previousInterval: interval(new Date(), new Date()),
+        productRevenueMap: new Map<string, ProductRevenue>(),
+        categoryRevenueMap: new Map<string, CategoryRevenue>(),
+        conventionsInPeriod: [] as ConventionInfo[],
     })
+    // const [categories, setCategories] = useState<Category[]>([])
+
+    // useEffect(() => {
+    //     const getCategories = async () => {
+    //         const { categories: userCategories } = await getUserCategories()
+    //         setCategories(userCategories)
+    //     }
+    //     getCategories().catch((error) => {
+    //         console.error(error)
+    //     })
+    // }, [])
 
     useEffect(() => {
         const updateData = async () => {
@@ -25,28 +60,18 @@ export default function Dashboard() {
                 const {
                     monthRevenueMap,
                     monthDiscountMap,
-                    totalRevenue,
-                    totalDiscounts,
-                    previousTotalRevenue,
-                    previousTotalDiscounts,
+                    totalRevenueByType,
+                    totalDiscountsByType,
+                    previousInterval,
+                    previousRevenueByType,
+                    previousDiscountsByType,
+                    productRevenueMap,
+                    categoryRevenueMap,
+                    conventionsInPeriod,
                 } = await getRevenueDateRange({
                     start: dateRange.from ?? new Date(),
                     end: dateRange.to,
                 })
-                console.log(
-                    'rev:',
-                    monthRevenueMap,
-                    'disc:',
-                    monthDiscountMap,
-                    'total rev:',
-                    totalRevenue,
-                    'total disc:',
-                    totalDiscounts,
-                    'prev rev:',
-                    previousTotalRevenue,
-                    'prev disc:',
-                    previousTotalDiscounts,
-                )
                 const dataArray = Array.from(monthRevenueMap.entries()).map(
                     (entry, index) => {
                         return {
@@ -56,14 +81,17 @@ export default function Dashboard() {
                         }
                     },
                 ) as MonthlyRevenueChartData[]
-                //setMonthlyRevenueChartData(dataArray)
                 setData({
                     monthRevenueArray: dataArray,
                     monthDiscountArray: monthDiscountMap,
-                    totalRevenue: totalRevenue,
-                    totalDiscounts: totalDiscounts,
-                    previousRevenue: previousTotalRevenue,
-                    previousDiscounts: previousTotalDiscounts,
+                    totalRevenueByType: totalRevenueByType,
+                    totalDiscountsByType: totalDiscountsByType,
+                    previousRevenueByType: previousRevenueByType,
+                    previousDiscountsByType: previousDiscountsByType,
+                    previousInterval: previousInterval,
+                    productRevenueMap: productRevenueMap,
+                    categoryRevenueMap: categoryRevenueMap,
+                    conventionsInPeriod: conventionsInPeriod,
                 })
             }
         }
@@ -72,31 +100,20 @@ export default function Dashboard() {
         })
     }, [dateRange])
 
-    //const test = await getMonthlyRevenue()
-    //console.log(test)
-
-    // useEffect(() => {
-    //     console.log(data)
-    //     const dataArray = Array.from(data.entries()).map((entry, index) => {
-    //         return {
-    //             month: entry[0],
-    //             revenue: entry[1],
-    //             //fill: `hsl(var(--chart-${index + 1}))`,
-    //         }
-    //     }) as MonthlyRevenueChartData[]
-    //     setMonthlyRevenueChartData(dataArray)
-    // }, [data])
-
     return (
         <section className="3xl:px-0 mx-auto flex max-w-screen-2xl flex-col gap-4 px-8 py-4 lg:px-20">
-            <h1 className="text-2xl font-semibold">{`Welcome back, ${user?.firstName}.`}</h1>
-            <div className="border-b pb-8">
+            {user ? (
+                <h1 className="text-2xl font-semibold">{`Welcome back, ${user?.firstName}.`}</h1>
+            ) : (
+                <h1 className="text-2xl font-semibold">Loading...</h1>
+            )}
+            {/* <div className="border-b pb-8">
                 <div className="flex flex-row gap-6">
-                    <Button className="">Add Convention</Button>
-                    <Button variant="secondary">Add Product</Button>
+                    <CreateConvention />
+                    <CreateProduct categories={categories} /> 
                 </div>
-            </div>
-            <section>
+            </div> */}
+            <section className="mb-10">
                 <StatisticsView data={data} />
             </section>
         </section>

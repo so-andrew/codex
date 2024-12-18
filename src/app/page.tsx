@@ -3,10 +3,11 @@ import NavbarHome from '@/app/_components/navigation/NavbarHome'
 import { Separator } from '@/components/ui/separator'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import Features from './_components/Features'
+import { Features } from './_components/Features'
+import { LandingFooter } from './_components/LandingFooter'
 
-export default function HomePage() {
-    const user = auth()
+export default async function HomePage() {
+    const user = await auth()
     if (user.userId) {
         redirect('/dashboard')
     }
@@ -17,6 +18,7 @@ export default function HomePage() {
             <Hero />
             <Separator />
             <Features />
+            <LandingFooter />
         </section>
     )
 }

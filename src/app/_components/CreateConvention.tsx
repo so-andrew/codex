@@ -28,6 +28,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import { useState } from 'react'
+import { type DateRange } from 'react-day-picker'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -58,6 +59,10 @@ const formSchema = z.object({
 
 export default function CreateConvention() {
     const [isOpen, setIsOpen] = useState(false)
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: new Date(),
+        to: undefined,
+    })
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -133,7 +138,7 @@ export default function CreateConvention() {
                                     <FormItem className="flex flex-col">
                                         <FormLabel>Dates</FormLabel>
                                         <FormControl>
-                                            <Popover>
+                                            <Popover modal={true}>
                                                 <PopoverTrigger asChild>
                                                     <Button
                                                         id="date"
@@ -144,7 +149,7 @@ export default function CreateConvention() {
                                                                 'text-muted-foreground',
                                                         )}
                                                     >
-                                                        {field.value.from ? (
+                                                        {field.value?.from ? (
                                                             field.value.to ? (
                                                                 <>
                                                                     {format(

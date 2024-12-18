@@ -59,33 +59,6 @@ export default function VariationTable({ data }: { data: ProductVariation[] }) {
         return selectedRows.map((row) => row.original)
     }
 
-    // const handleRowClick = (
-    //     e: React.MouseEvent,
-    //     variation: ProductVariation,
-    // ) => {
-    //     console.log(e)
-    //     console.log(e.target)
-    //     console.log(e.target instanceof HTMLElement)
-
-    //     if (
-    //         e.target instanceof HTMLElement &&
-    //         (e.target.closest('input[type="checkbox"]') ||
-    //             e.target.closest('label') ||
-    //             e.target.closest('button') ||
-    //             e.target.closest('div') ||
-    //             e.target.closest('svg'))
-    //     ) {
-    //         return
-    //     }
-    //     console.log(`Setting variation to ${variation.name}`)
-    //     setEditVariation(variation)
-    // }
-
-    // const clearEditVariation = () => {
-    //     console.log('Setting variation to null')
-    //     setEditVariation(null)
-    // }
-
     return (
         <div className="relative min-h-screen pb-24">
             <div className="flex items-center py-4">

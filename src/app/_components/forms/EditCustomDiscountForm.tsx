@@ -64,7 +64,6 @@ export default function EditCustomDiscountForm({
     const { isSubmitting } = formState
 
     async function onSubmit(data: z.infer<typeof customDiscountReportSchema>) {
-        //console.log(data)
         await editCustomDiscount(data)
         setIsOpen(false)
         reset({}, { keepValues: false })

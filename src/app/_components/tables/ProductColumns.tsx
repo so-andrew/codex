@@ -87,17 +87,13 @@ export const columns: ColumnDef<ProductTableRow>[] = [
                 // <span className={`pl-[${row.depth * 2}rem]`}>
                 //     {row.getValue('name')}
                 // </span>
-                row.depth === 0 ? (
-                    <Link
-                        href={`/dashboard/products/${product.id}`}
-                        className="text-blue-500 font-medium"
-                    >
-                        {product.name}
-                    </Link>
-                ) : (
-                    <span className="ml-4">{product.name}</span>
-                )
-            )
+                (row.depth === 0 ? (<Link
+                    href={`/dashboard/products/${product.id}`}
+                    className="text-blue-500 font-medium"
+                >
+                    {product.name}
+                </Link>) : (<span className="ml-4">{product.name}</span>))
+            );
         },
     },
     {

@@ -109,7 +109,6 @@ export default function EditConvention({
     const { toast } = useToast()
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log(data)
         try {
             await editConvention(data)
             reset({}, { keepValues: true })
@@ -252,29 +251,6 @@ export default function EditConvention({
                                                         range,
                                                         selectedDay,
                                                     ) => {
-                                                        console.log(
-                                                            'range:',
-                                                            range,
-                                                        )
-                                                        console.log(
-                                                            'field.value:',
-                                                            field.value,
-                                                        )
-                                                        console.log(
-                                                            'selectedDay:',
-                                                            selectedDay,
-                                                        )
-                                                        console.log(
-                                                            field.value.from ===
-                                                                selectedDay,
-                                                        )
-                                                        console.log(
-                                                            isEqual(
-                                                                field.value
-                                                                    .from,
-                                                                selectedDay,
-                                                            ),
-                                                        )
                                                         if (
                                                             !range &&
                                                             isEqual(

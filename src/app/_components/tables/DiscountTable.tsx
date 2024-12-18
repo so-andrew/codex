@@ -52,10 +52,6 @@ export default function DiscountTable({ data }: { data: Discount[] }) {
         return selectedRows.map((row) => row.original)
     }
 
-    // const test = ['4', '5', '6', '10']
-    // console.log(test.sort())
-    // console.log(data)
-
     return (
         <>
             <div className="flex items-center py-4">
@@ -184,32 +180,7 @@ export default function DiscountTable({ data }: { data: Discount[] }) {
                             Deselect all
                         </Button>
                     </div>
-                    <div className="flex flex-row items-center gap-4">
-                        {/* <Button
-                            variant="outline"
-                            onClick={() => {
-                                console.log(getSelectedVariations())
-                            }}
-                        >
-                            Console Log
-                        </Button> */}
-                        {/* <Button
-                            variant="outline"
-                            onClick={() =>
-                                setIsEditPricesOpen(!isEditPricesOpen)
-                            }
-                        >
-                            Edit Prices
-                        </Button>*/}
-                        {/* <Button
-                           variant="destructive"
-                           onClick={() =>
-                               setIsDeleteProductsOpen(!isDeleteProductsOpen)
-                           }
-                       >
-                           Delete Products
-                       </Button> */}
-                    </div>
+                    <div className="flex flex-row items-center gap-4"></div>
                 </div>
             )}
         </>

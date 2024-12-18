@@ -113,7 +113,6 @@ export default function ReportTable({
             startingRowExpandedState[product.productId] =
                 product.reports.length > 1
             for (const report of product.reports) {
-                //console.log(report)
                 def.current[`prod${report.id.toString()}`] = {
                     reportId: report.id,
                     date: day,
@@ -163,7 +162,6 @@ export default function ReportTable({
     async function onSubmit(data: z.infer<typeof formSchema>) {
         const updates = []
         const values = dirtyValues(dirtyFields, data)
-        console.log(values)
         for (const [id, formData] of Object.entries(values)) {
             try {
                 let parse = {} as ReportOrDiscount
@@ -202,7 +200,6 @@ export default function ReportTable({
                 })
             }
         }
-        //console.log(updates)
         await editRecords(updates)
     }
 
@@ -229,7 +226,6 @@ export default function ReportTable({
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     {/* Iterate over categories -> products -> variations */}
                     {data.map((category) => {
-                        //console.log(category.products)
                         return (
                             <div
                                 key={category.categoryId}
@@ -444,9 +440,6 @@ export default function ReportTable({
                                                                                                     onChange={(
                                                                                                         e,
                                                                                                     ) => {
-                                                                                                        console.log(
-                                                                                                            'hi',
-                                                                                                        )
                                                                                                         field.onChange(
                                                                                                             Number(
                                                                                                                 e
@@ -935,20 +928,6 @@ export default function ReportTable({
                         >
                             {/* <span>{`isDirty: ${isDirty}, getValues() === defaultValues = ${getValues() === defaultValues}, number of changes: ${Object.keys(dirtyFields).length}`}</span> */}
                             <span>{`${Object.keys(dirtyFields).length} changed field${Object.keys(dirtyFields).length !== 1 ? 's' : ''}`}</span>
-
-                            {/* <Button
-                                type="button"
-                                onClick={() => {
-                                    console.log('default', defaultValues)
-                                    console.log(
-                                        'curr',
-                                        JSON.stringify(getValues()),
-                                    )
-                                    console.log(defaultValues === getValues())
-                                }}
-                            >
-                                Log
-                            </Button> */}
                             <Button
                                 type="submit"
                                 className="hover:bg-purple-600"

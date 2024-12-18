@@ -17,7 +17,10 @@ import {
     products,
     productVariations,
 } from '@/server/db/schema'
-import { getRevenueInDateRange, getUserCategories } from '@/server/queries'
+import {
+    getRevenueStatsForDateRange,
+    getUserCategories,
+} from '@/server/queries'
 import { z } from 'zod'
 
 export async function test() {
@@ -224,7 +227,7 @@ type NewDiscountReport = typeof conventionDiscountReports.$inferInsert
 type NewDailyDiscount = typeof discountDaily.$inferInsert
 
 export async function createProduct(data: z.infer<typeof productCreateScheme>) {
-    const user = auth()
+    const user = await auth()
     if (user && user.userId) {
         try {
             // If we have never created a category before, create a default
@@ -301,7 +304,7 @@ export async function createProduct(data: z.infer<typeof productCreateScheme>) {
 }
 
 export async function editProduct(data: z.infer<typeof productEditScheme>) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -343,7 +346,7 @@ export async function editProduct(data: z.infer<typeof productEditScheme>) {
 }
 
 export async function deleteProduct(data: z.infer<typeof generalItemSchema>) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
@@ -365,7 +368,7 @@ export async function deleteProduct(data: z.infer<typeof generalItemSchema>) {
 export async function bulkDeleteProduct(
     data: z.infer<typeof bulkProductDeleteScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -399,7 +402,7 @@ export async function bulkDeleteProduct(
 export async function createDiscount(
     data: z.infer<typeof discountCreateScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -426,7 +429,7 @@ export async function createDiscount(
 }
 
 export async function editDiscount(data: z.infer<typeof discountEditScheme>) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -462,7 +465,7 @@ export async function editDiscount(data: z.infer<typeof discountEditScheme>) {
 }
 
 export async function deleteDiscount(data: z.infer<typeof generalItemSchema>) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -486,7 +489,7 @@ export async function deleteDiscount(data: z.infer<typeof generalItemSchema>) {
 export async function createCategory(
     data: z.infer<typeof categoryCreateScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -524,7 +527,7 @@ export async function createCategory(
 }
 
 export async function editCategory(data: z.infer<typeof categoryEditScheme>) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -555,7 +558,7 @@ export async function editCategory(data: z.infer<typeof categoryEditScheme>) {
 }
 
 export async function deleteCategory(data: z.infer<typeof generalItemSchema>) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -579,7 +582,7 @@ export async function deleteCategory(data: z.infer<typeof generalItemSchema>) {
 export async function createVariation(
     data: z.infer<typeof variationCreateScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -626,7 +629,7 @@ export async function createVariation(
 }
 
 export async function editVariation(data: z.infer<typeof variationEditScheme>) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
@@ -709,7 +712,7 @@ export async function editVariation(data: z.infer<typeof variationEditScheme>) {
 export async function bulkEditVariation(
     data: z.infer<typeof bulkVariationEditScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
@@ -750,7 +753,7 @@ export async function deleteVariation({
     productId: number
     creatorId: string
 }) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -789,7 +792,7 @@ export async function deleteVariation({
 export async function bulkDeleteVariation(
     data: z.infer<typeof bulkVariationDeleteScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -873,7 +876,7 @@ export async function bulkDeleteVariation(
 export async function createConvention(
     data: z.infer<typeof conventionCreateScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -1023,7 +1026,7 @@ export async function createConvention(
 export async function editConvention(
     data: z.infer<typeof conventionEditScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -1075,7 +1078,7 @@ export async function deleteConvention({
     id: number
     creatorId: string
 }) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -1095,7 +1098,7 @@ export async function deleteConvention({
 export async function bulkDeleteConvention(
     data: z.infer<typeof bulkConventionDeleteScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -1126,7 +1129,7 @@ export async function bulkDeleteConvention(
 }
 
 export async function editRecords(data: z.infer<typeof reportFormScheme>) {
-    const user = auth()
+    const user = await auth()
 
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
@@ -1183,7 +1186,7 @@ export async function editRecords(data: z.infer<typeof reportFormScheme>) {
 export async function addCustomReport(
     data: z.infer<typeof customReportCreateScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
@@ -1239,7 +1242,7 @@ export async function addCustomReport(
 export async function editCustomReport(
     data: z.infer<typeof customReportEditScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
@@ -1267,7 +1270,7 @@ export async function editCustomReport(
 export async function addCustomDiscount(
     data: z.infer<typeof customDiscountCreateScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
@@ -1321,7 +1324,7 @@ export async function addCustomDiscount(
 export async function editCustomDiscount(
     data: z.infer<typeof customDiscountEditScheme>,
 ) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
@@ -1353,14 +1356,17 @@ export async function getRevenueDateRange({
     start: Date
     end?: Date
 }) {
-    const user = auth()
+    const user = await auth()
     if (!user || !user.userId) {
         const error = new Error('Invalid user.')
         throw error
     }
 
     try {
-        const query = await getRevenueInDateRange({ start: start, end: end })
+        const query = await getRevenueStatsForDateRange({
+            start: start,
+            end: end,
+        })
         return query
     } catch (e) {
         const error = e as Error

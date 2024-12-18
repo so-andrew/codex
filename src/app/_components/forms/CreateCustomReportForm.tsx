@@ -54,7 +54,6 @@ export default function CreateCustomReportForm({
     const { isSubmitting } = formState
 
     async function onSubmit(data: z.infer<typeof customProductReportSchema>) {
-        //console.log(data)
         await addCustomReport(data)
         setIsOpen(false)
         reset({}, { keepValues: false })

@@ -3,6 +3,7 @@ import {
     type Product,
     type ProductVariation,
 } from '@/server/db/schema'
+import { type Interval } from 'date-fns'
 import { type LucideIcon } from 'lucide-react'
 
 export interface SidebarItems {
@@ -177,8 +178,45 @@ export type ConfigEntry = {
 export type DashboardRevenueData = {
     monthRevenueArray: MonthlyRevenueChartData[]
     monthDiscountArray: Map<string, number>
+    totalRevenueByType: TotalRevenueByType
+    totalDiscountsByType: TotalDiscountsByType
+    previousRevenueByType: TotalRevenueByType
+    previousDiscountsByType: TotalDiscountsByType
+    givenInterval?: Interval
+    previousInterval: Interval
+    productRevenueMap: Map<string, ProductRevenue>
+    categoryRevenueMap: Map<string, CategoryRevenue>
+    conventionsInPeriod: ConventionInfo[]
+}
+
+export type ProductRevenue = {
+    name: string
+    revenue: number
+    sales: number
+}
+
+export type CategoryRevenue = {
+    category: string
+    revenue: number
+    sales: number
+}
+
+export type ConventionInfo = {
+    id: number
+    name: string
+    location: string
+    startDate: Date
+    endDate: Date
+}
+
+export type TotalRevenueByType = {
+    cashRevenue: number
+    cardRevenue: number
     totalRevenue: number
-    totalDiscounts: number
-    previousRevenue: number
-    previousDiscounts: number
+}
+
+export type TotalDiscountsByType = {
+    cashDiscountAmount: number
+    cardDiscountAmount: number
+    totalDiscountAmount: number
 }
