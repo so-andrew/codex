@@ -3,7 +3,7 @@ import {
     type Product,
     type ProductVariation,
 } from '@/server/db/schema'
-import { Interval } from 'date-fns'
+import { type Interval } from 'date-fns'
 import { type LucideIcon } from 'lucide-react'
 
 export interface SidebarItems {

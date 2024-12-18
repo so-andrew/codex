@@ -6,8 +6,8 @@ import Image from 'next/image'
 const Hero = () => {
     return (
         <section className=" bg-[#EDEFF1] text-black ">
-            <div className="max-w-[1440px] flex flex-col 3xl:px-0 mx-auto gap-20 px-6 py-20 md:gap-28 lg:px-20 lg:flex-row">
-                <div className="relative z-20 flex flex-1 flex-col items-center justify-center lg:items-start xl:w-1/2 py-16">
+            <div className="max-w-[1440px] flex flex-col 3xl:px-0 mx-auto gap-20 px-6 md:gap-28 lg:px-20 lg:flex-row lg:items-end">
+                <div className="relative z-20 flex flex-1 flex-col items-center justify-center lg:items-start py-36">
                     <h1 className="text-6xl lg:text-7xl">
                         Work sm
                         <span className="text-purple-400 hover:animate-pulse">
@@ -33,8 +33,8 @@ const Hero = () => {
                 <div className="relative object-contain z-20 hidden lg:block h-full">
                     <Image
                         src="/hero2trans.png"
-                        width={400}
-                        height={400}
+                        width={550}
+                        height={550}
                         alt="Hero image"
                     />
                 </div>

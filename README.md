@@ -1,29 +1,25 @@
-# Create T3 App
+# Codex
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Codex is a proof-of-concept sales tracking web app created for small business owners, particularly merchants who sell at craft fairs, art markets, and conventions.
 
-## What's next? How do I make an app with this?
+## Background
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+This project started as a Google Sheet I made for my girlfriend with a custom script to generate new sheets for each convention that we sell at, in order to tabulate how much revenue we make during a given weekend. From there, it has evolved into an all-encompassing spreadsheet with inventory tracking, sales statistics for top selling products, and more. I wanted to incorporate these features into an application with a clean user interface, borrowing heavily from the web UI of our payment processing service of choice, Square.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Features
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+### Manage your product library
 
-## Learn More
+Start by creating entries for each product you sell. Products can be organized into categories for more visual clarity. If you offer discounts (e.g. a "buy one, get one free" deal), you can track those as well.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### Track sales per convention
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Events in Codex are called "conventions". When you add a new convention, Codex creates a dedicated convention page where you can enter sales numbers and track statistics such as revenue by payment type and top selling products. For multi-day events, each day will have its own tab with its own statistics for more granular information.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### View trends and more in the dashboard
 
-## How do I deploy this?
+The dashboard is where you can see statistics across multiple events. You can see total revenue for a given time period and compare with previous periods, as well as get statistics on your top selling products and product categories.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+## See it in action
+
+You can view a live version of the project [here](link).
