@@ -45,3 +45,9 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# vscode files
+.vscode
+
+# prettier files
+prettier.config.cjs
