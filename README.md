@@ -22,4 +22,4 @@ The dashboard is where you can see statistics across multiple events. You can se
 
 ## See it in action
 
-You can view a live version of the project [here](link).
+You can view a live version of the project [here](https://codex-one-sable.vercel.app/).

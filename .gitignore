@@ -50,4 +50,4 @@ yarn-error.log*
 .vscode
 
 # prettier files
-prettier.config.cjs
+prettier.config.js
